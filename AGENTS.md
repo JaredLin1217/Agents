@@ -1,43 +1,27 @@
 # Project Operating Rules
 
-## Purpose
+Repo-local Codex rules for an isolated, deployable Agents workflow. Durable rules, docs, skills, and templates are English-only. Canonical detail lives in `docs/agents/*.yaml`.
 
-- Repo-local Codex rules for an isolated, deployable Agents workflow.
-- Keep this file small. Detailed rules live in `docs/agents/*.yaml`.
-- Durable rules, docs, skills, and templates must be English-only.
+## Route
 
-## Fast Path
+- Classify first with `docs/agents/workflows.yaml` common task matrix.
+- Answer-only with no current repo-state claim: run no commands and keep closeout compact.
+- Before edits, git/deploy actions, or current-state claims, inspect only the needed state and protect existing changes.
+- Use the smallest profile in `docs/agents/verify.yaml`; ordinary commit/tag/branch-push uses fast checkpoint gates.
+- Use `.agents/skills/project-isolation-workflow/SKILL.md` for executing or maintaining isolation, memory, deployment, multi-agent, skill, or maintenance procedures.
 
-- First classify the request: answer-only, scoped edit, policy maintenance, release/deploy, employee, or hard-isolation claim.
-- Answer-only with no current repo-state claim: do not run commands or load policy files just to close out.
-- Before edits, release/deploy/git actions, or current repo-state claims, inspect git state and protect existing changes.
-- Use the smallest applicable profile in `docs/agents/verify.yaml`; ordinary commit/tag checkpoints use fast gates, not full audit.
-- Use `.agents/skills/project-isolation-workflow/SKILL.md` for isolation, memory, deployment, multi-agent, skill, or maintenance tasks.
+## Boundaries
 
-## Guardrails
-
-- Global Memory: not used for normal project work.
-- Global Skills: not intentionally used for normal project work; `.agents/skills/**/SKILL.md` is project-local.
-- External filesystem: no access outside this repo unless the user authorizes exact path/action, except the approved temp handoff cache.
-- Temp handoff cache: `%TEMP%/codex-agent-status/<project-id>/`; report use as XR/XW.
+- Global Memory: not used unless the user explicitly requests it.
+- Global/system Skills: GS means intentional global/system `SKILL.md` use; `.agents/skills/**/SKILL.md` is project-local and does not count as GS.
+- External filesystem: no access outside this repo unless the user authorizes exact path/action, except `%TEMP%/codex-agent-status/<project-id>/`.
+- Report temp/external access as XR/XW.
 - Repo rules are behavioral, not a sandbox. Claim hard isolation only with verified runtime/tool/OS/account/cloud evidence.
 - Do not hand-edit `.git/`, generated output, caches, build output, vendored files, runtime copies, or live Codex environment state unless explicitly targeted.
 
-## Key Files
-
-- `docs/agents/policy.yaml`: authority, isolation, editing, closeout.
-- `docs/agents/workflows.yaml`: memory, multi-agent, handoff, maintenance.
-- `docs/agents/schemas.yaml`: assignment/report/status/evidence fields.
-- `docs/agents/deploy.yaml`: deployment allowlist/blocklist.
-- `docs/agents/verify.yaml`: verification profiles and gates.
-- `docs/templates/agents/`: source-neutral deployment bundle.
-
 ## Multi-Agent
 
-- Controller integrates; employees do not merge or reconcile others' work.
-- Launch employees only after explicit hire/spawn/delegation/parallel-agent request or clear semantic equivalent.
-- Prefer `manual-detached` for visible, controllable, non-blocking, longer local work.
-- Workers need exclusive normalized write scope and an ownership matrix. Poll or close active workers before editing their owned paths.
+- Use `docs/agents/workflows.yaml` for employee modes, ownership, roster, scoring batches, and recovery.
 
 ## Closeout
 
@@ -47,4 +31,4 @@ Always include:
 Isolation: GM <used/not used> | GS <used/not used> | XR <none/paths> | XW <none/paths>
 ```
 
-For answer-only/no-change work, keep closeout compact. Expand only for file changes, verification, risks, external access, durable knowledge, or explicit claim scope.
+Expand only for file changes, verification, risks, external access, durable knowledge, or explicit claim scope.

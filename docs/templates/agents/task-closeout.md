@@ -1,17 +1,17 @@
 # Task Closeout
 
-Use the smallest closeout that proves the current claim.
+Use the smallest closeout that proves the claim.
 
-1. Pick the smallest `docs/agents/verify.yaml` profile.
-2. Answer-only with no current repo-state claim: run no command and use compact closeout.
-3. Policy-pack edits: check changed files and changed mirror pairs only unless making a broader claim.
-4. Inspect git status only when files changed, current repo state is claimed, or git/release/deploy actions are involved.
-5. Expand the report only for file changes, verification, risk, external access, durable knowledge, or explicit claim scope.
-6. Do not rerun resolved one-off literal checks.
-7. Always include:
+1. Choose the smallest `docs/agents/verify.yaml` profile.
+2. No-change/no-current-state answer: no command, compact closeout.
+3. Current-state words such as now, latest, clean, dirty, online, completed, committed, pushed, tagged, or deployed require only the named state check.
+4. File changes: report changed files, verification, risks, external access, durable-knowledge impact, and claim scope when relevant.
+5. Ordinary commit/tag/branch-push uses fast checkpoint plus push result when applicable.
+6. Full audit is for release, deploy, protected/main push, broad audit, no-deduction, or explicit full verification.
 
-```text
-Isolation: GM <used/not used> | GS <used/not used> | XR <none/paths> | XW <none/paths>
-```
+Closeout shapes:
 
-Ordinary commit/tag uses fast checkpoint gates. Full release-grade gates are only for deploy/push/broad audit/no-deduction or explicit full verification. Do not present static checks as runtime or hard-isolation proof.
+- No-change: answer/result, optional caveat, required isolation line from `docs/agents/policy.yaml`.
+- Read-only explorer: score/result, up to 3 issues, up to 3 fixes, required isolation line.
+- File change: changed files, verification, risk, required isolation line.
+- Deploy/audit: claim scope, checks, failures/risks, required isolation line.

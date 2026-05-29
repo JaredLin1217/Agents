@@ -1,5 +1,6 @@
 schema: agents-deploy/v2
 purpose: "Allowlist/blocklist for deploying this Agents workflow into an authorized target repo."
+owns: "Deployment modes, allowlists, blocklists, validation levels, and target/source ownership."
 
 boundary:
   requires: "explicit user authorization for exact target path and write action"
@@ -7,13 +8,17 @@ boundary:
   target_owns: ["Codex App policy", "local environment", "agent status", "memory entries", "commits", "remotes", "deployment history"]
   source_must_not_store: "target status, employee history, commits, remotes, or deployment results"
 
-deployable_by_default:
-  root:
+deployment_modes:
+  core_bootstrap: "Install AGENTS.md, policy pack, project skill, gitignore fragment, deployment and closeout runbooks."
+  full_workflow: "Install core_bootstrap plus memory starters, runtime/evidence templates, and multi-agent/maintenance runbooks."
+  template_provider_mode: "Install full_workflow plus docs/templates/agents/** so the target can redeploy this workflow later."
+
+deployable_by_mode:
+  core_bootstrap:
     - from: "docs/templates/agents/AGENTS.md"
       to: "AGENTS.md"
     - from: "docs/templates/agents/gitignore.fragment"
       to: ".gitignore append/adapt"
-  policy_pack:
     - from: "docs/templates/agents/agents/policy.yaml"
       to: "docs/agents/policy.yaml"
     - from: "docs/templates/agents/agents/workflows.yaml"
@@ -24,12 +29,15 @@ deployable_by_default:
       to: "docs/agents/deploy.yaml"
     - from: "docs/templates/agents/agents/verify.yaml"
       to: "docs/agents/verify.yaml"
-  skills:
     - from: "docs/templates/agents/skills/project-isolation-workflow/SKILL.md"
       to: ".agents/skills/project-isolation-workflow/SKILL.md"
     - from: "docs/templates/agents/skills/project-isolation-workflow/agents/openai.yaml"
       to: ".agents/skills/project-isolation-workflow/agents/openai.yaml"
-  schemas:
+    - from: "docs/templates/agents/agents-deployment.md"
+      to: "docs/runbooks/agents-deployment.md"
+    - from: "docs/templates/agents/task-closeout.md"
+      to: "docs/runbooks/task-closeout.md"
+  full_workflow_additions:
     - from: "docs/templates/agents/agent-assignment.template.md"
       to: "docs/agent-assignment.template.md"
     - from: "docs/templates/agents/agent-event.template.md"
@@ -42,9 +50,6 @@ deployable_by_default:
       to: "docs/hard-isolation-evidence.template.md"
     - from: "docs/templates/agents/runtime-multi-agent-validation.template.md"
       to: "docs/runtime-multi-agent-validation.template.md"
-  memory:
-    - from: "docs/templates/agents/codex-memory.md"
-      to: "docs/codex-memory.md"
     - from: "docs/templates/agents/project-memory.md"
       to: "docs/project-memory.md"
     - from: "docs/templates/agents/memory-index.md"
@@ -53,9 +58,6 @@ deployable_by_default:
       to: "docs/memory-entry.template.md"
     - from: "docs/templates/agents/memory-entries-README.md"
       to: "docs/memory/entries/README.md"
-  runbooks:
-    - from: "docs/templates/agents/agents-deployment.md"
-      to: "docs/runbooks/agents-deployment.md"
     - from: "docs/templates/agents/isolation-audit.md"
       to: "docs/runbooks/isolation-audit.md"
     - from: "docs/templates/agents/multi-agent-workflow.md"
@@ -66,11 +68,10 @@ deployable_by_default:
       to: "docs/runbooks/session-handoff.md"
     - from: "docs/templates/agents/skill-authoring.md"
       to: "docs/runbooks/skill-authoring.md"
-    - from: "docs/templates/agents/task-closeout.md"
-      to: "docs/runbooks/task-closeout.md"
     - from: "docs/templates/agents/project-structure.md"
       to: "docs/project-structure.md"
-  recursive_template_bundle: "Copy docs/templates/agents/ by default so target drift checks remain valid."
+  template_provider_additions:
+    recursive_template_bundle: "Copy/adapt docs/templates/agents/** only when the target should redeploy this workflow later."
 
 do_not_deploy:
   paths:
@@ -86,6 +87,7 @@ do_not_deploy:
     - "docs/project-structure.md from the template-provider repository"
     - "docs/project-memory.md from the template-provider repository"
     - "docs/memory/index.md from the template-provider repository"
+    - "docs/templates/agents/ from the template-provider repository unless template_provider_mode is selected"
   categories: ["source commits/remotes/tags/branches/push status", "source employee/status/validation/deployment history", "source memory rows/entries", "source temp cache", "filled evidence records", "generated/cache/build/vendor/runtime output"]
 
 case_by_case:
@@ -99,11 +101,10 @@ case_by_case:
 steps:
   - "Confirm exact target path/write authorization."
   - "Inspect target state first."
-  - "Copy/adapt only allowlisted files."
+  - "Choose core_bootstrap, full_workflow, or template_provider_mode; default to core_bootstrap unless the user asks for more."
+  - "Copy/adapt only files listed under the chosen deployable_by_mode mode."
   - "Append/adapt gitignore.fragment; do not replace target .gitignore wholesale."
-  - "Remove source-specific names, paths, commits, remotes, status rows, memory rows, validation/deployment history."
-  - "Adapt project mode, scripts, and stack assumptions to target evidence."
-  - "Keep target status and memory in target repo."
+  - "Remove source-specific state and adapt target assumptions to target evidence."
   - "Validate target git state, source-neutral templates, and deployed skill metadata."
   - "Report exact target paths read/written."
 

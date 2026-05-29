@@ -2,10 +2,18 @@
 
 Source-neutral starter bundle for authorized target repos.
 
-- `AGENTS.md`, `agents/*.yaml`, `skills/project-isolation-workflow/`: rule pack.
-- `agent-*.template.md`, `controller-lease.template.md`, `hard-isolation-evidence.template.md`, `runtime-multi-agent-validation.template.md`: runtime/evidence starters.
-- `codex-memory.md`, `project-memory.md`, `memory-index.md`, `memory-entry.template.md`, `memory-entries-README.md`: memory starters.
-- `*-workflow.md`, `*-handoff.md`, `*-audit.md`, `*-deployment.md`, `*-maintenance.md`, `*-authoring.md`, `task-closeout.md`: runbook routers.
-- `gitignore.fragment`: local runtime ignore patterns.
+## What This Is
 
-Deploy with `docs/agents/deploy.yaml`; keep target state target-owned.
+Deployable, source-neutral Agents rules for target repos.
+
+## How To Deploy
+
+Use `docs/agents/deploy.yaml` and choose one mode:
+
+- `core_bootstrap`: default; router, policy pack, project skill, gitignore fragment, deployment and closeout runbooks.
+- `full_workflow`: core plus memory starters, runtime/evidence templates, and remaining runbooks.
+- `template_provider_mode`: full workflow plus recursive `docs/templates/agents/**`.
+
+## What Not To Copy
+
+Do not copy provider status, employee history, memory entries, commits, remotes, tags, runtime files, or filled evidence. Exact target authorization and target inspection are required before writing.

@@ -1,5 +1,6 @@
 schema: agents-schemas/v2
 purpose: "Field labels for assignments, reports, status, evidence, memory, and skills."
+owns: "Compact assignment/report schemas plus extended runtime, recovery, evidence, memory, and skill fields."
 
 assignment:
   required_fields:
@@ -28,6 +29,34 @@ assignment:
     Completion notification: "final report on complete, blocked, or stopped"
     Status event rule: "not allowed | controller records | employee append-only event at exact path"
     Boundary note: ""
+
+explorer_brief_assignment:
+  use_when: "session-managed read-only explorer with no edits and no recovery requirement"
+  fields: ["Agent", "Mode", "Role=explorer", "Runtime enforcement=behavioral-only unless verified", "Goal", "Read scope", "Forbidden scope", "Required project-local skills", "Edit permission=none", "Allowed tool/resource use", "Verification", "Final report requirements", "Isolation requirements"]
+  preset_rule: "Default for read-only/scoring explorers. Do not include ownership matrix, roster, runtime enforcement evidence, or worker-only fields unless recovery, ownership, or writes are involved."
+
+explorer_final_report:
+  fields: ["Agent", "Status", "Task", "Files inspected", "Findings/proposals", "Risks", "Verification", "Recommended next action", "Isolation line"]
+  rule: "Use full employee_final_report for workers, detached/cloud agents, long-running explorers, or recovery-sensitive work."
+
+scoring_explorer_report:
+  use_when: "read-only scoring or review batches"
+  fields: ["Agent", "Overall score", "Confidence", "Top issues", "Top fixes", "Cap suggestion", "Validity", "Verification", "Isolation line"]
+  optional_fields: ["Subscores", "Evidence quality", "Uncertainty reason", "Finding key", "Duplicate of"]
+  rule: "Keep scoring reports to score, up to 3 issues, up to 3 fixes, one cap/risk note, and isolation unless assigned otherwise."
+
+scoring_rollup_report:
+  use_when: "controller aggregates scoring_explorer_report batches"
+  fields: ["Batch", "Agents requested", "Reports received", "Reports accepted", "Reports excluded", "Raw scores", "Score distribution", "Mean score", "Median score", "Min score", "Max score", "Range", "Confidence", "Aggregation method", "Outliers", "Invalid reports", "Final score", "Score rationale", "Top issues", "Top fixes", "Dissent", "Cap applied", "Stop reason", "Integrated opinion", "Verification", "Isolation line"]
+  aggregation_rule: "Use median first, also report mean/range; exclude only invalid reports or stated outliers; repeated findings raise confidence instead of duplicating output."
+
+report_validation:
+  scoring_required: ["Agent", "Overall score", "Top issues", "Top fixes", "Validity", "Isolation line"]
+  score_rule: "Overall score must be numeric 0-100."
+  isolation_rule: "Isolation line must include GM, GS, XR, and XW values; XR/XW may be none or exact path list."
+  validity_values: ["accepted", "needs-revision", "rejected", "excluded"]
+  invalid_when: ["missing score", "non-numeric score", "missing isolation line", "forbidden read/write", "unsupported runtime or hard-isolation claim"]
+  report_hash_fields: ["Agent", "Runtime id", "Task", "Status", "Overall score", "Top issues", "Top fixes", "Validity", "Files changed"]
 
 ownership_matrix:
   use_when: "worker exists, two employees are active, or controller edits near employee scope"
@@ -80,13 +109,15 @@ agent_status_snapshot:
   location: "%TEMP%/codex-agent-status/<project-id>/agent-status.md"
   statuses: ["prepared", "active", "completed", "blocked", "stopped", "needs-review", "closed", "unknown"]
   required_fields: ["Snapshot version", "Agent", "Runtime id", "Nickname", "Mode", "Role", "Status", "Task", "Ownership", "Owned write scope", "Normalized owned write scope", "Shared read scope", "Ownership matrix status", "Last known event", "Last poll result", "Close required", "Runtime close result", "Closed at", "History cleanup", "History cleanup authorization", "Project-external status path"]
+  explorer_queue_fields: ["Agent", "Runtime id", "Task", "Read scope", "Status", "Last poll", "Needs review", "Next action", "Report hash", "Duplicate count", "No-progress count"]
   history_cleanup_values: ["not requested", "not applicable", "authorized", "completed", "failed"]
 
 agent_event:
   names: ["prepare", "launch", "spawn", "input", "progress", "poll", "report", "wait", "blocked", "stop", "close", "reconciled"]
+  explorer_event_fields: ["Agent", "Runtime id", "Event", "Status", "Summary", "Needs review", "Next action", "Report id", "Report observed at", "Report hash", "Duplicate count"]
   ownership_event_fields: ["Normalized owned write scope", "Ownership conflict status", "Ownership matrix status", "Checked against"]
   close_event_fields: ["Close required", "Runtime close result", "Closed at", "History cleanup", "History cleanup authorization", "Roster snapshot version"]
-  rule: "Report events preserve final-report fields or mark unavailable fields not applicable."
+  rule: "Report events preserve only fields relevant to the event; unavailable final-report fields may be not applicable."
 
 controller_lease:
   location: "%TEMP%/codex-agent-status/<project-id>/controller-lease.md"

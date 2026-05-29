@@ -1,5 +1,7 @@
 # Agent Event
 
+## Core
+
 - Event id:
 - Created at:
 - Created by:
@@ -8,14 +10,15 @@
 - Agent:
 - Mode:
 - Runtime id:
-- Runtime enforcement:
-- Runtime enforcement evidence:
 - Role:
 - Event:
 - Allowed events: prepare | launch | spawn | input | progress | poll | report | wait | blocked | stop | close | reconciled
 - Status:
 - Roster snapshot version:
 - Task:
+
+## Scope / Ownership
+
 - Ownership:
 - Owned write scope:
 - Normalized owned write scope:
@@ -25,16 +28,29 @@
 - Shared read scope:
 - Allowed scope:
 - Forbidden scope:
+
+## Work
+
 - Files inspected:
 - Files changed:
 - Project-local skills read:
 - Current stopping point:
+- Needs review:
+- Next action:
+- Report id:
+- Report observed at:
+- Report hash:
+- Duplicate count:
+- No-progress count:
+
+## Close / Boundary
+
+- Runtime enforcement:
+- Runtime enforcement evidence:
 - Boundary note:
 - Roster requirement:
 - Roster path:
 - Roster write permission:
-- Needs review:
-- Next action:
 - Close required:
 - Runtime close result:
 - Closed at:

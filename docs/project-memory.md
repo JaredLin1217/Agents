@@ -2,12 +2,8 @@
 
 Repo-local substitute for global Codex Memory.
 
+- Policy: `docs/agents/workflows.yaml`
 - Index: `docs/memory/index.md`
 - Details: `docs/memory/entries/`
 
-Rules:
-
-- Add only verified, reusable, project-specific lessons.
-- Ask before adding unless the user explicitly requested memory maintenance.
-- Write English only.
-- Treat memory as hints; recurring gates belong in `docs/agents/verify.yaml`.
+Use repo-local memory only unless the user explicitly approves global Memory. Memory is a hint; add only verified, reusable, project-specific lessons and verify them against current repo evidence before acting.

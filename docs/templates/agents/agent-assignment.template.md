@@ -1,5 +1,37 @@
 # Agent Assignment
 
+## Explorer Brief
+
+Use for short read-only explorers.
+
+- Agent:
+- Mode:
+- Role: explorer
+- Runtime enforcement: behavioral-only unless separately verified
+- Goal:
+- Read scope:
+- Forbidden scope:
+- Required project-local skills:
+- Edit permission: none
+- Allowed tool/resource use:
+- Verification:
+- Final report requirements:
+- Isolation requirements:
+
+Fast batch preset: reuse one brief per role, fill available runtime slots first, and use `scoring_explorer_report` for scoring/review explorers unless recovery or writes are involved.
+
+## Compact Explorer Final
+
+- Score / result:
+- Confidence / validity:
+- Top issues:
+- Top fixes:
+- Cap / risk:
+- Verification:
+- Isolation:
+
+## Full Assignment
+
 - Status context:
 - Agent:
 - Runtime id:
@@ -25,9 +57,6 @@
 - Completion notification:
 - Status event rule:
 - Boundary note:
-
-## Notes
-
 - Task details:
 - Ownership matrix reference:
 - Controller instructions:

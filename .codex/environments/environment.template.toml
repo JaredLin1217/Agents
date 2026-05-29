@@ -3,6 +3,7 @@ version = 1
 name = "Project Name"
 
 [setup]
+# PowerShell syntax; adapt per target shell.
 script = '''
 cd "$env:CODEX_WORKTREE_PATH"
 git status -sb

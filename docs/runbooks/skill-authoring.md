@@ -1,16 +1,10 @@
 # Skill Authoring
 
-Use before creating or updating any project-local `SKILL.md`.
+Use before creating or updating project-local skills.
 
-1. Confirm the workflow is repeatable and not better as `AGENTS.md`, memory, decision, runbook, or policy-pack rule.
-2. Create skills only under `.agents/skills/<skill-name>/`.
-3. Keep `SKILL.md` concise and procedural.
-4. Put long explanations in `docs/agents/` or `docs/decisions/`.
-5. Include `agents/openai.yaml` with required metadata.
-6. Make `default_prompt` mention the actual skill invocation name with a dollar prefix.
-7. Do not create project-specific skills in global Codex skill folders.
+1. Create only repeatable workflows that do not belong in `AGENTS.md`, memory, decisions, runbooks, or policy pack.
+2. Store under `.agents/skills/<skill-name>/`.
+3. Keep `SKILL.md` concise and include `agents/openai.yaml` metadata from `docs/agents/schemas.yaml`.
+4. Do not create project-specific global Codex skills.
 
-Key references:
-
-- Skill policy: `docs/agents/workflows.yaml`
-- Skill metadata schema: `docs/agents/schemas.yaml`
+References: `docs/agents/workflows.yaml`, `docs/agents/schemas.yaml`.

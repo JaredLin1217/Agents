@@ -1,10 +1,23 @@
 # Agent Status Handoff
 
-Snapshot: Status `unknown`; Snapshot version `0`; Last reviewed `unknown`; Current branch `unknown`; Latest known commit `unknown`; Git state `unknown`; Remote state `unknown`; Release marker `unknown`; Current focus `unknown`; Next action `unknown`; Active employee count `0`; Last employee poll `unknown`; Event inbox `%TEMP%/codex-agent-status/<project-id>/events/`; Controller lease `%TEMP%/codex-agent-status/<project-id>/controller-lease.md`.
+## Snapshot
 
-Employee mode policy: prefer manual-detached for visible, controllable, non-blocking, longer local work.
+- Status: `unknown`
+- Snapshot version: `0`
+- Last reviewed: `unknown`
+- Repo: branch `unknown`; commit `unknown`; git `unknown`; remote `unknown`; release `unknown`
+- Focus: `unknown`
+- Next action: `unknown`
+- Employees: active `0`; last poll `unknown`
+- Event inbox: `%TEMP%/codex-agent-status/<project-id>/events/`
+- Controller lease: `%TEMP%/codex-agent-status/<project-id>/controller-lease.md`
 
-## Employee Agents
+## Explorer Queue
+
+| Agent | Runtime id | Task | Read scope | Status | Last poll | Needs review | Report hash | Duplicate count | No-progress count | Next action |
+|---|---|---|---|---|---|---|---|---|---|---|
+
+## Worker / Detached Agents
 
 | Agent | Mode | Runtime id | Runtime enforcement | Role | Task | Ownership | Owned write scope | Normalized owned write scope | Shared read scope | Ownership matrix status | Allowed scope | Forbidden scope | Status | Poll state | Needs review | Files inspected | Files changed | Project-local skills read | Stopping point | Next action | Last updated |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
