@@ -8,7 +8,8 @@ Use only after explicit hire/spawn/delegate/parallel-agent request or clear equi
 2. Create one reusable brief per role type from `explorer_brief_assignment` or the full worker assignment.
 3. Fill the runtime's current maximum active slots, keep the rest queued, and refill immediately when one employee completes.
 4. Do not re-read this runbook or every canonical YAML file for each employee.
-5. Close completed employees after recording the final report; final report is the completion notification.
+5. Append recovery-sensitive lifecycle events to `.agents/runtime/agent-ledger.jsonl`.
+6. Close completed employees after recording the final report; final report is the completion notification.
 
 ## Scoring Batches
 
@@ -25,7 +26,8 @@ Use only after explicit hire/spawn/delegate/parallel-agent request or clear equi
 - Use read-only explorers for scoring, review, or investigation.
 - Use workers only with exclusive normalized write scope.
 - Poll/close before controller edits overlap active worker scope.
-- Use the temp roster when two or more employees are active, work may outlive context, writes occur, or later recovery matters.
-- Report temp roster access as XR/XW; never stage volatile roster, event, lease, or filled validation files.
+- Use the project-local ledger for detached, long-lived, concurrent, write-capable, or recovery-sensitive employees.
+- Use temp roster only as external fallback; report temp access as XR/XW.
+- Never stage volatile ledger, roster, event, lease, or filled validation files.
 
 References: `docs/agents/workflows.yaml`, `docs/agents/schemas.yaml`, `docs/agents/verify.yaml`.

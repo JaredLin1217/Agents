@@ -12,7 +12,8 @@
 - Runtime id:
 - Role:
 - Event:
-- Allowed events: prepare | launch | spawn | input | progress | poll | report | wait | blocked | stop | close | reconciled
+- Allowed events: prepare | hired | launch | spawn | started | input | progress | poll | report | completed | blocked | stopped | wait | close | shutdown | integrated | reconciled
+- Ledger event id:
 - Status:
 - Roster snapshot version:
 - Task:
@@ -51,6 +52,9 @@
 - Roster requirement:
 - Roster path:
 - Roster write permission:
+- Ledger requirement:
+- Ledger path:
+- Ledger write permission:
 - Close required:
 - Runtime close result:
 - Closed at:

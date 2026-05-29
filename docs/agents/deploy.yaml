@@ -5,8 +5,8 @@ owns: "Deployment modes, allowlists, blocklists, validation levels, and target/s
 boundary:
   requires: "explicit user authorization for exact target path and write action"
   method: "inspect target, then copy/adapt allowlisted files"
-  target_owns: ["Codex App policy", "local environment", "agent status", "memory entries", "commits", "remotes", "deployment history"]
-  source_must_not_store: "target status, employee history, commits, remotes, or deployment results"
+  target_owns: ["Codex App policy", "local environment", "agent ledger", "agent status", "memory entries", "commits", "remotes", "deployment history"]
+  source_must_not_store: "target status, employee ledger/history, commits, remotes, or deployment results"
 
 deployment_modes:
   core_bootstrap: "Install AGENTS.md, policy pack, project skill, gitignore fragment, deployment and closeout runbooks."
@@ -82,6 +82,7 @@ do_not_deploy:
   paths:
     - "docs/agent-status.md"
     - "docs/agent-events/"
+    - ".agents/runtime/"
     - "docs/tmp-approval-*/"
     - "docs/hard-isolation-evidence/"
     - "docs/runtime-multi-agent-validation/"
@@ -93,7 +94,7 @@ do_not_deploy:
     - "docs/project-memory.md from the template-provider repository"
     - "docs/memory/index.md from the template-provider repository"
     - "docs/templates/agents/ from the template-provider repository unless template_provider_mode is selected"
-  categories: ["source commits/remotes/tags/branches/push status", "source employee/status/validation/deployment history", "source memory rows/entries", "source temp cache", "filled evidence records", "generated/cache/build/vendor/runtime output"]
+  categories: ["source commits/remotes/tags/branches/push status", "source employee ledger/status/validation/deployment history", "source memory rows/entries", "source temp cache", "filled evidence records", "generated/cache/build/vendor/runtime output"]
 
 case_by_case:
   - "docs/decisions/: copy only adopted decisions."

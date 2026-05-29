@@ -21,7 +21,7 @@ Agents rules live inside the target repo.
 | `docs/runbooks/*.md` | Task entry points | mode-based deploy |
 | `docs/templates/agents/` | Optional redeploy bundle | `template_provider_mode` only |
 | `docs/memory/`, `docs/decisions/` | Target-local knowledge | target-owned |
-| `.codex/`, status, validation records | Local runtime state | never deploy |
+| `.agents/runtime/`, `.codex/`, status, validation records | Local runtime state | never deploy |
 
 - `AGENTS.md`: every-session router.
 - `.agents/skills/project-isolation-workflow/`: project-local skill.
@@ -30,4 +30,4 @@ Agents rules live inside the target repo.
 - `docs/memory/`: target-local lessons.
 - `docs/templates/agents/`: optional template-provider bundle for redeployment.
 
-Target memory, decisions, status, Codex App config, local environment state, and validation history stay target-owned.
+Target memory, decisions, agent ledger, status, Codex App config, local environment state, and validation history stay target-owned.

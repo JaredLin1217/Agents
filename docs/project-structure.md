@@ -21,7 +21,7 @@ This source repo owns the canonical Agents policy pack and deployment templates.
 | `docs/runbooks/*.md` | Task entry points | mode-based deploy |
 | `docs/templates/agents/` | Provider deploy bundle | `template_provider_mode` only |
 | `docs/memory/`, `docs/decisions/` | Provider-local knowledge | target-owned / do not deploy rows |
-| `.codex/`, status, validation records | Local runtime state | never deploy |
+| `.agents/runtime/`, `.codex/`, status, validation records | Local runtime state | never deploy |
 
 - `AGENTS.md`: every-session router.
 - `.agents/skills/project-isolation-workflow/`: project-local skill.
@@ -30,4 +30,4 @@ This source repo owns the canonical Agents policy pack and deployment templates.
 - `docs/templates/agents/`: source-neutral deploy bundle.
 - `docs/memory/`, `docs/decisions/`: source-local lessons and decisions.
 
-Do not deploy source `.codex/config.toml`, `.codex/environments/environment.toml`, source memory rows, decisions, status, or validation history by default.
+Do not deploy source `.agents/runtime/`, `.codex/config.toml`, `.codex/environments/environment.toml`, source memory rows, decisions, status, or validation history by default.

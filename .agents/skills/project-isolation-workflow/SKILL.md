@@ -20,7 +20,8 @@ Use this project-local skill when executing or maintaining isolation, memory, de
 - Assignment first; stay inside assigned read/write scope.
 - Explorers are read-only and can use the brief explorer schema.
 - Workers need exclusive normalized write scope.
-- Use temp roster only when required; report it as XR/XW.
+- Record recovery-sensitive employee lifecycle in `.agents/runtime/agent-ledger.jsonl`; it is repo-local ignored runtime state and not XR/XW.
+- Use temp roster only when external handoff fallback is required; report it as XR/XW.
 - Final report is the completion notification; controller reviews before integration.
 - Fast hiring: run one controller status check, fill available runtime slots first, keep a queue, and refill immediately when one employee completes.
 - Do not re-read every runbook for each hire; use the assignment preset and only open canonical files needed by the task.

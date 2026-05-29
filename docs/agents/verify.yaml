@@ -28,7 +28,7 @@ file_classes:
   runbooks: ["docs/runbooks/*.md"]
   deploy_templates: ["docs/templates/agents/**"]
   memory_docs: ["docs/project-memory.md", "docs/memory/**", "docs/memory-entry.template.md"]
-  runtime_local: [".codex/environments/environment.toml", "docs/agent-status.md", "docs/agent-events/**", "docs/runtime-multi-agent-validation/**", "docs/hard-isolation-evidence/**"]
+  runtime_local: [".agents/runtime/**", ".codex/environments/environment.toml", "docs/agent-status.md", "docs/agent-events/**", "docs/runtime-multi-agent-validation/**", "docs/hard-isolation-evidence/**"]
   generated_or_cache: ["generated output", "cache", "build output", "vendor"]
 
 gate_matrix:
@@ -52,7 +52,7 @@ commands:
   changed_english: 'rg -n "[\p{Han}]" <changed durable rule/template files>'
   changed_placeholders: 'rg -n "TO[D]O|\[TO[D]O\]|T[B]D|FI[X]ME" <changed durable rule/template files>'
   line_endings: "git ls-files --eol <changed files>"
-  ignored_runtime: "git check-ignore -v docs/agent-status.md docs/agent-events/ docs/tmp-approval-example/report.md docs/hard-isolation-evidence/example.md docs/runtime-multi-agent-validation/example.md .codex/environments/environment.toml"
+  ignored_runtime: "git check-ignore -v .agents/runtime/agent-ledger.jsonl docs/agent-status.md docs/agent-events/ docs/tmp-approval-example/report.md docs/hard-isolation-evidence/example.md docs/runtime-multi-agent-validation/example.md .codex/environments/environment.toml"
   deploy_steps_top_level: 'rg -n "^steps:" docs/agents/deploy.yaml docs/templates/agents/agents/deploy.yaml'
   deploy_steps_not_nested: 'rg -n "^  steps:" docs/agents/deploy.yaml docs/templates/agents/agents/deploy.yaml'
   deploy_sources_exist: "Every deployable_by_mode from path exists; mode_composition names existing groups."
@@ -162,7 +162,7 @@ no_deduction_audit:
     - "Claim scope stated."
   when_applicable:
     - "Workers have non-overlapping normalized ownership."
-    - "Roster/event evidence exists for compact-risk or concurrent employees."
+    - "Ledger/roster/event evidence exists for compact-risk or concurrent employees."
     - "History cleanup is separate from runtime close and exact-authorized."
     - "Hard-isolation verification avoids forbidden reads unless exact-authorized."
 
@@ -171,17 +171,17 @@ coverage_gates:
     - "AGENTS.md and project SKILL support no-command answer-only fast path."
     - "policy/workflows/verify define compact profiles and claim boundaries."
     - "deploy rules keep source state out of target repos."
-    - "schemas/templates preserve assignment, report, status, lease, runtime validation, memory, and skill fields."
+    - "schemas/templates preserve assignment, report, ledger, status, lease, runtime validation, memory, and skill fields."
     - "task closeout permits compact no-change answers."
 
 live_employee_validation:
   required:
     - "explicit user hire/spawn/delegation/parallel-agent request"
     - "runtime id/nickname/mode/role/task"
-    - "roster path/version/permissions when required"
-    - "assignment includes roster, status-event, final-report, and ownership fields"
+    - "ledger or roster path/version/permissions when required"
+    - "assignment includes ledger/roster, status-event, final-report, and ownership fields"
     - "final report matches runtime id and required fields"
-    - "poll/report/close/reconciled evidence has matching snapshot version"
+    - "ledger or poll/report/close/reconciled evidence has matching snapshot version"
     - "git status proves no out-of-scope changes"
     - "history cleanup authorization is recorded as none/not requested unless exact-authorized"
 

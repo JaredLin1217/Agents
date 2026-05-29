@@ -9,6 +9,7 @@
 - Focus: `unknown`
 - Next action: `unknown`
 - Employees: active `0`; last poll `unknown`
+- Agent ledger: `.agents/runtime/agent-ledger.jsonl`
 - Event inbox: `%TEMP%/codex-agent-status/<project-id>/events/`
 - Controller lease: `%TEMP%/codex-agent-status/<project-id>/controller-lease.md`
 
@@ -29,8 +30,8 @@
 
 ## Controller Recovery
 
-| Agent | Nickname | Runtime id | Mode | Role | Status | Owned write scope | Normalized owned write scope | Shared read scope | Ownership matrix status | Last known event | Last poll result | Close required | Runtime close result | Closed at | History cleanup | History cleanup authorization | Project-external status path |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Agent | Nickname | Runtime id | Mode | Role | Status | Owned write scope | Normalized owned write scope | Shared read scope | Ownership matrix status | Last known event | Last ledger event | Last poll result | Close required | Runtime close result | Closed at | History cleanup | History cleanup authorization | Project-external status path |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 
 ## Pending Events
 

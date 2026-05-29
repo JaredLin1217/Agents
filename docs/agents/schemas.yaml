@@ -26,6 +26,9 @@ assignment:
     Roster requirement: "not required | controller records | required at exact temp status path"
     Roster path: ""
     Roster write permission: "controller-only | employee append-event only at exact path | none"
+    Ledger requirement: "not required | controller records | required at .agents/runtime/agent-ledger.jsonl"
+    Ledger path: ".agents/runtime/agent-ledger.jsonl"
+    Ledger write permission: "controller-only | employee append-event only at exact path | none"
     Completion notification: "final report on complete, blocked, or stopped"
     Status event rule: "not allowed | controller records | employee append-only event at exact path"
     Boundary note: ""
@@ -95,6 +98,9 @@ employee_final_report:
     - "Roster requirement"
     - "Roster path"
     - "Roster write permission"
+    - "Ledger requirement"
+    - "Ledger path"
+    - "Ledger write permission"
     - "Roster snapshot version"
     - "Ownership matrix status"
     - "System/global resources"
@@ -113,11 +119,21 @@ agent_status_snapshot:
   history_cleanup_values: ["not requested", "not applicable", "authorized", "completed", "failed"]
 
 agent_event:
-  names: ["prepare", "launch", "spawn", "input", "progress", "poll", "report", "wait", "blocked", "stop", "close", "reconciled"]
+  names: ["prepare", "hired", "launch", "spawn", "started", "input", "progress", "poll", "report", "completed", "blocked", "stopped", "wait", "close", "shutdown", "integrated", "reconciled"]
   explorer_event_fields: ["Agent", "Runtime id", "Event", "Status", "Summary", "Needs review", "Next action", "Report id", "Report observed at", "Report hash", "Duplicate count"]
   ownership_event_fields: ["Normalized owned write scope", "Ownership conflict status", "Ownership matrix status", "Checked against"]
   close_event_fields: ["Close required", "Runtime close result", "Closed at", "History cleanup", "History cleanup authorization", "Roster snapshot version"]
   rule: "Report events preserve only fields relevant to the event; unavailable final-report fields may be not applicable."
+
+agent_ledger_event:
+  location: ".agents/runtime/agent-ledger.jsonl"
+  format: "JSONL; one JSON object per event"
+  status: "repo-local ignored runtime state; advisory, not Codex official runtime DB"
+  names: ["initialized", "hired", "started", "completed", "blocked", "stopped", "closed", "shutdown", "integrated", "reconciled"]
+  required_fields: ["time", "event", "agent_id", "mode", "role", "status", "task"]
+  optional_fields: ["nickname", "read_scope", "write_scope", "ledger_version", "report_hash", "final_report_summary", "controller_id", "source", "notes", "isolation"]
+  write_rule: "Controller appends by default; employees append only when assigned exact ledger path and append permission."
+  storage_rule: "Never stage, commit, deploy, or copy .agents/runtime/**; ledger may be cleared and rebuilt from runtime evidence."
 
 controller_lease:
   location: "%TEMP%/codex-agent-status/<project-id>/controller-lease.md"
@@ -180,6 +196,9 @@ runtime_multi_agent_validation:
     - "Roster path"
     - "Roster snapshot version"
     - "Roster fields reviewed"
+    - "Ledger required"
+    - "Ledger path"
+    - "Ledger event ids reviewed"
     - "Controller lease id"
     - "Controller lease status"
     - "Assignment path or prompt"

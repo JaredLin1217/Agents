@@ -16,12 +16,13 @@ Repo-local Codex rules for an isolated, deployable Agents workflow. Durable rule
 - Global/system Skills: GS means intentional global/system `SKILL.md` use; `.agents/skills/**/SKILL.md` is project-local and does not count as GS.
 - External filesystem: no access outside this repo unless the user authorizes exact path/action, except `%TEMP%/codex-agent-status/<project-id>/`.
 - Report temp/external access as XR/XW.
+- Project-local agent ledger: `.agents/runtime/agent-ledger.jsonl` is ignored runtime state, not Codex's official DB, not deployable, and not XR/XW.
 - Repo rules are behavioral, not a sandbox. Claim hard isolation only with verified runtime/tool/OS/account/cloud evidence.
 - Do not hand-edit `.git/`, generated output, caches, build output, vendored files, runtime copies, or live Codex environment state unless explicitly targeted.
 
 ## Multi-Agent
 
-- Use `docs/agents/workflows.yaml` for employee modes, ownership, roster, scoring batches, and recovery.
+- Use `docs/agents/workflows.yaml` for employee modes, ownership, project-local ledger, roster fallback, scoring batches, and recovery.
 
 ## Closeout
 

@@ -33,7 +33,7 @@ isolation:
     allowed:
       - "User-authorized exact path/action."
       - "Approved temp handoff cache: %TEMP%/codex-agent-status/<project-id>/."
-    report: "Report intentional external reads as XR and writes as XW; temp roster access must be listed exactly once in closeout."
+    report: "Report intentional external reads as XR and writes as XW; temp roster access must be listed exactly once in closeout. Project-local ledger access is repo-local and not XR/XW."
   codex_app:
     local_policy: ".codex/config.toml is repo-local."
     live_environment: ".codex/environments/environment.toml is ignored runtime state."
@@ -67,9 +67,10 @@ knowledge_layers:
 
 placement:
   deploy_templates: "docs/templates/agents/"
+  project_local_agent_ledger: ".agents/runtime/agent-ledger.jsonl"
   volatile_agent_status: "%TEMP%/codex-agent-status/<project-id>/"
-  ignored_local_scratch: "docs/tmp-approval-*/, docs/hard-isolation-evidence/, docs/runtime-multi-agent-validation/"
-  rule: "Volatile status and validation records are coordination aids, not deployable project knowledge."
+  ignored_local_scratch: ".agents/runtime/, docs/tmp-approval-*/, docs/hard-isolation-evidence/, docs/runtime-multi-agent-validation/"
+  rule: "Volatile status, ledger, and validation records are coordination aids, not deployable project knowledge."
 
 template_cleanliness:
   deployable_templates_must_not_contain:
@@ -100,6 +101,6 @@ hard_fail_gates:
   - "No external filesystem access without exact authorization or temp-cache exception."
   - "No source-specific state in deployable templates."
   - "No overlapping active worker write scopes."
-  - "No compact-risk/concurrent/editing employee without temp roster."
+  - "No compact-risk/concurrent/editing employee without project-local ledger or temp roster evidence."
   - "No hard-isolation claim without verified evidence."
   - "Keep AGENTS.md and project SKILL.md compact."

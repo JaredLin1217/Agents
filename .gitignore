@@ -5,6 +5,9 @@ docs/agent-events/
 # Local Codex App runtime state
 .codex/environments/environment.toml
 
+# Project-local agent ledger and runtime coordination state
+.agents/runtime/
+
 # Temporary controller/employee approval reports
 docs/tmp-approval-*/
 

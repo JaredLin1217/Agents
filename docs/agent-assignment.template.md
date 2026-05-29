@@ -54,6 +54,9 @@ Fast batch preset: reuse one brief per role, fill available runtime slots first,
 - Roster requirement:
 - Roster path:
 - Roster write permission:
+- Ledger requirement:
+- Ledger path:
+- Ledger write permission:
 - Completion notification:
 - Status event rule:
 - Boundary note:
