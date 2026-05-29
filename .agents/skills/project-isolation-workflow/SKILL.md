@@ -15,7 +15,7 @@ Use this project-local skill for Agents isolation, memory, deployment, multi-age
 2. Inspect `git status -sb` when scope permits.
 3. Select only the needed canonical file(s): `policy.yaml`, `workflows.yaml`, `schemas.yaml`, `deploy.yaml`, or `verify.yaml`.
 4. Use `docs/agents/deploy.yaml` before copying or adapting Agents rules into another authorized repository.
-5. Use `docs/agents/verify.yaml` for no-script checks, size gates, no-deduction audit, template cleanliness, and drift checks.
+5. Use the smallest applicable profile in `docs/agents/verify.yaml`; reserve release-grade gates for commit, tag, release, deploy, push, or no-deduction claims.
 6. Read detailed memory entries only when `docs/memory/index.md` points to a relevant verified lesson.
 7. Keep all new durable project knowledge inside this repository unless the user explicitly asks to use global Memory.
 

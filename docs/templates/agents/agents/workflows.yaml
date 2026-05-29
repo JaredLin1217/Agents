@@ -5,6 +5,8 @@ startup:
   broad_controller:
     - "Read AGENTS.md."
     - "Use this policy pack for task-specific details."
+    - "Read only the canonical file needed for the current task; do not load the whole policy pack by default."
+    - "Select the smallest verification profile from docs/agents/verify.yaml that can prove the current claim."
     - "Inspect git status before edits."
     - "If active employees may exist, poll task-boundary state before overlapping edits or final closeout."
     - "If controller context may have been compacted, recover active employee ids and ownership from the temp roster before editing or closing."
@@ -180,6 +182,12 @@ skill_authoring:
     - "allow_implicit_invocation must be present under policy."
 
 repository_maintenance:
+  verification_profile_rule:
+    - "Use fast_turn for answer-only work, scoped edits, and ordinary closeout."
+    - "Use policy_pack_edit when editing AGENTS.md, .agents, docs/agents, docs/runbooks, or docs/templates/agents."
+    - "Use release_commit_tag_deploy only before commit, tag, release, deploy, push, or no-deduction claims."
+    - "Use runtime_multi_agent only when real employee runtime evidence exists and the claim is runtime behavior."
+    - "Use hard_isolation only when verified runtime, tool, OS, account, cloud, or external enforcement evidence exists."
   runtime_artifacts:
     - "Do not commit live status snapshots, temp events, generated output, caches, build output, vendored files, or runtime copies."
     - "Keep .codex/environments/environment.toml local and ignored."

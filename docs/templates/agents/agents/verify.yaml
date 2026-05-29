@@ -46,6 +46,56 @@ command_semantics:
   deploy_manifest_unique_rule: "The deploy manifest passes only when default deployment source paths are unique and non-append target paths are unique."
   deploy_blocklist_rule: "The deploy blocklist passes only when all required local runtime, scratch, Codex runtime, and .git paths are present."
 
+profiles:
+  selection_rule: "Use the smallest profile that proves the current claim; do not run release-grade gates for ordinary turns."
+  fast_turn:
+    use_when:
+      - "answer-only work"
+      - "scoped non-policy edits"
+      - "ordinary closeout without commit, tag, deploy, release, push, no-deduction, runtime, or hard-isolation claim"
+    evidence:
+      - "status_full before edits when feasible"
+      - "target files read before edits"
+      - "scoped diff review"
+      - "closest practical scoped verification"
+    skip_by_default:
+      - "full template bundle coverage"
+      - "full deploy manifest checks"
+      - "full schema field coverage"
+      - "full size gates unless AGENTS.md, project-local SKILL.md, or tracked-size risk changed"
+  policy_pack_edit:
+    use_when:
+      - "AGENTS.md, .agents, docs/agents, docs/runbooks, docs/templates/agents, memory templates, or deployment rules changed"
+    evidence:
+      - "status_full"
+      - "diff_check"
+      - "English-only and placeholder checks on existing policy/template paths"
+      - "exact pair drift checks for changed exact pairs"
+      - "size gates when AGENTS.md, project-local SKILL.md, or intended tracked size changed materially"
+      - "source-neutral template pollution check when deployable templates changed"
+  release_commit_tag_deploy:
+    use_when:
+      - "before commit, tag, release, deploy, push, or no-deduction claim"
+    evidence:
+      - "all zero_exit_required gates"
+      - "all no_match_expected gates"
+      - "relevant task_specific_no_match_expected gates"
+      - "size gates including prospective tracked size"
+      - "exact pair drift checks"
+      - "template bundle coverage"
+      - "schema field coverage"
+      - "skill metadata checks"
+  runtime_multi_agent:
+    use_when:
+      - "claiming runtime multi-agent behavior"
+    evidence:
+      - "live_employee_validation pass_condition with current real employee evidence"
+  hard_isolation:
+    use_when:
+      - "claiming tool-enforced or externally-enforced isolation"
+    evidence:
+      - "current hard-isolation evidence record or equivalent verified external evidence"
+
 size_gates:
   unit: "Byte values are exact; 1 KiB means 1024 bytes."
   tracked_repo_target_kib: 256
@@ -121,6 +171,7 @@ coverage_gates:
     - "docs/agent-status.template.md includes an ownership matrix table."
     - "docs/agents/deploy.yaml exists and covers allowlist, blocklist, deployment steps, validation levels."
     - "docs/agents/verify.yaml exists and covers no-script checks, size gates, no-deduction audit, template cleanliness, and drift checks."
+    - "docs/agents/verify.yaml defines fast_turn, policy_pack_edit, release_commit_tag_deploy, runtime_multi_agent, and hard_isolation verification profiles."
     - "Deployment steps are top-level in docs/agents/deploy.yaml and template deploy.yaml, not nested under case_by_case."
     - "Verify commands state whether matches or no matches are expected."
     - "Verify commands that search content describe how absent optional paths are removed before execution."

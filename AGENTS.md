@@ -11,7 +11,7 @@
 - Current repo evidence wins over prior chat or Memory.
 - Before edits, run `git status -sb` when feasible and protect existing changes.
 - Do not assume project mode, stack, scripts, runtime, or architecture until repo files define them.
-- Use repo scripts when present; use `docs/agents/verify.yaml` for Agents workflow checks.
+- Use repo scripts when present; use the smallest applicable `docs/agents/verify.yaml` profile for Agents workflow checks.
 - Use `.agents/skills/project-isolation-workflow/SKILL.md` for isolation, memory, deployment, multi-agent, skill, or maintenance tasks.
 
 ## Guardrails
@@ -30,7 +30,7 @@
 - `docs/agents/workflows.yaml`: memory, multi-agent, handoff, skills, maintenance.
 - `docs/agents/schemas.yaml`: assignment, report, status, event, lease, evidence fields.
 - `docs/agents/deploy.yaml`: deployment allowlist, blocklist, steps, validation.
-- `docs/agents/verify.yaml`: no-script checks, size gates, no-deduction audit, drift.
+- `docs/agents/verify.yaml`: verification profiles, no-script checks, size gates, no-deduction audit, drift.
 - `docs/templates/agents/`: source-neutral deployment bundle.
 
 ## Multi-Agent
