@@ -16,7 +16,7 @@ Use only after explicit hire/spawn/delegate/parallel-agent request or clear equi
 
 - Runtime close comes first. Do not use DB deletion as a substitute for `close_agent`.
 - Cleanup is authorized by the user close request for the exact runtime ids closed in that request; standalone cleanup requires explicit authorization.
-- Treat `%USERPROFILE%/.codex/state_*.sqlite` as external runtime state; report DB reads/writes as XR/XW.
+- Treat the active `%USERPROFILE%/.codex/state_<n>.sqlite` DB as external runtime state; exclude backup/copy DB files and report reads/writes as XR/XW.
 - Match only rows for the current repo cwd after normalizing Windows `\\?\` prefixes and path separators.
 - Delete only matching subagent `thread_dynamic_tools`, `thread_spawn_edges`, and `threads` rows.
 - Optional orphan edge cleanup is allowed only when both endpoints are missing and cleanup was requested.

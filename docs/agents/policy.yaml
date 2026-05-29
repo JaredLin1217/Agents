@@ -33,13 +33,13 @@ isolation:
     allowed:
       - "User-authorized exact path/action."
       - "Approved temp handoff cache: %TEMP%/codex-agent-status/<project-id>/."
-      - "Codex App sidebar/history cleanup for exact subagent runtime ids closed by a user close request, or by standalone exact cleanup authorization."
+      - "Codex App sidebar/history cleanup for exact subagent runtime ids closed by a user close request, or by standalone exact cleanup authorization, in the active %USERPROFILE%/.codex/state_<n>.sqlite DB only."
     report: "Report intentional external reads as XR and writes as XW; temp roster and Codex App DB access must be listed exactly once in closeout. Project-local ledger access is repo-local and not XR/XW."
   codex_app:
     local_policy: ".codex/config.toml is repo-local."
     live_environment: ".codex/environments/environment.toml is ignored runtime state."
     template_environment: ".codex/environments/environment.template.toml is reference-only."
-    sidebar_history_db: "%USERPROFILE%/.codex/state_*.sqlite is external runtime UI/history state; clean only after runtime close, with a close request or exact cleanup authorization, and exact runtime ids."
+    sidebar_history_db: "%USERPROFILE%/.codex/state_<n>.sqlite is external runtime UI/history state; clean only the active DB, exclude backup/copy files, and require runtime close plus exact ids."
 
 runtime_enforcement:
   default: "behavioral-only"
