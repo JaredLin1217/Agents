@@ -31,4 +31,4 @@
 - Task details:
 - Ownership matrix reference:
 - Controller instructions:
-- Expected final report:
+- Final report schema:

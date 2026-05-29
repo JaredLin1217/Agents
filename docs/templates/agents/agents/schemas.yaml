@@ -1,57 +1,42 @@
-schema: agents-schemas/v1
-purpose: "Field contracts used by the compact Agents workflow."
+schema: agents-schemas/v2
+purpose: "Field labels for assignments, reports, status, evidence, memory, and skills."
 
 assignment:
   required_fields:
-    Status context: "Relevant temp cache, detached/cloud state, git state, or final-report context."
-    Agent: "Stable controller-assigned nickname or runtime id."
-    Runtime id: "Runtime id when known, otherwise pending."
+    Status context: ""
+    Agent: ""
+    Runtime id: ""
     Mode: "session-managed | manual-detached | cloud-or-automation"
     Runtime enforcement: "behavioral-only | tool-enforced | externally-enforced"
-    Runtime enforcement evidence: "not applicable for behavioral-only; verified evidence summary otherwise"
+    Runtime enforcement evidence: ""
     Role: "explorer | worker"
-    Goal: "One concrete outcome."
+    Goal: ""
     Ownership: "read-only | exclusive-writer | controller-only-integration"
-    Owned write scope: "Exact files or directories the employee may edit, or none."
-    Normalized owned write scope: "Repository-relative normalized owned write scope, or none."
+    Owned write scope: ""
+    Normalized owned write scope: ""
     Ownership matrix status: "clear | conflict | unknown | not applicable"
-    Shared read scope: "Exact files or directories the employee may inspect."
-    Required project-local skills: "Exact .agents/skills/<skill-name>/SKILL.md paths, or none."
-    Allowed scope: "Files or directories the employee may inspect or edit."
-    Forbidden scope: "Files, directories, tools, resources, or actions the employee must not touch."
-    Edit permission: "Whether edits are allowed and where."
-    Allowed tool/resource use: "Exact read/search/status/edit/runtime/app/plugin/system/global resources allowed."
-    Verification: "Checks the employee should run or scope-limited verification statement."
+    Shared read scope: ""
+    Required project-local skills: ""
+    Allowed scope: ""
+    Forbidden scope: ""
+    Edit permission: ""
+    Allowed tool/resource use: ""
+    Verification: ""
     Roster requirement: "not required | controller records | required at exact temp status path"
-    Roster path: "Exact temp status snapshot path when required, otherwise none."
+    Roster path: ""
     Roster write permission: "controller-only | employee append-event only at exact path | none"
-    Completion notification: "Final report returned immediately on complete, blocked, or stopped."
-    Status event rule: "not allowed | controller records | employee may create append-only event at exact temp path"
-    Boundary note: "Whether scope control is behavioral-only or technically enforced."
+    Completion notification: "final report on complete, blocked, or stopped"
+    Status event rule: "not allowed | controller records | employee append-only event at exact path"
+    Boundary note: ""
 
 ownership_matrix:
-  use_when: "Any worker exists, two or more employees are active, or controller may edit paths near employee scopes."
-  normalization: "Repository-relative paths, normalized separators, directory containment, and case-insensitive comparison on case-insensitive filesystems."
-  required_fields:
-    - "Agent"
-    - "Runtime id"
-    - "Role"
-    - "Status"
-    - "Ownership"
-    - "Normalized owned write scope"
-    - "Scope type"
-    - "Conflict status"
-    - "Checked against"
-    - "Last checked by"
-    - "Last checked at"
+  use_when: "worker exists, two employees are active, or controller edits near employee scope"
+  required_fields: ["Agent", "Runtime id", "Role", "Status", "Ownership", "Normalized owned write scope", "Scope type", "Conflict status", "Checked against", "Last checked by", "Last checked at"]
   conflict_statuses: ["clear", "conflict", "unknown"]
-  conflict_checks:
-    - "No two active workers share the same normalized owned write scope."
-    - "No active worker owns a directory that contains another active worker's file or directory scope."
-    - "No active worker owns a file or directory inside another active worker's directory scope."
-    - "Controller does not edit an active worker scope until ownership is released, reassigned, or reconciled."
+  conflict_checks: ["same scope", "directory contains file/scope", "scope differs only by spelling/case/separators", "controller edits active worker scope"]
 
 employee_final_report:
+  statuses: ["completed", "blocked", "stopped"]
   required_fields:
     - "Agent"
     - "Mode"
@@ -90,76 +75,25 @@ employee_final_report:
     - "Project-external writes"
     - "Status event"
     - "Completion notification"
-  statuses: ["completed", "blocked", "stopped"]
 
 agent_status_snapshot:
   location: "%TEMP%/codex-agent-status/<project-id>/agent-status.md"
   statuses: ["prepared", "active", "completed", "blocked", "stopped", "needs-review", "closed", "unknown"]
-  ownership_values: ["read-only", "exclusive-writer", "controller-only-integration"]
+  required_fields: ["Snapshot version", "Agent", "Runtime id", "Nickname", "Mode", "Role", "Status", "Task", "Ownership", "Owned write scope", "Normalized owned write scope", "Shared read scope", "Ownership matrix status", "Last known event", "Last poll result", "Close required", "Runtime close result", "Closed at", "History cleanup", "History cleanup authorization", "Project-external status path"]
   history_cleanup_values: ["not requested", "not applicable", "authorized", "completed", "failed"]
-  history_cleanup_authorization_values: ["none", "exact external-write authorization recorded"]
-  required_fields:
-    - "Snapshot version"
-    - "Agent"
-    - "Runtime id"
-    - "Nickname"
-    - "Mode"
-    - "Role"
-    - "Status"
-    - "Task"
-    - "Ownership"
-    - "Owned write scope"
-    - "Normalized owned write scope"
-    - "Shared read scope"
-    - "Ownership matrix status"
-    - "Last known event"
-    - "Last poll result"
-    - "Close required"
-    - "Runtime close result"
-    - "Closed at"
-    - "History cleanup"
-    - "History cleanup authorization"
-    - "Project-external status path"
 
 agent_event:
   names: ["prepare", "launch", "spawn", "input", "progress", "poll", "report", "wait", "blocked", "stop", "close", "reconciled"]
-  report_event_rule: "Report events that carry employee final reports preserve employee_final_report required fields or explicitly mark unavailable fields not applicable."
-  history_cleanup_rule: "Use not requested or not applicable unless exact user authorization exists; runtime close is not history cleanup."
-  ownership_event_fields:
-    - "Normalized owned write scope"
-    - "Ownership conflict status"
-    - "Ownership matrix status"
-    - "Checked against"
-  close_event_fields:
-    - "Close required"
-    - "Runtime close result"
-    - "Closed at"
-    - "History cleanup"
-    - "History cleanup authorization"
-    - "Roster snapshot version"
+  ownership_event_fields: ["Normalized owned write scope", "Ownership conflict status", "Ownership matrix status", "Checked against"]
+  close_event_fields: ["Close required", "Runtime close result", "Closed at", "History cleanup", "History cleanup authorization", "Roster snapshot version"]
+  rule: "Report events preserve final-report fields or mark unavailable fields not applicable."
 
 controller_lease:
   location: "%TEMP%/codex-agent-status/<project-id>/controller-lease.md"
   statuses: ["active", "released", "expired", "takeover-claimed", "unknown"]
-  required_fields:
-    - "Controller id"
-    - "Lease id"
-    - "Lease status"
-    - "Acquired at"
-    - "Last heartbeat"
-    - "Expires at"
-    - "Current task"
-    - "Snapshot version reviewed"
-    - "Released at"
-    - "Takeover reason"
-  rules:
-    - "Only active lease holder writes agent-status.md or marks events processed."
-    - "Renew before expiry while coordinating employees."
-    - "Take over only after expiry, explicit release, or explicit user authorization."
-    - "If lease state is ambiguous, do not write the shared status snapshot until an active controller is chosen."
+  required_fields: ["Controller id", "Lease id", "Lease status", "Acquired at", "Last heartbeat", "Expires at", "Current task", "Snapshot version reviewed", "Released at", "Takeover reason"]
 
 hard_isolation_evidence:
-  use_when: "Claiming tool-enforced or externally-enforced isolation."
   classifications: ["behavioral-only", "tool-enforced", "externally-enforced"]
   required_fields:
     - "Task"
@@ -193,10 +127,9 @@ hard_isolation_evidence:
     - "Project-external reads"
     - "Project-external writes"
     - "Remaining risk"
-  rule: "If any required evidence is missing, classify as behavioral-only."
+  rule: "Missing required evidence means behavioral-only."
 
 runtime_multi_agent_validation:
-  use_when: "Claiming runtime multi-agent validation after real employee runtime or authorized manual-detached evidence exists."
   required_fields:
     - "Validation id"
     - "Date"
@@ -254,37 +187,15 @@ runtime_multi_agent_validation:
     - "Pass condition met"
     - "Remaining runtime risk"
     - "Controller conclusion"
-  storage_rule: "Filled runtime validation records are local scratch unless a sanitized summary is explicitly promoted."
+  storage_rule: "Filled records are local scratch unless sanitized and promoted."
 
 memory_entry:
-  draft_fields:
-    - "Trigger"
-    - "Context"
-    - "Cause"
-    - "Fix / Rule"
-    - "Verification"
-    - "Reuse when"
-  index_columns:
-    - "ID"
-    - "Date"
-    - "Title"
-    - "Trigger"
-    - "Keywords"
-    - "Summary"
-    - "Entry"
-    - "Verified"
+  draft_fields: ["Trigger", "Context", "Cause", "Fix / Rule", "Verification", "Reuse when"]
+  index_columns: ["ID", "Date", "Title", "Trigger", "Keywords", "Summary", "Entry", "Verified"]
 
 skill:
   SKILL_md_frontmatter: ["name", "description"]
   openai_yaml:
-    interface:
-      - "display_name"
-      - "short_description"
-      - "default_prompt"
-    policy:
-      - "allow_implicit_invocation"
-  constraints:
-    - "Skill folder name equals SKILL.md frontmatter name."
-    - "openai.yaml default_prompt mentions the actual skill invocation name with a dollar prefix, such as $project-isolation-workflow."
-    - "short_description is 25-64 characters."
-    - "allow_implicit_invocation is present under policy."
+    interface: ["display_name", "short_description", "default_prompt"]
+    policy: ["allow_implicit_invocation"]
+  constraints: ["folder name equals skill name", "default_prompt names $skill", "short_description 25-64 chars", "allow_implicit_invocation present"]

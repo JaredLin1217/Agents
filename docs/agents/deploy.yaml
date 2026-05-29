@@ -1,19 +1,11 @@
-schema: agents-deploy/v1
-purpose: "Canonical deployment allowlist, blocklist, and validation rules for copying this Agents workflow into an authorized target repository."
+schema: agents-deploy/v2
+purpose: "Allowlist/blocklist for deploying this Agents workflow into an authorized target repo."
 
 boundary:
-  authorization: "Deployment requires explicit user authorization for the exact target repository path and write action."
-  method: "Copy-then-adapt, not blind copy."
-  target_first: "Inspect target AGENTS.md, docs, scripts, git status, and Codex files before writing."
-  target_owns:
-    - "Codex App policy"
-    - "local environment"
-    - "agent status"
-    - "memory entries"
-    - "commits"
-    - "remotes"
-    - "deployment history"
-  source_must_not_store: "target-project status, agent history, commits, remotes, or deployment results"
+  requires: "explicit user authorization for exact target path and write action"
+  method: "inspect target, then copy/adapt allowlisted files"
+  target_owns: ["Codex App policy", "local environment", "agent status", "memory entries", "commits", "remotes", "deployment history"]
+  source_must_not_store: "target status, employee history, commits, remotes, or deployment results"
 
 deployable_by_default:
   root:
@@ -78,8 +70,7 @@ deployable_by_default:
       to: "docs/runbooks/task-closeout.md"
     - from: "docs/templates/agents/project-structure.md"
       to: "docs/project-structure.md"
-  recursive_template_bundle:
-    rule: "Copy docs/templates/agents/ to target docs/templates/agents/ by default so target references and drift checks remain valid."
+  recursive_template_bundle: "Copy docs/templates/agents/ by default so target drift checks remain valid."
 
 do_not_deploy:
   paths:
@@ -95,49 +86,36 @@ do_not_deploy:
     - "docs/project-structure.md from the template-provider repository"
     - "docs/project-memory.md from the template-provider repository"
     - "docs/memory/index.md from the template-provider repository"
-  categories:
-    - "source commit hashes, remotes, tags, branch names, or push status"
-    - "source employee-agent history or stopping points"
-    - "source temporary approval reports"
-    - "source deployment results for another target"
-    - "source OS temp handoff cache"
-    - "filled hard-isolation evidence records"
-    - "filled runtime multi-agent validation records"
-    - "source memory rows and source memory entry files"
-    - "source project structure, project overview, or repository-local orientation files"
-    - "source validation-status sections, dry-run results, and field-test history"
-    - "generated output, caches, build output, vendored files, or runtime copies"
+  categories: ["source commits/remotes/tags/branches/push status", "source employee/status/validation/deployment history", "source memory rows/entries", "source temp cache", "filled evidence records", "generated/cache/build/vendor/runtime output"]
 
 case_by_case:
-  - "docs/decisions/: copy only decisions the target explicitly adopts."
-  - "docs/memory/entries/: create target-specific entries only after target verification."
-  - "README.md: target-owned; write or adapt only after inspecting the target."
-  - ".gitattributes: use only when the target adopts the same line-ending policy after inspection."
-  - ".codex/ files not listed above: review one file at a time; never copy wholesale."
-  - ".codex/environments/environment.template.toml: reference only unless the target explicitly adopts it after inspection."
+  - "docs/decisions/: copy only adopted decisions."
+  - "docs/memory/entries/: create target-specific entries after target verification."
+  - "README.md: target-owned."
+  - ".gitattributes: use only if target adopts same line-ending policy."
+  - ".codex/*: review one file at a time; never copy wholesale."
+  - ".codex/environments/environment.template.toml: reference only unless target adopts it."
 
 steps:
-  - "Confirm exact target path and write action authorization."
-  - "Inspect target repository state before writing."
-  - "Copy or adapt only allowlisted files."
-  - "Append or adapt gitignore.fragment; do not replace target .gitignore wholesale."
-  - "Remove source-specific names, paths, commits, remotes, status rows, memory rows, validation history, and deployment history."
-  - "Adapt project mode, script availability, and stack assumptions to the inspected target repository."
-  - "Keep target status and memory in the target repository only."
-  - "Verify deployed skill metadata exists and is source-neutral."
-  - "Verify retained template bundle is source-neutral."
-  - "Run target git status, diff check, pollution searches, and target workflow checks."
-  - "Report exact target paths read or written."
+  - "Confirm exact target path/write authorization."
+  - "Inspect target state first."
+  - "Copy/adapt only allowlisted files."
+  - "Append/adapt gitignore.fragment; do not replace target .gitignore wholesale."
+  - "Remove source-specific names, paths, commits, remotes, status rows, memory rows, validation/deployment history."
+  - "Adapt project mode, scripts, and stack assumptions to target evidence."
+  - "Keep target status and memory in target repo."
+  - "Validate target git state, source-neutral templates, and deployed skill metadata."
+  - "Report exact target paths read/written."
 
 hard_fail_gates:
   - "No exact target authorization."
-  - "Deployable template contains provider repository name, local path, commit, tag, remote, employee history, status row, validation history, or deployment history."
-  - "Deployable default rules claim a project mode, missing scripts, or stack state that was not verified in the target."
-  - "Target state is stored in the provider repository."
-  - "Blocklisted file is copied by default."
-  - "Target-specific claim is made without inspecting the target after authorization."
+  - "Deployable template contains provider project state."
+  - "Default deploy claims unverified target mode/scripts/stack."
+  - "Target state stored in provider repo."
+  - "Blocklisted file copied by default."
+  - "Target-specific claim without target inspection."
 
 validation_levels:
-  repo_local_dry_run: "Check deployable source files, blocklists, template cleanliness, and English-only rules without external access."
-  authorized_target_dry_run: "Read authorized target path, compare intended target files, and report plan without writing."
-  authorized_target_deployment_test: "Write only allowlisted or explicitly approved files in target, then validate in target."
+  repo_local_dry_run: "source/template/blocklist checks only"
+  authorized_target_dry_run: "read target and report plan"
+  authorized_target_deployment_test: "write allowlisted/approved files and validate target"

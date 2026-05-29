@@ -1,69 +1,61 @@
 ---
 name: project-isolation-workflow
-description: Maintain repo-local Agents rules, deployment templates, project memory, and controller plus employee workflows for isolated projects.
+description: Maintain repo-local Agents rules, deployment templates, memory, and controller/employee workflows.
 ---
 
 # Project Isolation Workflow
 
-## Overview
+Use this project-local skill for isolation, memory, deployment, multi-agent, handoff, skill-authoring, or repo maintenance.
 
-Use this project-local skill for Agents isolation, memory, deployment, multi-agent, handoff, skill-authoring, or repo-local Codex maintenance. Canonical rules live in `docs/agents/*.yaml`; read only the relevant policy file(s) for the task.
+## Route
 
-## Routing
-
-1. Read `AGENTS.md`.
-2. Inspect `git status -sb` when scope permits.
-3. Select only the needed canonical file(s): `policy.yaml`, `workflows.yaml`, `schemas.yaml`, `deploy.yaml`, or `verify.yaml`.
-4. Use `docs/agents/deploy.yaml` before copying or adapting Agents rules into another authorized repository.
-5. Use the smallest applicable profile in `docs/agents/verify.yaml`; reserve release-grade gates for commit, tag, release, deploy, push, or no-deduction claims.
-6. Read detailed memory entries only when `docs/memory/index.md` points to a relevant verified lesson.
-7. Keep all new durable project knowledge inside this repository unless the user explicitly asks to use global Memory.
+1. Classify the request before reading more files.
+2. Answer-only with no current repo-state claim: answer from loaded rules; run no command; compact closeout.
+3. Before edits, release/deploy/git actions, or current repo-state claims: inspect `git status -sb`.
+4. Read only the needed canonical file: `policy.yaml`, `workflows.yaml`, `schemas.yaml`, `deploy.yaml`, or `verify.yaml`.
+5. Use `docs/agents/deploy.yaml` before copying/adapting rules to another authorized repo.
+6. Use the smallest applicable `docs/agents/verify.yaml` profile.
+7. Read detailed memory entries only when `docs/memory/index.md` points to a relevant lesson.
+8. Keep durable project knowledge inside this repo unless the user explicitly asks for global Memory.
 
 ## Employee Quick Path
 
-For scoped employee assignments:
+- Read assignment first.
+- Stay inside assigned read/write scope and named project-local skills.
+- Treat scope as behavioral-only unless tool/external enforcement is verified.
+- Touch temp handoff cache only when assignment names exact path/action.
+- Edit only assigned owned write scope.
+- Return final report immediately when complete, blocked, or stopped.
 
-1. Read the assignment first.
-2. Read only assigned repository paths and required project-local skills.
-3. Treat read scope and write scope as hard behavioral boundaries unless verified tool or external enforcement is provided.
-4. Do not touch the OS temp handoff cache unless the assignment gives the exact derived temp path and event permission.
-5. Do not edit repository files unless assigned an owned write scope.
-6. Return the required final report immediately when complete, blocked, or stopped.
+## Guardrails
 
-## Hard Guardrails
+- Project-local skills live under `.agents/skills/`; do not create project-specific global skills.
+- Do not intentionally use global/system skills or global Memory for normal project work.
+- Do not access outside this repo unless exact path/action is authorized, or approved temp cache access is required.
+- Report temp cache access as project-external.
+- Do not claim hard isolation without current verified evidence.
+- Keep deployable templates source-neutral.
+- Workers require non-overlapping owned write scopes.
+- Keep `AGENTS.md` and `SKILL.md` compact.
 
-- Project-local skills live under `.agents/skills/`; do not create project-specific skills in global Codex folders.
-- Do not intentionally use global/system skills for normal project work.
-- Do not use global Memory as project context or storage unless the user explicitly asks.
-- Do not access filesystem paths outside this repository unless the user authorizes the exact path and action, or the access is the approved OS temp handoff cache.
-- The OS temp handoff cache is project-external and must be reported when used.
-- Do not claim hard isolation without verified evidence from `docs/agents/policy.yaml` and `docs/agents/schemas.yaml`.
-- Deployable templates must stay source-neutral. Fix pollution before closeout.
-- Worker assignments require an ownership matrix; multi-worker assignments require non-overlapping ownership before launch.
-- Keep `AGENTS.md` and `SKILL.md` compact; move durable detail to the policy pack.
+## Multi-Agent
 
-## Multi-Agent Trigger
-
-When the user asks to hire, spawn, delegate, request parallel-agent work, or uses a clear semantic equivalent:
+On hire/spawn/delegate/parallel-agent requests:
 
 1. Choose `session-managed`, `manual-detached`, or `cloud-or-automation`.
-2. Prefer `manual-detached` for sidebar-visible, user-controllable, non-blocking, longer-running local work.
-3. Assign `explorer` for read-only investigation or `worker` for bounded implementation.
-4. Define normalized exclusive owned write scope and record an ownership matrix for every worker.
-5. Include the assignment fields from `docs/agents/schemas.yaml`.
-6. If an employee may survive controller compaction, run beside another employee, or edit files, create or update the temp roster with runtime id, nickname, status, and ownership before continuing.
-7. Tell employees that final report is the completion notification.
-8. Poll active employees at task boundaries before overlapping edits or final closeout.
-9. Close employees by runtime id when their useful context expires; archive or history cleanup is separate and requires explicit user authorization when it touches Codex internals.
-10. Controller reviews reports and diffs before integration.
+2. Prefer `manual-detached` for visible, controllable, non-blocking, longer local work.
+3. Use `explorer` for read-only work; `worker` for bounded edits.
+4. Give every worker normalized exclusive owned write scope and ownership matrix status.
+5. If the employee may outlive context, run concurrently, or edit files, create/update the temp roster.
+6. Final report is the completion notification.
+7. Controller reviews reports and diffs before integration.
 
 ## Closeout
 
-After meaningful work, report changed files, verification, remaining risk, durable-knowledge impact, and:
+Always include:
 
 ```text
 Isolation: GM <used/not used> | GS <used/not used> | XR <none/paths> | XW <none/paths>
 ```
 
-Name the verified claim scope from `docs/agents/verify.yaml`: static policy pack, runtime multi-agent, hard isolation, or not claimed.
-Report any system/global resources outside global Memory or Global Skills separately when used.
+For answer-only/no-change work, add only directly relevant facts. Expand only when files, verification, external access, durable knowledge, or claim scope require it.

@@ -1,20 +1,8 @@
 # Agent Status Handoff
 
-- Status: `unknown`
-- Snapshot version: `0`
-- Last reviewed: `unknown`
-- Current branch: `unknown`
-- Latest known commit: `unknown`
-- Git state: `unknown`
-- Remote state: `unknown`
-- Release marker: `unknown`
-- Current focus: `unknown`
-- Next action: `unknown`
-- Active employee count: `0`
-- Last employee poll: `unknown`
-- Event inbox: `%TEMP%/codex-agent-status/<project-id>/events/`
-- Controller lease: `%TEMP%/codex-agent-status/<project-id>/controller-lease.md`
-- Employee mode policy: prefer manual-detached employees for sidebar-visible, user-controllable, non-blocking, longer-running local work.
+Snapshot: Status `unknown`; Snapshot version `0`; Last reviewed `unknown`; Current branch `unknown`; Latest known commit `unknown`; Git state `unknown`; Remote state `unknown`; Release marker `unknown`; Current focus `unknown`; Next action `unknown`; Active employee count `0`; Last employee poll `unknown`; Event inbox `%TEMP%/codex-agent-status/<project-id>/events/`; Controller lease `%TEMP%/codex-agent-status/<project-id>/controller-lease.md`.
+
+Employee mode policy: prefer manual-detached for visible, controllable, non-blocking, longer local work.
 
 ## Employee Agents
 

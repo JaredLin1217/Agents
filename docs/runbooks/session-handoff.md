@@ -9,7 +9,4 @@ Use when work may continue across sessions, windows, employees, or app restarts.
 5. If recovery is incomplete, mark state `unknown` instead of guessing.
 6. Do not write shared status unless controller lease state is clear.
 
-Key references:
-
-- Handoff workflow: `docs/agents/workflows.yaml`
-- Status/event/lease schemas: `docs/agents/schemas.yaml`
+References: `docs/agents/workflows.yaml`, `docs/agents/schemas.yaml`.

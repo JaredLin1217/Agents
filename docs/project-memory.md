@@ -1,36 +1,13 @@
-# Project Memory Overview
+# Project Memory
 
-This file is the entry point for project-local long-term memory for `Jared's AI Team`.
+Repo-local substitute for global Codex Memory.
 
-It is the project-local substitute for global Codex Memory in normal project work. Keep memory verified, reusable, and specific to this repository.
+- Index: `docs/memory/index.md`
+- Details: `docs/memory/entries/`
 
-## Structure
+Rules:
 
-Project memory has two layers:
-
-```text
-docs/memory/index.md
-docs/memory/entries/
-```
-
-- `docs/memory/index.md`: searchable list of memory entries with triggers, keywords, summaries, optional detail links, and verification status.
-- `docs/memory/entries/`: optional detailed memory entries with context, cause, fix/rule, verification, and reuse conditions.
-
-## Current Status
-
-- Project-specific memory entries are tracked in `docs/memory/index.md`.
-- Global Codex Memory must not be used for normal project work unless the user explicitly asks to use it.
-- Add entries only after a task proves the lesson through files, commands, logs, tests, or observed behavior.
-- Write project memory index rows and entries in English only.
-- Memory entries are hints, not verification gates. Recurring checks belong in `docs/agents/verify.yaml`.
-
-## Add Flow
-
-1. At the end of meaningful work, decide whether a verified reusable lesson exists.
-2. Ask the user before adding a project memory entry unless the user explicitly asked to maintain memory.
-3. Add a concise index row in `docs/memory/index.md` using the schema in `docs/agents/schemas.yaml`.
-4. Set `Entry` to `none` for concise lessons, or start from `docs/memory-entry.template.md` and add details in `docs/memory/entries/YYYY-MM-DD-short-title.md` when more context is needed.
-
-## Entries
-
-See `docs/memory/index.md`.
+- Add only verified, reusable, project-specific lessons.
+- Ask before adding unless the user explicitly requested memory maintenance.
+- Write English only.
+- Treat memory as hints; recurring gates belong in `docs/agents/verify.yaml`.
