@@ -11,10 +11,10 @@ Use this project-local skill for isolation, memory, deployment, multi-agent, han
 
 1. Classify the request before reading more files.
 2. Answer-only with no current repo-state claim: answer from loaded rules; run no command; compact closeout.
-3. Before edits, release/deploy/git actions, or current repo-state claims: inspect `git status -sb`.
+3. Before edits, git/deploy actions, or current repo-state claims: inspect `git status -sb`.
 4. Read only the needed canonical file: `policy.yaml`, `workflows.yaml`, `schemas.yaml`, `deploy.yaml`, or `verify.yaml`.
 5. Use `docs/agents/deploy.yaml` before copying/adapting rules to another authorized repo.
-6. Use the smallest applicable `docs/agents/verify.yaml` profile.
+6. Use the smallest applicable `docs/agents/verify.yaml` profile; ordinary commit/tag checkpoints are fast.
 7. Read detailed memory entries only when `docs/memory/index.md` points to a relevant lesson.
 8. Keep durable project knowledge inside this repo unless the user explicitly asks for global Memory.
 

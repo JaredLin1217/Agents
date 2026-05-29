@@ -14,4 +14,4 @@ Use the smallest closeout that proves the current claim.
 Isolation: GM <used/not used> | GS <used/not used> | XR <none/paths> | XW <none/paths>
 ```
 
-Full release-grade gates are only for commit/tag/release/deploy/push/broad audit/no-deduction claims. Do not present static checks as runtime or hard-isolation proof.
+Ordinary commit/tag uses fast checkpoint gates. Full release-grade gates are only for deploy/push/broad audit/no-deduction or explicit full verification. Do not present static checks as runtime or hard-isolation proof.

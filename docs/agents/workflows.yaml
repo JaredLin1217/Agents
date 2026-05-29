@@ -5,7 +5,7 @@ startup:
   controller:
     - "Read AGENTS.md, then classify the request."
     - "Answer-only with no current repo-state claim: no command, no canonical-file load."
-    - "Before edits/release/deploy/git/current-state claims: inspect git status."
+    - "Before edits/git/deploy/current-state claims: inspect git status."
     - "Read only the needed canonical file."
     - "Use the smallest verification profile that proves the claim."
     - "If active employees may exist, recover/poll before touching owned paths or final closeout."
@@ -84,7 +84,8 @@ maintenance:
   verification_profiles:
     fast_turn: "answer-only/scoped ordinary work; no command for answer-only without current-state claim"
     policy_pack_edit: "check changed files and changed mirror pairs only unless broader claim"
-    release_commit_tag_deploy: "commit/tag/release/deploy/push/audit/no-deduction only"
+    commit_tag_checkpoint: "ordinary commit/tag/version checkpoints; fast gates only"
+    release_deploy_push_audit: "release/deploy/push/broad audit/no-deduction only"
     runtime_multi_agent: "only with real employee runtime evidence"
     hard_isolation: "only with verified enforcement evidence"
   local_only:

@@ -4,6 +4,7 @@ purpose: "Compact verification profiles and release gates."
 principle: "Default to the smallest check set that proves the current claim."
 scope_rule: "Run commands only on existing repo paths unless the user authorizes an exact external path/action."
 stale_literal_rule: "Do not keep resolved one-off literal searches as routine gates."
+batch_rule: "For checkpoint gates, batch related checks into one shell invocation when practical; do not split many tiny checks into separate slow steps."
 
 commands:
   status_full: "git status -sb --ignored --untracked-files=all"
@@ -41,8 +42,27 @@ profiles:
       - "full template coverage"
       - "deploy manifest checks"
       - "schema field coverage"
-  release_commit_tag_deploy:
-    use: "commit, tag, release, deploy, push, broad audit, no-deduction claim"
+  commit_tag_checkpoint:
+    use: "ordinary commit/tag/version checkpoint without deploy, push, no-deduction, broad audit, runtime, or hard-isolation claim"
+    target_time: "one batched short validation pass; avoid full repo scans unless the changed scope requires them"
+    do:
+      - "status_full"
+      - "diff_check"
+      - "review changed paths and staged paths"
+      - "changed exact-pair checks only"
+      - "changed durable prose English-only and placeholder checks only when prose/templates changed"
+      - "line-ending readiness for changed/staged files"
+      - "size gates only when AGENTS.md, project SKILL.md, or tracked-size budget changed materially"
+      - "confirm ignored runtime/local files are not staged"
+    skip:
+      - "full repo English-only and placeholder scans"
+      - "full template coverage"
+      - "deploy manifest checks"
+      - "schema field coverage"
+      - "skill metadata checks unless skill metadata changed"
+      - "template pollution unless deployable templates changed with relevant source/target literals"
+  release_deploy_push_audit:
+    use: "release, deploy, push, broad audit, no-deduction claim, or explicit full verification"
     do:
       - "status_full"
       - "diff_check"
@@ -77,7 +97,7 @@ claim_scopes:
   hard_isolation: "Only after current tool/external enforcement evidence passes; otherwise behavioral-only."
 
 no_deduction_audit:
-  rule: "Claim no-deduction only with release_commit_tag_deploy-level proof plus applicable runtime/hard-isolation evidence."
+  rule: "Claim no-deduction only with release_deploy_push_audit-level proof plus applicable runtime/hard-isolation evidence."
   always:
     - "Current repo state inspected."
     - "Changed files/diffs reviewed."

@@ -11,7 +11,7 @@
 - First classify the request: answer-only, scoped edit, policy maintenance, release/deploy, employee, or hard-isolation claim.
 - Answer-only with no current repo-state claim: do not run commands or load policy files just to close out.
 - Before edits, release/deploy/git actions, or current repo-state claims, inspect git state and protect existing changes.
-- Use the smallest applicable profile in `docs/agents/verify.yaml`; full gates are only for commit/tag/release/deploy/push/audit/no-deduction claims.
+- Use the smallest applicable profile in `docs/agents/verify.yaml`; ordinary commit/tag checkpoints use fast gates, not full audit.
 - Use `.agents/skills/project-isolation-workflow/SKILL.md` for isolation, memory, deployment, multi-agent, skill, or maintenance tasks.
 
 ## Guardrails
