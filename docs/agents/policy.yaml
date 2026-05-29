@@ -22,7 +22,7 @@ task_classification:
     - "git_checkpoint: user asks commit, tag, or ordinary branch push without release/deploy/no-deduction claim."
     - "deploy_or_release: user asks deploy, release, protected/main push, target repo sync, or no-deduction proof."
     - "hard_isolation: user asks for guaranteed sandbox, filesystem, account, cloud, or runtime enforcement."
-  rule: "Choose the first matching higher-risk class; if mixed, verify the highest-risk claim and keep the rest scoped."
+  rule: "Select the highest-risk matching class; if mixed, verify the highest-risk claim and keep the rest scoped."
 
 isolation:
   durable_storage: "Store project rules, memory, decisions, runbooks, and skills in this repo."

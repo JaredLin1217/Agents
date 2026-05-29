@@ -55,8 +55,8 @@ commands:
   ignored_runtime: "git check-ignore -v docs/agent-status.md docs/agent-events/ docs/tmp-approval-example/report.md docs/hard-isolation-evidence/example.md docs/runtime-multi-agent-validation/example.md .codex/environments/environment.toml"
   deploy_steps_top_level: 'rg -n "^steps:" docs/agents/deploy.yaml docs/templates/agents/agents/deploy.yaml'
   deploy_steps_not_nested: 'rg -n "^  steps:" docs/agents/deploy.yaml docs/templates/agents/agents/deploy.yaml'
-  deploy_sources_exist: "Every deployable_by_mode from path exists."
-  deploy_manifest_unique: "deployable_by_mode from paths unique per mode; non-append to paths unique."
+  deploy_sources_exist: "Every deployable_by_mode from path exists; mode_composition names existing groups."
+  deploy_manifest_unique: "deployable_by_mode from paths unique per group; non-append to paths unique."
   deploy_blocklist_required_paths: "do_not_deploy includes local runtime, scratch, Codex runtime, and .git paths."
   template_pollution_rule: "Search deployable templates for concrete source/target literals relevant to the task."
 
@@ -64,8 +64,8 @@ profiles:
   read_only_audit:
     use: "assigned read-only explorer audit, scoring, or review with no edits"
     do:
-      - "read assigned paths only"
-      - "do not run git status or other commands unless assignment allows them"
+      - "read assigned paths only; scoped file-read commands inside that scope are allowed"
+      - "do not run git status, verification, or unassigned state commands unless assignment allows them"
       - "report files inspected, findings, and isolation"
     skip:
       - "repo status"

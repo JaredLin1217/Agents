@@ -7,7 +7,7 @@ Use when copying this workflow into an explicitly authorized target repo.
 1. Confirm exact target path and write action.
 2. Inspect target state before writing.
 3. Choose `core_bootstrap`, `full_workflow`, or `template_provider_mode`; default to `core_bootstrap` unless the user asks for more.
-4. Copy/adapt only files under the chosen `deployable_by_mode` list in `docs/agents/deploy.yaml`.
+4. Copy/adapt only the `deployable_by_mode` groups listed by `mode_composition` for the chosen mode in `docs/agents/deploy.yaml`.
 5. Append/adapt `gitignore.fragment`; do not replace target `.gitignore` wholesale.
 6. Validate source-neutral templates and report exact target reads/writes.
 

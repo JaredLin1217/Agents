@@ -13,6 +13,11 @@ deployment_modes:
   full_workflow: "Install core_bootstrap plus memory starters, runtime/evidence templates, and multi-agent/maintenance runbooks."
   template_provider_mode: "Install full_workflow plus docs/templates/agents/** so the target can redeploy this workflow later."
 
+mode_composition:
+  core_bootstrap: ["core_bootstrap"]
+  full_workflow: ["core_bootstrap", "full_workflow_additions"]
+  template_provider_mode: ["core_bootstrap", "full_workflow_additions", "template_provider_additions"]
+
 deployable_by_mode:
   core_bootstrap:
     - from: "docs/templates/agents/AGENTS.md"
@@ -102,7 +107,7 @@ steps:
   - "Confirm exact target path/write authorization."
   - "Inspect target state first."
   - "Choose core_bootstrap, full_workflow, or template_provider_mode; default to core_bootstrap unless the user asks for more."
-  - "Copy/adapt only files listed under the chosen deployable_by_mode mode."
+  - "Copy/adapt only deployable_by_mode groups listed in mode_composition for the chosen deployment mode."
   - "Append/adapt gitignore.fragment; do not replace target .gitignore wholesale."
   - "Remove source-specific state and adapt target assumptions to target evidence."
   - "Validate target git state, source-neutral templates, and deployed skill metadata."
