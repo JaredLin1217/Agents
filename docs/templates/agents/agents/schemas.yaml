@@ -1,0 +1,107 @@
+schema: agents-schemas/v1
+purpose: "Field contracts used by the compact Agents workflow."
+
+assignment:
+  required_fields:
+    Status context: "Relevant temp cache, detached/cloud state, git state, or final-report context."
+    Agent: "Stable controller-assigned nickname or runtime id."
+    Runtime id: "Runtime id when known, otherwise pending."
+    Mode: "session-managed | manual-detached | cloud-or-automation"
+    Runtime enforcement: "behavioral-only | tool-enforced | externally-enforced"
+    Runtime enforcement evidence: "not applicable for behavioral-only; verified evidence summary otherwise"
+    Role: "explorer | worker"
+    Goal: "One concrete outcome."
+    Ownership: "read-only | exclusive-writer | controller-only-integration"
+    Owned write scope: "Exact files or directories the employee may edit, or none."
+    Shared read scope: "Exact files or directories the employee may inspect."
+    Required project-local skills: "Exact .agents/skills/<skill-name>/SKILL.md paths, or none."
+    Allowed scope: "Files or directories the employee may inspect or edit."
+    Forbidden scope: "Files, directories, tools, resources, or actions the employee must not touch."
+    Edit permission: "Whether edits are allowed and where."
+    Allowed tool/resource use: "Exact read/search/status/edit/runtime/app/plugin/system/global resources allowed."
+    Verification: "Checks the employee should run or scope-limited verification statement."
+    Completion notification: "Final report returned immediately on complete, blocked, or stopped."
+    Status event rule: "not allowed | controller records | employee may create append-only event at exact temp path"
+    Boundary note: "Whether scope control is behavioral-only or technically enforced."
+
+employee_final_report:
+  required_fields:
+    - "Agent"
+    - "Mode"
+    - "Runtime id"
+    - "Runtime enforcement"
+    - "Runtime enforcement evidence"
+    - "Role"
+    - "Status"
+    - "Task"
+    - "Ownership"
+    - "Owned write scope"
+    - "Shared read scope"
+    - "Allowed scope"
+    - "Forbidden scope"
+    - "Files inspected"
+    - "Files changed"
+    - "Project-local skills read"
+    - "Current stopping point"
+    - "Findings"
+    - "Verification"
+    - "Risks"
+    - "Needs review"
+    - "Recommended next action"
+    - "Boundary note"
+    - "System/global resources"
+    - "Global Memory"
+    - "Global Skill"
+    - "Project-external reads"
+    - "Project-external writes"
+    - "Status event"
+    - "Completion notification"
+  statuses: ["completed", "blocked", "stopped"]
+
+agent_status_snapshot:
+  location: "%TEMP%/codex-agent-status/<project-id>/agent-status.md"
+  statuses: ["prepared", "active", "completed", "blocked", "needs-review", "closed", "unknown"]
+  ownership_values: ["read-only", "exclusive-writer", "controller-only-integration"]
+
+agent_event:
+  names: ["prepare", "launch", "spawn", "input", "progress", "poll", "report", "wait", "blocked", "close", "reconciled"]
+
+controller_lease:
+  location: "%TEMP%/codex-agent-status/<project-id>/controller-lease.md"
+  rules:
+    - "Only active lease holder writes agent-status.md or marks events processed."
+    - "Renew before expiry while coordinating employees."
+    - "Take over only after expiry, explicit release, or explicit user authorization."
+    - "If lease state is ambiguous, do not write the shared status snapshot until an active controller is chosen."
+
+hard_isolation_evidence:
+  use_when: "Claiming tool-enforced or externally-enforced isolation."
+  rule: "If any required evidence is missing, classify as behavioral-only."
+
+memory_entry:
+  draft_fields:
+    - "Trigger"
+    - "Context"
+    - "Cause"
+    - "Fix / Rule"
+    - "Verification"
+    - "Reuse when"
+  index_columns:
+    - "ID"
+    - "Date"
+    - "Title"
+    - "Trigger"
+    - "Keywords"
+    - "Summary"
+    - "Entry"
+    - "Verified"
+
+skill:
+  SKILL_md_frontmatter: ["name", "description"]
+  openai_yaml:
+    interface:
+      - "display_name"
+      - "short_description"
+      - "default_prompt"
+    policy:
+      - "allow_implicit_invocation"

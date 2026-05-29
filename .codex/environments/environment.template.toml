@@ -1,0 +1,9 @@
+# Reference only. Copy/adapt locally when a target project explicitly adopts it.
+version = 1
+name = "Project Name"
+
+[setup]
+script = '''
+cd "$env:CODEX_WORKTREE_PATH"
+git status -sb
+'''

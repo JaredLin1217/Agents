@@ -1,0 +1,77 @@
+schema: agents-verify/v1
+purpose: "No-script verification gates for this project-isolated Agents workflow."
+
+scope_rule: "Run commands only on paths that exist in the current repository unless a target task explicitly authorizes the path."
+
+commands:
+  status_full: "git status -sb --ignored --untracked-files=all"
+  status_scoped: "git status -sb -- <scoped paths>"
+  diff_check: "git diff --check"
+  files: "rg --files"
+  english_only_core: 'rg -n "[\p{Han}]" AGENTS.md docs .agents .gitignore'
+  english_only_optional: 'Run the same search on README.md, .codex, .gitattributes, and docs/templates/agents only when those paths exist.'
+  placeholder_markers: 'rg -n "TO[D]O|\[TO[D]O\]" AGENTS.md docs .agents'
+  ignored_runtime: "git check-ignore -v docs/agent-status.md docs/agent-events/ docs/tmp-approval-example/report.md docs/hard-isolation-evidence/example.md .codex/environments/environment.toml"
+  template_pollution_rule: "Build a fixed-string rg command with real source or target literals from the current task. Do not run placeholder tokens stored in this file as a gate."
+  deploy_steps_not_nested: 'rg -n "^  steps:" docs/agents/deploy.yaml docs/templates/agents/agents/deploy.yaml'
+
+size_gates:
+  unit: "1 KB means 1024 bytes."
+  tracked_repo_target_kb: 180
+  AGENTS_md_target_kb: 3
+  project_skill_target_kb: 5
+  rule: "If a target is exceeded, document the specific required behavior that justifies it."
+
+no_deduction_audit:
+  required_proof:
+    - "Current repo state inspected with status_full or scoped equivalent."
+    - "Changed files and diffs inspected; unrelated user or parallel-agent work not overwritten."
+    - "Project-external reads and writes are none or exact-path authorized and reported."
+    - "Global Memory and Global Skill are not used or explicitly justified and reported."
+    - "Changed deployable templates are source-neutral."
+    - "Runtime artifacts, live status files, temp approval reports, filled hard-isolation evidence, generated output, caches, build output, vendored files, and runtime copies are not staged unless explicitly targeted and reviewed."
+    - "Multi-worker work has non-overlapping ownership or controller reconciled conflicts before integration."
+    - "Hard-isolation claims have verified runtime, tool, OS, or external evidence; otherwise classification is behavioral-only."
+    - "Hard-isolation verification did not read forbidden content unless exact access was authorized."
+    - "AGENTS.md remains compact when changed."
+    - "Repository facts are backed by current files, diffs, commands, logs, tests, or reports."
+  rule: "If proof is missing, do not claim no deduction items."
+
+coverage_gates:
+  slimline_policy_pack:
+    - "docs/agents/policy.yaml exists and covers isolation, external access, closeout, hard guardrails."
+    - "docs/agents/workflows.yaml exists and covers memory, multi-agent, handoff, deployment pointer, skills, maintenance."
+    - "docs/agents/schemas.yaml exists and covers assignment, final report, status, event, lease, hard-isolation evidence, memory, skill metadata."
+    - "docs/agents/deploy.yaml exists and covers allowlist, blocklist, deployment steps, validation levels."
+    - "docs/agents/verify.yaml exists and covers no-script checks, size gates, no-deduction audit, template cleanliness, and drift checks."
+    - "Deployment steps are top-level in docs/agents/deploy.yaml and template deploy.yaml, not nested under case_by_case."
+
+drift_checks:
+  exact_pairs:
+    - ["docs/agent-status.template.md", "docs/templates/agents/agent-status.template.md"]
+    - ["docs/agent-event.template.md", "docs/templates/agents/agent-event.template.md"]
+    - ["docs/controller-lease.template.md", "docs/templates/agents/controller-lease.template.md"]
+    - ["docs/hard-isolation-evidence.template.md", "docs/templates/agents/hard-isolation-evidence.template.md"]
+    - ["docs/memory/entries/README.md", "docs/templates/agents/memory-entries-README.md"]
+    - [".agents/skills/project-isolation-workflow/agents/openai.yaml", "docs/templates/agents/skills/project-isolation-workflow/agents/openai.yaml"]
+    - ["AGENTS.md", "docs/templates/agents/AGENTS.md"]
+    - [".agents/skills/project-isolation-workflow/SKILL.md", "docs/templates/agents/skills/project-isolation-workflow/SKILL.md"]
+    - ["docs/agents/policy.yaml", "docs/templates/agents/agents/policy.yaml"]
+    - ["docs/agents/workflows.yaml", "docs/templates/agents/agents/workflows.yaml"]
+    - ["docs/agents/schemas.yaml", "docs/templates/agents/agents/schemas.yaml"]
+    - ["docs/agents/deploy.yaml", "docs/templates/agents/agents/deploy.yaml"]
+    - ["docs/agents/verify.yaml", "docs/templates/agents/agents/verify.yaml"]
+    - ["docs/codex-memory.md", "docs/templates/agents/codex-memory.md"]
+    - ["docs/runbooks/agents-deployment.md", "docs/templates/agents/agents-deployment.md"]
+    - ["docs/runbooks/isolation-audit.md", "docs/templates/agents/isolation-audit.md"]
+    - ["docs/runbooks/multi-agent-workflow.md", "docs/templates/agents/multi-agent-workflow.md"]
+    - ["docs/runbooks/repository-maintenance.md", "docs/templates/agents/repository-maintenance.md"]
+    - ["docs/runbooks/session-handoff.md", "docs/templates/agents/session-handoff.md"]
+    - ["docs/runbooks/skill-authoring.md", "docs/templates/agents/skill-authoring.md"]
+    - ["docs/runbooks/task-closeout.md", "docs/templates/agents/task-closeout.md"]
+  template_specific_cleanliness_files:
+    - "docs/templates/agents/README.md"
+    - "docs/templates/agents/project-memory.md"
+    - "docs/templates/agents/project-structure.md"
+    - "docs/templates/agents/memory-index.md"
+  template_specific_cleanliness_rule: "Do not compare template-specific starter files to source-project state files. Verify them by path existence, English-only checks, and concrete source/target literal pollution searches."

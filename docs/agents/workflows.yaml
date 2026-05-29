@@ -1,0 +1,127 @@
+schema: agents-workflows/v1
+purpose: "Compact procedures for project isolation, memory, deployment, multi-agent work, handoff, skills, and maintenance."
+
+startup:
+  broad_controller:
+    - "Read AGENTS.md."
+    - "Use this policy pack for task-specific details."
+    - "Inspect git status before edits."
+    - "If active employees may exist, poll task-boundary state before overlapping edits or final closeout."
+  scoped_employee:
+    - "Read the assignment first."
+    - "Read only assigned repository paths plus explicitly required project-local skills."
+    - "Run only verification that is allowed by the assignment scope; broad checks are controller-only unless explicitly assigned."
+    - "Treat read and write scopes as hard behavioral boundaries unless tool/external enforcement is verified."
+    - "Return the required final report immediately when complete, blocked, or stopped."
+
+memory:
+  lookup:
+    - "Use docs/memory/index.md only when prior project experience may affect the task."
+    - "Read detailed docs/memory/entries/* only when the index points to a relevant entry."
+    - "Treat memory as a hint; current repo evidence wins."
+  propose_entry_when:
+    - "The lesson is verified."
+    - "It is project-specific."
+    - "It is likely to save future work."
+    - "It is not already better represented as AGENTS rule, decision, runbook, or skill."
+
+multi_agent:
+  trigger_aliases: ["hire employee", "spawn employee", "the user's Chinese phrase meaning hire one employee"]
+  controller: "The main session plans, assigns, reviews, integrates, reconciles, and reports."
+  roles:
+    explorer: "Read-only investigation, file search, architecture mapping, risk analysis."
+    worker: "Bounded implementation or documentation work inside exclusive owned write scope."
+  modes:
+    session-managed:
+      use_when: "Short bounded sidecar task where active-turn blocking and lack of sidebar visibility are acceptable."
+      warning: "Does not guarantee a separate app task, user control, or idle controller."
+    manual-detached:
+      use_when: "Sidebar visibility, direct user control, non-blocking controller work, longer local work, or worktree isolation is expected."
+      fallback: "If no direct launch control exists, prepare an assignment prompt for the user to open in another Codex thread or worktree."
+    cloud-or-automation:
+      use_when: "Only when explicitly requested and required account/workspace setup is available."
+  default_mode_preference:
+    - "manual-detached for normal visible long-running hiring requests"
+    - "session-managed for short bounded sidecar work"
+    - "cloud-or-automation only by explicit request"
+  lifecycle: ["prepared", "active", "completed", "needs-review", "closed"]
+  branch_states:
+    blocked: "Needs input, permission, runtime access, or dependency."
+    unknown: "State cannot be recovered from runtime state, temp cache, final reports, or git state."
+    stopped: "Employee was intentionally stopped before normal completion."
+  ownership:
+    matrix_required_for_workers: true
+    normalize_paths: "repository-relative, normalized separators, directory containment, case-insensitive on case-insensitive filesystems"
+    rules:
+      - "One file or directory may have only one active writer."
+      - "Explorers are read-only unless explicitly changed."
+      - "Workers own exclusive write scope until final report, reassignment, or close."
+      - "Controller must not edit an active worker write scope without polling, waiting, or reconciling ownership."
+    hard_fail_when:
+      - "Two active workers have the same owned write scope."
+      - "One worker owns a directory while another owns a file inside it."
+      - "Scopes differ only by slash style, case, relative spelling, or containment."
+      - "A worker reports changed files outside owned scope."
+      - "Controller needs to edit a path currently owned by an active worker."
+  guardrails:
+    - "Do not use employees as integrators."
+    - "Do not assign overlapping workers."
+    - "Do not wait by default; wait only when blocked by the employee result."
+    - "Review employee output and diffs before integration."
+    - "Close employees whose useful context expired."
+    - "Require employees to report project-local skills separately from Global Skill usage."
+    - "Require employees to report system/global resources and external access."
+    - "Required project-local skills and verification commands are read-scope exceptions only when the assignment names them."
+  completion_notification: "When complete, immediately return the required final report. Runtime UI notification is not guaranteed; the controller may poll or wait when needed."
+
+handoff:
+  temp_cache: "%TEMP%/codex-agent-status/<project-id>/"
+  project_id_derivation:
+    - "Resolve repository root path."
+    - "Lowercase it."
+    - "Normalize path separators."
+    - "Replace every character outside a-z and 0-9 with hyphen."
+    - "Collapse repeated hyphens."
+    - "Trim leading and trailing hyphens."
+  files:
+    status_snapshot: "agent-status.md"
+    controller_lease: "controller-lease.md"
+    events_dir: "events/"
+  event_sourcing:
+    event_names: ["prepare", "launch", "spawn", "input", "progress", "poll", "report", "wait", "blocked", "close", "reconciled"]
+    rules:
+      - "Create one append-only file per lifecycle event when persistence is needed."
+      - "Employees may create event files only when assignment gives exact temp cache path and permission."
+      - "Controller owns the status snapshot."
+  persistence_required_when:
+    - "two or more employees are active"
+    - "handoff is possible"
+    - "employee is manual-detached or cloud-or-automation"
+    - "worker edits files"
+    - "ownership changes"
+    - "task may continue later"
+  temp_access_rules:
+    controller: "The active controller may read/write the exact derived temp cache path when coordination requires it and must report XR/XW."
+    employee: "An employee may access the temp cache only when its assignment gives the exact derived path and allowed event action."
+
+deployment:
+  rule: "Use docs/agents/deploy.yaml before copying or adapting Agents rules into another authorized repository."
+  source_repo_must_not_store: "target status, target employee history, target commits, target remotes, or target deployment results"
+
+skill_authoring:
+  create_when: "A repeatable workflow benefits from procedural instructions and is not better as AGENTS rule, memory, decision, or runbook."
+  layout:
+    - ".agents/skills/<skill-name>/SKILL.md"
+    - ".agents/skills/<skill-name>/agents/openai.yaml"
+  naming: "lowercase letters, digits, hyphens; folder name equals frontmatter name"
+  metadata_rules:
+    - "display_name must be present and human-readable."
+    - "openai.yaml default_prompt mentions $skill-name."
+    - "short_description is 25-64 characters."
+    - "allow_implicit_invocation must be present under policy."
+
+repository_maintenance:
+  runtime_artifacts:
+    - "Do not commit live status snapshots, temp events, generated output, caches, build output, vendored files, or runtime copies."
+    - "Keep .codex/environments/environment.toml local and ignored."
+    - "Keep docs/tmp-approval-*/ and docs/hard-isolation-evidence/ local unless a sanitized summary is explicitly promoted."

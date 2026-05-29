@@ -1,0 +1,18 @@
+# Legacy local agent handoff fallback state
+docs/agent-status.md
+docs/agent-events/
+
+# Local Codex App runtime state
+.codex/environments/environment.toml
+
+# Temporary controller/employee approval reports
+docs/tmp-approval-*/
+
+# Local hard-isolation evidence records
+docs/hard-isolation-evidence/
+
+# Common local OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

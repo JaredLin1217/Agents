@@ -1,0 +1,118 @@
+schema: agents-policy-pack/v1
+purpose: "Canonical compact operating rules for this project-isolated Agents workflow."
+
+authority:
+  repo_reality_first:
+    - "Inspect current files, scripts, git state, diffs, logs, and test output before relying on prior chat or memory."
+    - "Memory is a hint only; current repository evidence wins."
+  instruction_layers:
+    - "This file defines repository behavior, not a runtime sandbox."
+    - "Higher-priority Codex instructions, tools, plugins, and system skills may still exist."
+    - "Do not claim runtime, OS, account, or tool isolation unless verified for the current task."
+
+project_state:
+  mode: "repo-specific; classify the current repository before acting"
+  rule: "Do not assume project mode, framework, build system, runtime, scripts, or architecture until repository files define them."
+  scripts: "Use repository-defined scripts when they exist; if absent, use the no-script checks in docs/agents/verify.yaml for Agents workflow changes."
+  default_verification: "Use repository-local no-script checks in docs/agents/verify.yaml."
+
+isolation:
+  durable_storage: "Store project rules, memory, decisions, runbooks, and skills inside this repository."
+  global_memory:
+    default: "not used"
+    rule: "Do not read from or write to Codex global Memory unless the user explicitly asks to re-enable it."
+  global_skills:
+    default: "not used"
+    allowed_project_local: ".agents/skills/**/SKILL.md"
+    rule: "Do not intentionally use global/system skills for normal project work."
+    exception: "If an explicit user request or higher-priority runtime instruction requires a global/system skill, report the skill and reason."
+  external_filesystem:
+    default: "no read, write, list, create, delete, move, stage, commit, or configure outside repository root"
+    allowed_exception:
+      - "Exact external path and action explicitly authorized by the user."
+      - "OS temp handoff cache for multi-agent coordination, limited to the exact derived project cache path and permitted action."
+    temp_cache: "%TEMP%/codex-agent-status/<project-id>/"
+    controller_temp_access: "Controller may read/write the exact derived temp cache path when multi-agent coordination needs it, then report it."
+    employee_temp_access: "Employee may access the temp cache only when the assignment gives the exact derived path and allowed event action."
+    report: "Report exact external reads and writes in final closeout."
+  codex_app:
+    local_policy: ".codex/config.toml belongs only to this repository."
+    live_environment: ".codex/environments/environment.toml is gitignored local runtime state."
+    template_environment: ".codex/environments/environment.template.toml is reference-only, not default deployment input."
+
+runtime_enforcement:
+  default: "behavioral-only"
+  levels:
+    behavioral-only: "Repository rules, assignment wording, controller review, and closeout reporting guide behavior; no verified runtime barrier."
+    tool-enforced: "Current Codex surface exposes and the controller verifies a concrete scope, sandbox, or permission restriction."
+    externally-enforced: "OS, container, CI, worktree, account, cloud task, or other external control enforces the boundary and was verified."
+  hard_isolation_rule: "If the user asks for hard isolation, sandboxing, technical prevention, or a guarantee that an employee cannot access a path, collect hard-isolation evidence before claiming stronger than behavioral-only."
+
+editing:
+  before_edit:
+    - "Run git status -sb before changing files when scope permits."
+    - "Read target files before patching them."
+    - "Protect user and parallel-agent work; do not reset, checkout, revert, delete, or force overwrite changes unless explicitly requested."
+    - "Edit only files in the task scope; employees may edit only their assigned owned write scope."
+    - "State touched files and verification approach before larger or high-risk edits."
+    - "Ask before adding production dependencies, changing public APIs, changing data formats, or altering build, release, or deploy flow."
+  during_edit:
+    - "Keep changes small, scoped, reviewable, and reversible."
+    - "Follow existing naming, directory, documentation, and testing patterns."
+    - "Do not hand-edit generated output, caches, build output, vendored files, runtime copies, or .git unless explicitly targeted."
+
+knowledge_layers:
+  AGENTS.md: "Compact every-session router and hard guardrails."
+  docs/agents: "Canonical compact AI-readable policy pack."
+  docs/project-memory.md: "Project-local memory overview."
+  docs/memory/index.md: "Searchable project memory index."
+  docs/memory/entries: "Detailed verified reusable project lessons."
+  docs/codex-memory.md: "Memory intake stub pointing to policy-pack rules."
+  docs/decisions: "Durable source-project decisions and reasons."
+  docs/runbooks: "Short human/agent routers to policy-pack procedures."
+  docs/templates/agents: "Source-neutral deployment starter bundle."
+  .agents/skills: "Project-local skills only."
+
+placement:
+  every_session_rules: "AGENTS.md"
+  canonical_policy: "docs/agents/*.yaml"
+  project_skill: ".agents/skills/<skill-name>/SKILL.md"
+  deploy_templates: "docs/templates/agents/"
+  deploy_templates_note: "Copied by default for recursive deployability; may be removed only after adapting template-bundle references and drift checks."
+  volatile_agent_status: "%TEMP%/codex-agent-status/<project-id>/"
+  ignored_local_scratch: "docs/tmp-approval-*/ and docs/hard-isolation-evidence/"
+
+deploy_template_cleanliness:
+  rule: "Deployable templates must be source-neutral."
+  forbidden_in_templates:
+    - "source project name"
+    - "local user or machine path"
+    - "source commit, tag, remote, branch, push status"
+    - "source employee history or stopping point"
+    - "source memory rows or memory entries"
+    - "source validation history or field-test history"
+    - "target-specific deployment records"
+
+closeout:
+  required_compact_line: "Isolation: GM <used/not used> | GS <used/not used> | XR <none/paths> | XW <none/paths>"
+  fields:
+    GM: "Global Memory usage."
+    GS: "Global Skill usage. Project-local skills under .agents/skills/ do not count."
+    XR: "Project-external list/read/status/inspect actions."
+    XW: "Project-external create/edit/delete/move/stage/commit/configure/write actions."
+  also_report:
+    - "System/global resources outside global Memory or Global Skills when used."
+    - "Changed files and why they changed."
+    - "Verification commands and results."
+    - "Remaining risks or skipped checks."
+    - "Whether a new rule, decision, runbook, memory entry, or project-local skill candidate was created."
+
+hard_fail_gates:
+  - "Do not use global Memory without explicit user approval."
+  - "Do not intentionally use global/system skills for normal project work."
+  - "Do not access external filesystem paths without exact authorization or temp-cache exception."
+  - "Do not deploy source-specific state to another project."
+  - "Do not allow concurrent workers to own overlapping write scopes."
+  - "Do not claim hard isolation without verified evidence."
+  - "Keep AGENTS.md compact; move long procedures to docs/agents or project-local skills."
+  - "Back repository facts with current evidence, not prior chat."
