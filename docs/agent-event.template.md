@@ -12,10 +12,16 @@
 - Runtime enforcement evidence:
 - Role:
 - Event:
+- Allowed events: prepare | launch | spawn | input | progress | poll | report | wait | blocked | stop | close | reconciled
 - Status:
+- Roster snapshot version:
 - Task:
 - Ownership:
 - Owned write scope:
+- Normalized owned write scope:
+- Ownership conflict status:
+- Ownership matrix status:
+- Checked against:
 - Shared read scope:
 - Allowed scope:
 - Forbidden scope:
@@ -23,17 +29,28 @@
 - Files changed:
 - Project-local skills read:
 - Current stopping point:
+- Boundary note:
+- Roster requirement:
+- Roster path:
+- Roster write permission:
 - Needs review:
 - Next action:
+- Close required:
+- Runtime close result:
+- Closed at:
+- History cleanup:
+- History cleanup authorization:
 - System/global resources:
 - Global Memory:
 - Global Skill:
 - Project-external reads:
 - Project-external writes:
+- Status event:
 
 ## Details
 
 - Summary:
+- Findings:
 - Verification:
 - Risks:
 - Recommended next action:

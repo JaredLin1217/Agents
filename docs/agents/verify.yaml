@@ -2,6 +2,7 @@ schema: agents-verify/v1
 purpose: "No-script verification gates for this project-isolated Agents workflow."
 
 scope_rule: "Run commands only on paths that exist in the current repository unless a target task explicitly authorizes the path."
+path_candidate_rule: "For rg-based content checks, treat listed paths as candidates; remove absent candidate paths before running so missing optional files do not turn no-match checks into command errors."
 
 commands:
   status_full: "git status -sb --ignored --untracked-files=all"
@@ -10,48 +11,184 @@ commands:
   files: "rg --files"
   english_only_core: 'rg -n "[\p{Han}]" AGENTS.md docs .agents .gitignore'
   english_only_optional: 'Run the same search on README.md, .codex, .gitattributes, and docs/templates/agents only when those paths exist.'
-  placeholder_markers: 'rg -n "TO[D]O|\[TO[D]O\]" AGENTS.md docs .agents'
-  ignored_runtime: "git check-ignore -v docs/agent-status.md docs/agent-events/ docs/tmp-approval-example/report.md docs/hard-isolation-evidence/example.md .codex/environments/environment.toml"
+  placeholder_markers: 'rg -n "TO[D]O|\[TO[D]O\]|T[B]D|FI[X]ME" AGENTS.md docs .agents'
+  ignored_runtime: "git check-ignore -v docs/agent-status.md docs/agent-events/ docs/tmp-approval-example/report.md docs/hard-isolation-evidence/example.md docs/runtime-multi-agent-validation/example.md .codex/environments/environment.toml"
   template_pollution_rule: "Build a fixed-string rg command with real source or target literals from the current task. Do not run placeholder tokens stored in this file as a gate."
+  stale_literal_rule: "Do not run or report resolved one-off literal searches as routine gates unless the current task or policy file reintroduces that literal."
   deploy_steps_not_nested: 'rg -n "^  steps:" docs/agents/deploy.yaml docs/templates/agents/agents/deploy.yaml'
+  deploy_steps_top_level: 'rg -n "^steps:" docs/agents/deploy.yaml docs/templates/agents/agents/deploy.yaml'
+  deploy_sources_exist: "Verify every deployable_by_default from path in docs/agents/deploy.yaml exists in the current repository."
+  deploy_manifest_unique: "Verify deployable_by_default source paths are unique and non-append target paths are unique."
+  deploy_blocklist_required_paths: "Verify docs/agents/deploy.yaml do_not_deploy paths include local runtime, scratch, Codex runtime, and .git paths."
+  line_endings: "git ls-files --eol"
+  line_ending_rule: "For files governed by eol=lf, treat w/crlf or w/mixed as commit-readiness issues unless explicitly reported against .gitattributes."
+
+command_semantics:
+  zero_exit_required:
+    - "status_full"
+    - "diff_check"
+    - "ignored_runtime"
+    - "deploy_steps_top_level"
+    - "deploy_sources_exist"
+    - "deploy_manifest_unique"
+    - "deploy_blocklist_required_paths"
+  no_match_expected:
+    - "english_only_core"
+    - "placeholder_markers"
+    - "deploy_steps_not_nested"
+  task_specific_no_match_expected:
+    - "template_pollution_rule"
+  rule: "Report whether each command is match-expected, no-match-expected, or task-specific; do not treat a no-match rg exit code as a failed gate."
+  path_rule: "When a command lists repository paths for content search, first confirm each path exists or build an equivalent command from existing paths only."
+  coverage_rule: "For list-style gates, exit code is not enough. Verify that output covers every required path or file named by the gate."
+  ignored_runtime_rule: "The ignored_runtime gate passes only when each listed runtime or scratch path is reported as ignored."
+  deploy_steps_top_level_rule: "The deploy_steps_top_level gate passes only when both source and template deploy.yaml files report a top-level steps key."
+  deploy_manifest_unique_rule: "The deploy manifest passes only when default deployment source paths are unique and non-append target paths are unique."
+  deploy_blocklist_rule: "The deploy blocklist passes only when all required local runtime, scratch, Codex runtime, and .git paths are present."
 
 size_gates:
-  unit: "1 KB means 1024 bytes."
-  tracked_repo_target_kb: 180
-  AGENTS_md_target_kb: 3
-  project_skill_target_kb: 5
+  unit: "Byte values are exact; 1 KiB means 1024 bytes."
+  tracked_repo_target_kib: 256
+  AGENTS_md_target_bytes: 10240
+  project_skill_target_bytes: 10240
+  measurement:
+    AGENTS_md: "Measure byte length of AGENTS.md."
+    project_skill: "Measure byte length of each changed project-local .agents/skills/*/SKILL.md file."
+    tracked_repo: "Sum byte lengths of regular files returned by git ls-files; ignored and untracked files do not count."
+    prospective_tracked_repo: "When new files are intended for commit, also sum git ls-files plus non-ignored untracked regular files."
+    command_rule: "Use the current shell's native file metadata or another available byte-accurate tool; report the exact command used."
   rule: "If a target is exceeded, document the specific required behavior that justifies it."
 
 no_deduction_audit:
+  applicability_rule: "Items beginning with When apply only when that condition occurs; record not applicable for skipped conditions when making a no-deduction claim."
   required_proof:
     - "Current repo state inspected with status_full or scoped equivalent."
     - "Changed files and diffs inspected; unrelated user or parallel-agent work not overwritten."
     - "Project-external reads and writes are none or exact-path authorized and reported."
     - "Global Memory and Global Skill are not used or explicitly justified and reported."
+    - "Project-local skill usage is reported separately from Global Skill usage when relevant."
+    - "System/global resources outside Global Memory or Global Skills are reported when used."
     - "Changed deployable templates are source-neutral."
     - "Runtime artifacts, live status files, temp approval reports, filled hard-isolation evidence, generated output, caches, build output, vendored files, and runtime copies are not staged unless explicitly targeted and reviewed."
-    - "Multi-worker work has non-overlapping ownership or controller reconciled conflicts before integration."
-    - "Hard-isolation claims have verified runtime, tool, OS, or external evidence; otherwise classification is behavioral-only."
-    - "Hard-isolation verification did not read forbidden content unless exact access was authorized."
+    - "Non-ignored untracked files intended for commit are included in prospective size and deployable-template coverage checks before claiming the policy pack is clean."
+    - "Before commit, tag, release, deploy, or push claims, non-ignored untracked policy/template files are staged, tracked, or explicitly reported as excluded."
+    - "Before commit, tag, release, deploy, or push claims, line-ending warnings or w/crlf/w/mixed eol states are resolved or explicitly reported against .gitattributes."
+    - "Filled runtime multi-agent validation records stay local unless a sanitized summary is explicitly promoted."
+    - "When worker or multi-employee work occurs, an ownership matrix has normalized scopes and non-overlap evidence, or controller reconciled conflicts before integration."
+    - "Goal continuation, broad optimization, quality audit, static validation, or self-scoring requests are not treated as runtime employee launch requests unless they explicitly request employee/delegation/parallel-agent work."
+    - "When worker assignments are created, they include normalized owned write scope and ownership matrix status before launch."
+    - "When an ownership matrix is required, worker final reports and report events include normalized owned write scope, ownership conflict status, and ownership matrix status."
+    - "When an assignment requires a roster, it states exact roster path, roster requirement, and roster write permission."
+    - "When roster-managed work occurs, employee final reports include roster requirement, path, write permission, and snapshot version."
+    - "When employees may outlive controller context, run concurrently, or edit files, the temp roster records runtime id, status, ownership, normalized owned write scope, ownership matrix status, close requirement, and runtime close result when closed."
+    - "When temp roster/event persistence is used, status and close/report/reconciled events include matching snapshot-version evidence."
+    - "When runtime multi-agent validation is claimed, docs/runtime-multi-agent-validation.template.md or equivalent current evidence covers every runtime_multi_agent_validation required field."
+    - "When history cleanup is requested, it is recorded separately from runtime close and has exact external-write authorization before touching Codex internals; otherwise it is recorded as not requested or not applicable with authorization none."
+    - "When hard-isolation is claimed, verified runtime, tool, OS, or external evidence exists; otherwise classification is behavioral-only."
+    - "When hard-isolation verification runs, it does not read forbidden content unless exact access was authorized."
     - "AGENTS.md remains compact when changed."
     - "Repository facts are backed by current files, diffs, commands, logs, tests, or reports."
+    - "Resolved one-off literal checks are not kept in routine verification or closeout summaries after the issue is fixed."
+    - "The verified claim scope is stated; static policy-pack checks are not reported as runtime validation."
   rule: "If proof is missing, do not claim no deduction items."
+
+claim_scopes:
+  static_policy_pack:
+    may_claim_when:
+      - "The current-task no_deduction_audit proof is satisfied."
+      - "Relevant coverage gates pass."
+      - "Relevant size gates are measured and pass."
+      - "Relevant drift checks pass for changed source/template pairs."
+    cannot_claim:
+      - "runtime employee behavior is fully validated"
+      - "tool-enforced or externally-enforced isolation"
+  runtime_multi_agent:
+    may_claim_when:
+      - "live_employee_validation pass_condition is satisfied with current real employee evidence."
+    cannot_claim:
+      - "hard isolation unless hard-isolation evidence also exists"
+  hard_isolation:
+    may_claim_when:
+      - "Current-task hard-isolation evidence proves tool-enforced or externally-enforced boundaries."
+    fallback: "If evidence is missing or indirect, classify as behavioral-only."
+  rule: "Name the verified claim scope in closeout; do not upgrade a narrower proof into a broader claim."
 
 coverage_gates:
   slimline_policy_pack:
     - "docs/agents/policy.yaml exists and covers isolation, external access, closeout, hard guardrails."
     - "docs/agents/workflows.yaml exists and covers memory, multi-agent, handoff, deployment pointer, skills, maintenance."
-    - "docs/agents/schemas.yaml exists and covers assignment, final report, status, event, lease, hard-isolation evidence, memory, skill metadata."
+    - "docs/agents/schemas.yaml exists and covers assignment, ownership matrix, final report, status, event, lease, hard-isolation evidence, runtime multi-agent validation, memory, skill metadata."
+    - "docs/agent-status.template.md includes an ownership matrix table."
     - "docs/agents/deploy.yaml exists and covers allowlist, blocklist, deployment steps, validation levels."
     - "docs/agents/verify.yaml exists and covers no-script checks, size gates, no-deduction audit, template cleanliness, and drift checks."
     - "Deployment steps are top-level in docs/agents/deploy.yaml and template deploy.yaml, not nested under case_by_case."
+    - "Verify commands state whether matches or no matches are expected."
+    - "Verify commands that search content describe how absent optional paths are removed before execution."
+    - "Every deployable_by_default source path in docs/agents/deploy.yaml exists in the current repository."
+    - "Default deployment source paths are unique and non-append target paths are unique."
+    - "Tracked .codex files are not deployable by default; .codex/config.toml is blocklisted and .codex/environments/environment.template.toml is case-by-case reference only."
+    - "Tracked source-owned README, project-structure, project-memory, memory-index, decisions, and memory-entry files are not deployable by default; templates or case-by-case rules cover target copies."
+    - "Tracked .gitattributes and .codex/environments/environment.template.toml are case-by-case only after target inspection."
+    - "docs/runbooks/agents-deployment.md states source-owned and case-by-case deployment boundaries."
+    - "docs/runbooks/repository-maintenance.md states commit/tag/release readiness must account for untracked policy/template files."
+    - "docs/runbooks/repository-maintenance.md states line-ending readiness must follow .gitattributes before commit/tag/release claims."
+    - ".gitignore and docs/templates/agents/gitignore.fragment include the same local-only runtime and scratch artifact patterns."
+    - "The ignored-runtime gate verifies every listed local runtime or scratch path, not just a successful git check-ignore exit code."
+    - "The deploy blocklist includes local runtime, scratch, Codex runtime, and .git paths."
+    - "docs/agents/deploy.yaml blocklists filled local runtime and scratch artifact directories while allowing only source-neutral templates."
+    - "Every tracked file under docs/templates/agents/ is listed either as a template-side exact pair or as a template-specific cleanliness file."
+    - "docs/agent-assignment.template.md includes fields for every assignment required field."
+    - "docs/agent-assignment.template.md includes normalized owned write scope and ownership matrix status."
+    - "docs/runbooks/multi-agent-workflow.md states which request types do not launch runtime employees by themselves."
+    - "docs/agents/workflows.yaml supports clear semantic equivalents for hire/spawn requests without storing user-language trigger literals as routine gates."
+    - "AGENTS.md and the project-local skill route clear semantic equivalents consistently with docs/agents/workflows.yaml."
+    - "docs/templates/agents/memory-index.md remains a starter with no memory data rows."
+    - "docs/templates/agents/project-memory.md remains target-local and does not name the template-provider project."
+    - "docs/memory-entry.template.md includes fields for every memory_entry draft field and index column."
+    - "docs/project-memory.md and docs/templates/agents/project-memory.md point detailed entries to docs/memory-entry.template.md."
+    - "docs/agents/workflows.yaml states memory triggers and past lessons do not become routine verification gates."
+    - "docs/agent-event.template.md includes fields for every employee_final_report required field, or the schema states the field can be explicitly marked not applicable."
+    - "docs/agent-event.template.md lists every allowed agent_event name from docs/agents/schemas.yaml."
+    - "docs/agent-status.template.md includes fields for every agent_status_snapshot required field."
+    - "docs/agent-status.template.md persists normalized owned write scope and ownership matrix status for controller recovery."
+    - "docs/controller-lease.template.md includes fields for every controller_lease required field."
+    - "docs/hard-isolation-evidence.template.md includes fields for every hard_isolation_evidence required field."
+    - "docs/runbooks/isolation-audit.md points hard-isolation claims to docs/hard-isolation-evidence.template.md."
+    - "docs/runtime-multi-agent-validation.template.md includes fields for every runtime_multi_agent_validation required field."
+    - "docs/runtime-multi-agent-validation.template.md includes normalized owned write scope and ownership matrix status."
+    - "docs/runbooks/task-closeout.md states not claimed when no claim scope has current evidence."
+    - "docs/runbooks/skill-authoring.md states that default_prompt must mention the actual skill invocation name with a dollar prefix."
+    - "Project-local skill metadata satisfies docs/agents/schemas.yaml skill fields and docs/agents/workflows.yaml skill_authoring metadata rules."
+    - "docs/agents/workflows.yaml keeps history cleanup rules under multi_agent.controller_compaction_safety.history_cleanup_rules, not as orphan sequence items."
+
+live_employee_validation:
+  required_before_claiming:
+    - "the current task used a real employee runtime or authorized manual-detached employee evidence"
+    - "all applicable runtime evidence below is current, matched to runtime id, and reviewed by the controller"
+    - "the relevant selected hiring mode, roster, polling, final-report, close, and requested history-cleanup flow is fully validated"
+  evidence:
+    - "The explicit user hire, spawn, delegation, or parallel-agent request is recorded before runtime launch."
+    - "A real employee spawn or hire result provides runtime id and nickname."
+    - "Mode choice and expected blocking, visibility, and user-control behavior are recorded."
+    - "The controller creates or updates the exact temp roster path with snapshot version, runtime id, nickname, mode, role, status, ownership, close requirement, and roster permissions."
+    - "The assignment includes roster requirement, exact roster path, roster write permission, status-event rule, and final report schema."
+    - "The employee final report includes required schema fields, including roster fields, project-local skills read, system/global resources, Global Memory, Global Skill, project-external reads, and project-external writes."
+    - "The controller records or can recover poll, report, close, and reconciled evidence with matching snapshot version."
+    - "Runtime close is attempted by runtime id and the runtime close result is recorded."
+    - "Project git status proves no out-of-scope repository changes occurred."
+    - "Any Codex app history cleanup is separate from runtime close and has exact external-write authorization plus a backup record."
+    - "If history cleanup was not requested or is not applicable, the roster/event records that state and sets authorization to none."
+  pass_condition: "Every required evidence item is present and current; otherwise report remaining runtime validation risk."
 
 drift_checks:
   exact_pairs:
+    - ["docs/agent-assignment.template.md", "docs/templates/agents/agent-assignment.template.md"]
     - ["docs/agent-status.template.md", "docs/templates/agents/agent-status.template.md"]
     - ["docs/agent-event.template.md", "docs/templates/agents/agent-event.template.md"]
     - ["docs/controller-lease.template.md", "docs/templates/agents/controller-lease.template.md"]
     - ["docs/hard-isolation-evidence.template.md", "docs/templates/agents/hard-isolation-evidence.template.md"]
+    - ["docs/runtime-multi-agent-validation.template.md", "docs/templates/agents/runtime-multi-agent-validation.template.md"]
+    - ["docs/memory-entry.template.md", "docs/templates/agents/memory-entry.template.md"]
     - ["docs/memory/entries/README.md", "docs/templates/agents/memory-entries-README.md"]
     - [".agents/skills/project-isolation-workflow/agents/openai.yaml", "docs/templates/agents/skills/project-isolation-workflow/agents/openai.yaml"]
     - ["AGENTS.md", "docs/templates/agents/AGENTS.md"]
@@ -71,7 +208,12 @@ drift_checks:
     - ["docs/runbooks/task-closeout.md", "docs/templates/agents/task-closeout.md"]
   template_specific_cleanliness_files:
     - "docs/templates/agents/README.md"
+    - "docs/templates/agents/gitignore.fragment"
     - "docs/templates/agents/project-memory.md"
     - "docs/templates/agents/project-structure.md"
     - "docs/templates/agents/memory-index.md"
+  template_bundle_coverage_rule: "Every tracked or intended-to-stage docs/templates/agents/ file must appear in exact_pairs or template_specific_cleanliness_files before closeout."
+  template_memory_rule: "Template memory starter files must not contain source project memory rows, source memory entry links, or provider project names."
+  schema_field_coverage_rule: "Field coverage gates compare each relevant label from docs/agents/schemas.yaml required_fields, draft_fields, index_columns, event field lists, and skill metadata lists against the corresponding template or metadata file by exact label text."
+  skill_metadata_rule: "Project-local SKILL.md frontmatter must include name and description; folder name must equal frontmatter name; agents/openai.yaml must include display_name, 25-64 character short_description, default_prompt mentioning the actual skill invocation name with a dollar prefix, and allow_implicit_invocation under policy."
   template_specific_cleanliness_rule: "Do not compare template-specific starter files to source-project state files. Verify them by path existence, English-only checks, and concrete source/target literal pollution searches."

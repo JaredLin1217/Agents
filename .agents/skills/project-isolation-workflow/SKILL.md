@@ -39,21 +39,23 @@ For scoped employee assignments:
 - The OS temp handoff cache is project-external and must be reported when used.
 - Do not claim hard isolation without verified evidence from `docs/agents/policy.yaml` and `docs/agents/schemas.yaml`.
 - Deployable templates must stay source-neutral. Fix pollution before closeout.
-- Multi-worker assignments require non-overlapping ownership before launch.
+- Worker assignments require an ownership matrix; multi-worker assignments require non-overlapping ownership before launch.
 - Keep `AGENTS.md` and `SKILL.md` compact; move durable detail to the policy pack.
 
 ## Multi-Agent Trigger
 
-When the user asks to hire or spawn an employee:
+When the user asks to hire, spawn, delegate, request parallel-agent work, or uses a clear semantic equivalent:
 
 1. Choose `session-managed`, `manual-detached`, or `cloud-or-automation`.
 2. Prefer `manual-detached` for sidebar-visible, user-controllable, non-blocking, longer-running local work.
 3. Assign `explorer` for read-only investigation or `worker` for bounded implementation.
-4. Define exclusive owned write scope for every worker.
+4. Define normalized exclusive owned write scope and record an ownership matrix for every worker.
 5. Include the assignment fields from `docs/agents/schemas.yaml`.
-6. Tell employees that final report is the completion notification.
-7. Poll active employees at task boundaries before overlapping edits or final closeout.
-8. Controller reviews reports and diffs before integration.
+6. If an employee may survive controller compaction, run beside another employee, or edit files, create or update the temp roster with runtime id, nickname, status, and ownership before continuing.
+7. Tell employees that final report is the completion notification.
+8. Poll active employees at task boundaries before overlapping edits or final closeout.
+9. Close employees by runtime id when their useful context expires; archive or history cleanup is separate and requires explicit user authorization when it touches Codex internals.
+10. Controller reviews reports and diffs before integration.
 
 ## Closeout
 
@@ -63,4 +65,5 @@ After meaningful work, report changed files, verification, remaining risk, durab
 Isolation: GM <used/not used> | GS <used/not used> | XR <none/paths> | XW <none/paths>
 ```
 
+Name the verified claim scope from `docs/agents/verify.yaml`: static policy pack, runtime multi-agent, hard isolation, or not claimed.
 Report any system/global resources outside global Memory or Global Skills separately when used.

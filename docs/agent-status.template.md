@@ -1,6 +1,7 @@
 # Agent Status Handoff
 
 - Status: `unknown`
+- Snapshot version: `0`
 - Last reviewed: `unknown`
 - Current branch: `unknown`
 - Latest known commit: `unknown`
@@ -17,8 +18,18 @@
 
 ## Employee Agents
 
-| Agent | Mode | Runtime id | Runtime enforcement | Role | Task | Ownership | Owned write scope | Shared read scope | Allowed scope | Forbidden scope | Status | Poll state | Needs review | Files inspected | Files changed | Project-local skills read | Stopping point | Next action | Last updated |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Agent | Mode | Runtime id | Runtime enforcement | Role | Task | Ownership | Owned write scope | Normalized owned write scope | Shared read scope | Ownership matrix status | Allowed scope | Forbidden scope | Status | Poll state | Needs review | Files inspected | Files changed | Project-local skills read | Stopping point | Next action | Last updated |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+
+## Ownership Matrix
+
+| Agent | Runtime id | Role | Status | Ownership | Normalized owned write scope | Scope type | Conflict status | Checked against | Last checked by | Last checked at |
+|---|---|---|---|---|---|---|---|---|---|---|
+
+## Controller Recovery
+
+| Agent | Nickname | Runtime id | Mode | Role | Status | Owned write scope | Normalized owned write scope | Shared read scope | Ownership matrix status | Last known event | Last poll result | Close required | Runtime close result | Closed at | History cleanup | History cleanup authorization | Project-external status path |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 
 ## Pending Events
 

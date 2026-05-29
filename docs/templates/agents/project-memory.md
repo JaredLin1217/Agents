@@ -22,6 +22,7 @@ docs/memory/entries/
 - Global Codex Memory must not be used for normal project work unless the user explicitly asks to use it.
 - Add entries only after a task proves the lesson through files, commands, logs, tests, or observed behavior.
 - Write project memory index rows and entries in English only.
+- Memory entries are hints, not verification gates. Recurring checks belong in `docs/agents/verify.yaml`.
 - The target should add entries only after verified target-local work.
 
 ## Add Flow
@@ -29,7 +30,7 @@ docs/memory/entries/
 1. At the end of meaningful work, decide whether a verified reusable lesson exists.
 2. Ask the user before adding a project memory entry unless the user explicitly asked to maintain memory.
 3. Add a concise index row in `docs/memory/index.md` using the schema in `docs/agents/schemas.yaml`.
-4. Set `Entry` to `none` for concise lessons, or add details in `docs/memory/entries/YYYY-MM-DD-short-title.md` when more context is needed.
+4. Set `Entry` to `none` for concise lessons, or start from `docs/memory-entry.template.md` and add details in `docs/memory/entries/YYYY-MM-DD-short-title.md` when more context is needed.
 
 ## Entries
 

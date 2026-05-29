@@ -22,7 +22,10 @@ The project is intended to stay isolated from other workspaces. Global Memory ca
 - Do not intentionally use global/system skills for normal project work unless the user explicitly requests that capability or a higher-priority runtime instruction requires it.
 - If a system/global capability is used, keep project-specific results in this repository and report the usage.
 - For normal project work, project-external filesystem access is not allowed. Any exception requires explicit user authorization for the exact path and action.
-- Every assistant reply in this repository must report global Memory usage, global Skill usage, project-external reads, and project-external writes.
+- Every final closeout in this repository must include the isolation line from `docs/agents/policy.yaml`.
+- Report project-local skill usage separately from Global Skill usage.
+- Report system/global resources outside Global Memory and Global Skills when used.
+- State the verified claim scope from `docs/agents/verify.yaml`; do not report static policy-pack checks as runtime or hard-isolation proof.
 - Use `docs/runbooks/isolation-audit.md` as the operational checklist for this decision.
 
 ## Consequences

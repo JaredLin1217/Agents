@@ -2,16 +2,16 @@
 
 ## Purpose
 
-- This repo defines a portable, project-isolated Agents workflow.
-- Keep this file tiny; canonical detail is in `docs/agents/*.yaml`.
-- Write repo rules/docs/skills/templates in English only.
+- Project-local Codex operating rules for an isolated Agents workflow.
+- Keep this tiny; canonical detail is in `docs/agents/*.yaml`.
+- Write rules, docs, skills, and templates in English only.
 
 ## Start
 
 - Current repo evidence wins over prior chat or Memory.
-- Before edits, run `git status -sb` when scope permits and protect user or parallel-agent changes.
-- Do not assume project mode, framework, scripts, runtime, or architecture until repo files define them.
-- Use repo-defined scripts when present; use `docs/agents/verify.yaml` for Agents workflow checks.
+- Before edits, run `git status -sb` when feasible and protect existing changes.
+- Do not assume project mode, stack, scripts, runtime, or architecture until repo files define them.
+- Use repo scripts when present; use `docs/agents/verify.yaml` for Agents workflow checks.
 - Use `.agents/skills/project-isolation-workflow/SKILL.md` for isolation, memory, deployment, multi-agent, skill, or maintenance tasks.
 
 ## Guardrails
@@ -26,20 +26,22 @@
 
 ## Canonical Files
 
-- `docs/agents/policy.yaml`: authority, isolation, editing, placement, closeout, hard gates.
+- `docs/agents/policy.yaml`: authority, isolation, editing, closeout, hard gates.
 - `docs/agents/workflows.yaml`: memory, multi-agent, handoff, skills, maintenance.
-- `docs/agents/schemas.yaml`: assignment, report, status, event, lease, evidence, memory, skill fields.
+- `docs/agents/schemas.yaml`: assignment, report, status, event, lease, evidence fields.
 - `docs/agents/deploy.yaml`: deployment allowlist, blocklist, steps, validation.
-- `docs/agents/verify.yaml`: no-script checks, size gates, no-deduction audit, drift checks.
+- `docs/agents/verify.yaml`: no-script checks, size gates, no-deduction audit, drift.
 - `docs/templates/agents/`: source-neutral deployment bundle.
 
 ## Multi-Agent
 
 - Controller integrates; employees do not merge or reconcile others' work.
+- Launch runtime employees only after an explicit user hire, spawn, delegation, parallel-agent request, or clear semantic equivalent.
 - For hire/spawn requests, choose `session-managed`, `manual-detached`, or `cloud-or-automation` before assigning.
-- Prefer `manual-detached` for sidebar-visible, user-controllable, non-blocking, or longer-running local work.
+- Prefer `manual-detached` for visible, controllable, non-blocking, or longer local work.
 - Employee assignments must state mode, role, goal, enforcement, ownership, scopes, edit permission, skills, allowed tools, verification, status-event rule, completion notification, and final report schema.
-- Multiple workers require non-overlapping owned write scopes. Poll or close active workers before editing their owned paths.
+- If an employee may outlive controller context, compact, run beside another, or edit files, keep a temp roster with runtime id, nickname, status, ownership.
+- Workers require normalized owned write scopes and an ownership matrix; multiple workers also require non-overlap evidence. Poll or close active workers before editing their owned paths.
 
 ## Closeout
 
@@ -50,3 +52,4 @@ Isolation: GM <used/not used> | GS <used/not used> | XR <none/paths> | XW <none/
 ```
 
 Also report changed files, verification, risk, durable-knowledge impact, and system/global resources when used.
+Name the verified claim scope: static policy pack, runtime multi-agent, hard isolation, or not claimed.

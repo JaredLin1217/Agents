@@ -11,6 +11,9 @@ docs/tmp-approval-*/
 # Local hard-isolation evidence records
 docs/hard-isolation-evidence/
 
+# Local runtime multi-agent validation records
+docs/runtime-multi-agent-validation/
+
 # Common local OS/editor noise
 .DS_Store
 Thumbs.db

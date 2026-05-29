@@ -7,6 +7,7 @@ startup:
     - "Use this policy pack for task-specific details."
     - "Inspect git status before edits."
     - "If active employees may exist, poll task-boundary state before overlapping edits or final closeout."
+    - "If controller context may have been compacted, recover active employee ids and ownership from the temp roster before editing or closing."
   scoped_employee:
     - "Read the assignment first."
     - "Read only assigned repository paths plus explicitly required project-local skills."
@@ -15,18 +16,25 @@ startup:
     - "Return the required final report immediately when complete, blocked, or stopped."
 
 memory:
+  entry_template: "docs/memory-entry.template.md"
   lookup:
     - "Use docs/memory/index.md only when prior project experience may affect the task."
     - "Read detailed docs/memory/entries/* only when the index points to a relevant entry."
     - "Treat memory as a hint; current repo evidence wins."
+    - "Do not turn memory triggers or past lessons into routine verification gates; recurring gates must live in docs/agents/verify.yaml."
   propose_entry_when:
     - "The lesson is verified."
     - "It is project-specific."
     - "It is likely to save future work."
     - "It is not already better represented as AGENTS rule, decision, runbook, or skill."
+  add_rule: "When a detailed entry is needed, start from docs/memory-entry.template.md so draft fields and index columns stay aligned with docs/agents/schemas.yaml."
 
 multi_agent:
-  trigger_aliases: ["hire employee", "spawn employee", "the user's Chinese phrase meaning hire one employee"]
+  trigger_aliases: ["hire employee", "recruit employee", "spawn employee", "delegate to employee", "parallel-agent work"]
+  runtime_launch_rule: "Launch runtime employees only after an explicit user hire, spawn, delegation, or parallel-agent request."
+  semantic_trigger_rule: "A clear natural-language equivalent of hire, spawn, delegate, or parallel-agent counts as explicit; do not store user-language trigger literals as routine gates."
+  non_trigger_rule: "Goal continuation, broad optimization, quality audit, static validation, or self-scoring requests are not runtime employee launch requests by themselves."
+  assignment_template: "docs/agent-assignment.template.md"
   controller: "The main session plans, assigns, reviews, integrates, reconciles, and reports."
   roles:
     explorer: "Read-only investigation, file search, architecture mapping, risk analysis."
@@ -35,6 +43,7 @@ multi_agent:
     session-managed:
       use_when: "Short bounded sidecar task where active-turn blocking and lack of sidebar visibility are acceptable."
       warning: "Does not guarantee a separate app task, user control, or idle controller."
+      compact_safety: "If the employee may outlive the controller context, write a temp roster entry immediately after runtime id is known."
     manual-detached:
       use_when: "Sidebar visibility, direct user control, non-blocking controller work, longer local work, or worktree isolation is expected."
       fallback: "If no direct launch control exists, prepare an assignment prompt for the user to open in another Codex thread or worktree."
@@ -44,7 +53,7 @@ multi_agent:
     - "manual-detached for normal visible long-running hiring requests"
     - "session-managed for short bounded sidecar work"
     - "cloud-or-automation only by explicit request"
-  lifecycle: ["prepared", "active", "completed", "needs-review", "closed"]
+  lifecycle: ["prepared", "active", "completed", "blocked", "stopped", "needs-review", "closed", "unknown"]
   branch_states:
     blocked: "Needs input, permission, runtime access, or dependency."
     unknown: "State cannot be recovered from runtime state, temp cache, final reports, or git state."
@@ -56,6 +65,7 @@ multi_agent:
       - "One file or directory may have only one active writer."
       - "Explorers are read-only unless explicitly changed."
       - "Workers own exclusive write scope until final report, reassignment, or close."
+      - "Record an ownership matrix when any worker exists or two employees are active."
       - "Controller must not edit an active worker write scope without polling, waiting, or reconciling ownership."
     hard_fail_when:
       - "Two active workers have the same owned write scope."
@@ -64,6 +74,7 @@ multi_agent:
       - "A worker reports changed files outside owned scope."
       - "Controller needs to edit a path currently owned by an active worker."
   guardrails:
+    - "Do not launch runtime employees for broad thoroughness, ordinary investigation, or validation unless the user explicitly requests employee/delegation/parallel-agent work."
     - "Do not use employees as integrators."
     - "Do not assign overlapping workers."
     - "Do not wait by default; wait only when blocked by the employee result."
@@ -73,6 +84,52 @@ multi_agent:
     - "Require employees to report system/global resources and external access."
     - "Required project-local skills and verification commands are read-scope exceptions only when the assignment names them."
   completion_notification: "When complete, immediately return the required final report. Runtime UI notification is not guaranteed; the controller may poll or wait when needed."
+  controller_compaction_safety:
+    create_roster_when:
+      - "two or more employees are active"
+      - "an employee may continue after the controller turn or compact"
+      - "an employee is a worker"
+      - "an employee owns a write scope"
+      - "manual-detached or cloud-or-automation mode is used"
+      - "the user may ask a later session to resume control"
+    assignment_rules:
+      - "If roster is required, the assignment must state roster requirement, exact roster path, and roster write permission."
+      - "Employees may write only append-event files when the assignment grants an exact event path."
+    roster_entry_required_fields:
+      - "runtime id"
+      - "nickname"
+      - "mode"
+      - "role"
+      - "status"
+      - "owned write scope"
+      - "normalized owned write scope"
+      - "shared read scope"
+      - "ownership matrix status"
+      - "last known task"
+      - "last known event"
+      - "close required"
+      - "runtime close result"
+      - "closed at"
+      - "history cleanup"
+      - "history cleanup authorization"
+    recovery_rules:
+      - "If roster exists, trust it only as a starting point; verify git state and poll available runtime ids before editing owned paths."
+      - "If roster is missing and active employees are suspected, treat employee state as unknown and avoid editing likely owned paths until reconciled."
+      - "If runtime id is unknown, do not rely on nickname alone for runtime close operations."
+      - "If controller lease is ambiguous, do not write the shared status snapshot until a single active controller is chosen."
+    close_sequence:
+      - "Close runtime by runtime id first."
+      - "Record the runtime close result before marking roster status closed."
+      - "Mark roster status closed only after the close call succeeds or the runtime is confirmed unavailable."
+    history_cleanup_rules:
+      - "Archive or UI-history cleanup is separate from runtime close."
+      - "If history cleanup is not requested, record History cleanup as not requested and authorization as none."
+      - "If history cleanup is irrelevant or unavailable, record History cleanup as not applicable and authorization as none."
+      - "Do not edit Codex internal databases or app state for history cleanup unless the user explicitly authorizes the exact external write and a backup is created."
+  validation_record:
+    template: "docs/runtime-multi-agent-validation.template.md"
+    local_records: "docs/runtime-multi-agent-validation/"
+    rule: "Before claiming runtime multi-agent validation, fill a local validation record or cite equivalent current evidence for every required field."
 
 handoff:
   temp_cache: "%TEMP%/codex-agent-status/<project-id>/"
@@ -88,14 +145,16 @@ handoff:
     controller_lease: "controller-lease.md"
     events_dir: "events/"
   event_sourcing:
-    event_names: ["prepare", "launch", "spawn", "input", "progress", "poll", "report", "wait", "blocked", "close", "reconciled"]
+    event_names: ["prepare", "launch", "spawn", "input", "progress", "poll", "report", "wait", "blocked", "stop", "close", "reconciled"]
     rules:
       - "Create one append-only file per lifecycle event when persistence is needed."
       - "Employees may create event files only when assignment gives exact temp cache path and permission."
-      - "Controller owns the status snapshot."
+      - "Controller owns and versions the status snapshot."
+      - "Close, report, and reconciled events should include the roster snapshot version they were based on."
   persistence_required_when:
     - "two or more employees are active"
     - "handoff is possible"
+    - "controller compaction could lose runtime ids, ownership, or close state"
     - "employee is manual-detached or cloud-or-automation"
     - "worker edits files"
     - "ownership changes"
@@ -116,7 +175,7 @@ skill_authoring:
   naming: "lowercase letters, digits, hyphens; folder name equals frontmatter name"
   metadata_rules:
     - "display_name must be present and human-readable."
-    - "openai.yaml default_prompt mentions $skill-name."
+    - "openai.yaml default_prompt mentions the actual skill invocation name with a dollar prefix, such as $project-isolation-workflow."
     - "short_description is 25-64 characters."
     - "allow_implicit_invocation must be present under policy."
 
@@ -124,4 +183,4 @@ repository_maintenance:
   runtime_artifacts:
     - "Do not commit live status snapshots, temp events, generated output, caches, build output, vendored files, or runtime copies."
     - "Keep .codex/environments/environment.toml local and ignored."
-    - "Keep docs/tmp-approval-*/ and docs/hard-isolation-evidence/ local unless a sanitized summary is explicitly promoted."
+    - "Keep docs/tmp-approval-*/, docs/hard-isolation-evidence/, and docs/runtime-multi-agent-validation/ local unless a sanitized summary is explicitly promoted."

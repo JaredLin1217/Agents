@@ -80,7 +80,7 @@ placement:
   deploy_templates: "docs/templates/agents/"
   deploy_templates_note: "Copied by default for recursive deployability; may be removed only after adapting template-bundle references and drift checks."
   volatile_agent_status: "%TEMP%/codex-agent-status/<project-id>/"
-  ignored_local_scratch: "docs/tmp-approval-*/ and docs/hard-isolation-evidence/"
+  ignored_local_scratch: "docs/tmp-approval-*/, docs/hard-isolation-evidence/, and docs/runtime-multi-agent-validation/"
 
 deploy_template_cleanliness:
   rule: "Deployable templates must be source-neutral."
@@ -105,6 +105,8 @@ closeout:
     - "Changed files and why they changed."
     - "Verification commands and results."
     - "Remaining risks or skipped checks."
+    - "Verified claim scope from docs/agents/verify.yaml."
+    - "Use not claimed when no claim scope has current evidence."
     - "Whether a new rule, decision, runbook, memory entry, or project-local skill candidate was created."
 
 hard_fail_gates:
@@ -113,6 +115,7 @@ hard_fail_gates:
   - "Do not access external filesystem paths without exact authorization or temp-cache exception."
   - "Do not deploy source-specific state to another project."
   - "Do not allow concurrent workers to own overlapping write scopes."
+  - "Do not leave compact-risk, concurrent, or file-editing employees without a temp roster entry."
   - "Do not claim hard isolation without verified evidence."
   - "Keep AGENTS.md compact; move long procedures to docs/agents or project-local skills."
   - "Back repository facts with current evidence, not prior chat."

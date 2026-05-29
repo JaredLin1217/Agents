@@ -2,6 +2,7 @@
 
 - Controller id:
 - Lease id:
+- Lease status:
 - Acquired at:
 - Last heartbeat:
 - Expires at:
@@ -12,7 +13,7 @@
 
 ## Rules
 
-- Only active lease holder writes the shared status snapshot or marks events processed.
+- Only active lease holder writes agent-status.md or marks events processed.
 - Renew before expiry while coordinating employees.
 - Take over only after expiry, explicit release, or explicit user authorization.
-- If lease state is ambiguous, choose an active controller before writing shared status.
+- If lease state is ambiguous, do not write the shared status snapshot until an active controller is chosen.

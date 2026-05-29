@@ -15,4 +15,4 @@ Global Codex Memory must not be used for normal project work unless the user exp
 
 | ID | Date | Title | Trigger | Keywords | Summary | Entry | Verified |
 |---|---|---|---|---|---|---|---|
-| M001 | 2026-05-28 | Use ASCII employee trigger aliases | Terminal output shows mojibake around employee hiring trigger rules | encoding, mojibake, hire employee, spawn employee, multi-agent, English-only rules | Non-ASCII trigger phrases can render inconsistently across terminals. Keep project rules in English and use ASCII aliases for employee hiring triggers. | `entries/2026-05-28-verify-chinese-trigger-text.md` | yes |
+| M001 | 2026-05-28 | Use English trigger rules with semantic matching | Updating employee hiring trigger rules or examples | encoding, semantic trigger, hire employee, spawn employee, multi-agent, English-only rules | Durable rules stay English and source-neutral. Runtime launch may use clear natural-language equivalents, but user-language trigger literals must not become routine verification gates. | `entries/2026-05-28-verify-chinese-trigger-text.md` | yes |

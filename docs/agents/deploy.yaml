@@ -38,6 +38,8 @@ deployable_by_default:
     - from: "docs/templates/agents/skills/project-isolation-workflow/agents/openai.yaml"
       to: ".agents/skills/project-isolation-workflow/agents/openai.yaml"
   schemas:
+    - from: "docs/templates/agents/agent-assignment.template.md"
+      to: "docs/agent-assignment.template.md"
     - from: "docs/templates/agents/agent-event.template.md"
       to: "docs/agent-event.template.md"
     - from: "docs/templates/agents/agent-status.template.md"
@@ -46,6 +48,8 @@ deployable_by_default:
       to: "docs/controller-lease.template.md"
     - from: "docs/templates/agents/hard-isolation-evidence.template.md"
       to: "docs/hard-isolation-evidence.template.md"
+    - from: "docs/templates/agents/runtime-multi-agent-validation.template.md"
+      to: "docs/runtime-multi-agent-validation.template.md"
   memory:
     - from: "docs/templates/agents/codex-memory.md"
       to: "docs/codex-memory.md"
@@ -53,6 +57,8 @@ deployable_by_default:
       to: "docs/project-memory.md"
     - from: "docs/templates/agents/memory-index.md"
       to: "docs/memory/index.md"
+    - from: "docs/templates/agents/memory-entry.template.md"
+      to: "docs/memory-entry.template.md"
     - from: "docs/templates/agents/memory-entries-README.md"
       to: "docs/memory/entries/README.md"
   runbooks:
@@ -81,10 +87,14 @@ do_not_deploy:
     - "docs/agent-events/"
     - "docs/tmp-approval-*/"
     - "docs/hard-isolation-evidence/"
+    - "docs/runtime-multi-agent-validation/"
     - ".codex/config.toml"
     - ".codex/environments/environment.toml"
     - ".git/"
     - "README.md from the template-provider repository"
+    - "docs/project-structure.md from the template-provider repository"
+    - "docs/project-memory.md from the template-provider repository"
+    - "docs/memory/index.md from the template-provider repository"
   categories:
     - "source commit hashes, remotes, tags, branch names, or push status"
     - "source employee-agent history or stopping points"
@@ -92,16 +102,19 @@ do_not_deploy:
     - "source deployment results for another target"
     - "source OS temp handoff cache"
     - "filled hard-isolation evidence records"
+    - "filled runtime multi-agent validation records"
     - "source memory rows and source memory entry files"
+    - "source project structure, project overview, or repository-local orientation files"
     - "source validation-status sections, dry-run results, and field-test history"
     - "generated output, caches, build output, vendored files, or runtime copies"
 
 case_by_case:
   - "docs/decisions/: copy only decisions the target explicitly adopts."
   - "docs/memory/entries/: create target-specific entries only after target verification."
-  - ".gitattributes: use only when the target adopts the same line-ending policy."
+  - "README.md: target-owned; write or adapt only after inspecting the target."
+  - ".gitattributes: use only when the target adopts the same line-ending policy after inspection."
   - ".codex/ files not listed above: review one file at a time; never copy wholesale."
-  - ".codex/environments/environment.template.toml: reference only unless the target explicitly adopts it."
+  - ".codex/environments/environment.template.toml: reference only unless the target explicitly adopts it after inspection."
 
 steps:
   - "Confirm exact target path and write action authorization."
