@@ -12,7 +12,7 @@
 - Runtime id:
 - Role:
 - Event:
-- Allowed events: prepare | hired | launch | spawn | started | input | progress | poll | report | completed | blocked | stopped | wait | close | shutdown | integrated | reconciled
+- Allowed events: prepare | hired | launch | spawn | started | input | progress | poll | report | completed | blocked | stopped | wait | close | history_cleanup | shutdown | integrated | reconciled
 - Ledger event id:
 - Status:
 - Roster snapshot version:
@@ -60,6 +60,9 @@
 - Closed at:
 - History cleanup:
 - History cleanup authorization:
+- History cleanup target ids:
+- History cleanup DB:
+- History cleanup result:
 - System/global resources:
 - Global Memory:
 - Global Skill:

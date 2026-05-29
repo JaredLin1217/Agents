@@ -81,6 +81,7 @@ multi_agent:
     queue_rule: "Fill the runtime's current maximum active slots, keep remaining employees queued, and refill immediately when any employee completes or is closed."
     wait_rule: "Wait only when the next controller step needs results; otherwise continue non-overlapping controller work."
     close_rule: "Close completed employees as soon as their final report is recorded; launch the next queued employee in the freed slot."
+    history_cleanup_rule: "A user request to close employees authorizes Codex App sidebar/history cleanup for the exact runtime ids closed in that request unless the user opts out; report DB access as XR/XW."
     ledger_rule: "Append hired/report/closed/integrated events to the project-local ledger when recovery matters."
   ownership:
     required_for: "any worker, two active employees, or controller edits near employee scopes"
@@ -107,7 +108,13 @@ multi_agent:
     missing_or_cleared: "Recover from runtime notifications, git status, and employee final reports; do not treat missing temp cache as source of truth."
     git_rule: "Never stage/commit volatile roster, events, leases, or filled validation records."
     micro_batch_exception: "For short session-managed read-only scoring batches, roster is optional if recovery/status claims are not needed; use it when the user needs live tracking."
-  runtime: "Final report is completion notification; close by runtime id; history cleanup needs exact authorization; runtime claims need current validation evidence."
+  runtime:
+    completion: "Final report is completion notification."
+    close: "Close by exact runtime id before any history cleanup."
+    history_cleanup: "Codex App sidebar/history cleanup is external DB cleanup after runtime close; close requests authorize exact closed runtime ids, while standalone cleanup needs explicit authorization, schema check, and XR/XW closeout."
+    history_cleanup_scope: "Delete only thread_dynamic_tools, thread_spawn_edges, and threads rows for matching closed subagent runtime ids under the current repo cwd."
+    orphan_cleanup_scope: "Delete orphan thread_spawn_edges only when both endpoints are missing and cleanup was requested; report the count."
+    history_cleanup_never: ["do not delete parent/controller threads", "do not clean unrelated project cwd", "do not use ledger-only ids without runtime/DB match"]
   report_dedupe:
     report_hash: "Hash normalized agent, runtime id, task, status, score/findings, and files changed when recording batch reports."
     dedupe_key: "agent + runtime id + event + roster snapshot version + report hash"
