@@ -11,7 +11,7 @@ profile_selection:
   order:
     - "answer-only/no current-state claim -> fast_turn with no command."
     - "assigned read-only explorer audit -> read_only_audit; obey assignment command limits."
-    - "now/current/latest/clean/dirty/online/completed/committed/pushed/tagged/deployed claim -> inspect only required current state."
+    - "repo/deploy/git/runtime state claim such as now/current/latest/clean/dirty/online/committed/pushed/tagged/deployed/active/completed -> inspect only required state source."
     - "ordinary scoped edit -> fast_turn."
     - "Agents rule/template/runbook/skill/memory-doc edit -> policy_pack_edit."
     - "commit/tag/ordinary branch push checkpoint -> commit_tag_checkpoint plus push result when applicable."
@@ -20,6 +20,7 @@ profile_selection:
     - "hard isolation claim -> hard_isolation plus current enforcement evidence."
   mixed_claim_rule: "Use the highest-risk matching profile for the claim being made; do not upgrade unrelated facts."
   if_unclear: "State the narrower claim instead of running a broad audit by default."
+  task_class_note: "Task class names come from policy.yaml/workflows.yaml; verification profile names may differ when a profile is shared by multiple classes."
 
 file_classes:
   root_rules: ["AGENTS.md"]
@@ -168,7 +169,7 @@ no_deduction_audit:
   when_applicable:
     - "Workers have non-overlapping normalized ownership."
     - "Ledger/roster/event evidence exists for compact-risk or concurrent employees."
-    - "History cleanup is separate from runtime close and covered by a close request or exact authorization, with target runtime ids, state/history/cache paths touched, official list result when available, and Desktop UI refresh result when sidebar residue was observed."
+    - "History cleanup is separate from runtime close and covered by explicit cleanup wording or exact authorization, with target runtime ids, state/history/cache paths touched, official list result when available, and Desktop UI refresh result when sidebar residue was observed."
     - "Hard-isolation verification avoids forbidden reads unless exact-authorized."
 
 coverage_gates:
@@ -188,7 +189,7 @@ live_employee_validation:
     - "final report matches runtime id and required fields"
     - "ledger or poll/report/close/reconciled evidence has matching snapshot version"
     - "git status proves no out-of-scope changes"
-    - "history cleanup authorization is recorded as none/not requested unless covered by a close request or exact authorization, with target ids, touched state/history/cache paths, official list result when available, cleanup result, and Desktop UI refresh result when sidebar residue was observed"
+    - "history cleanup authorization is recorded as none/not requested unless covered by explicit cleanup wording or exact authorization, with target ids, touched state/history/cache paths, official list result when available, cleanup result, and Desktop UI refresh result when sidebar residue was observed"
 
 drift_checks:
   exact_pairs:
