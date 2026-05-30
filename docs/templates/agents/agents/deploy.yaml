@@ -8,6 +8,22 @@ boundary:
   target_owns: ["Codex App policy", "local environment", "agent ledger", "agent status", "memory entries", "commits", "remotes", "deployment history"]
   source_must_not_store: "target status, employee ledger/history, commits, remotes, or deployment results"
 
+target_layout:
+  detect_first: ["AGENTS.md routes", "existing docs/agents", "existing .agents/docs/agents", "existing .agents/skills"]
+  root_docs: "Use root docs/agents and docs/runbooks when the target already routes there or has no existing Agents layout."
+  dot_agents_docs: "Use .agents/docs and .agents/skills when the target AGENTS.md or existing files route there."
+  rule: "Preserve one target layout; do not create a competing root docs layout and .agents/docs layout in the same deployment unless the user explicitly asks for provider migration."
+  ambiguous: "If both layouts exist, follow the layout referenced by AGENTS.md and report the other as target-owned legacy state."
+
+dirty_target:
+  classify_before_write:
+    deploy_scope: "Files this deployment may update."
+    protected_dirty: "Unrelated app/source/config/secrets/runtime files; do not touch."
+    target_legacy_agents: "Existing target-owned memory, decisions, imports, status, or historical Agents docs outside the deployed file set."
+  rule: "Do not fail or broaden cleanup because target_legacy_agents contains local paths, old memory, or prior tool references; report them separately as follow-up."
+  deployed_file_set: "Record exact files written or intentionally verified for this deployment."
+  validation_scope: "Validate deployed_file_set, not the whole dirty target, unless the user asks for a full target audit."
+
 deployment_modes:
   core_bootstrap: "Install AGENTS.md, policy pack, project skill, gitignore fragment, deployment and closeout runbooks."
   full_workflow: "Install core_bootstrap plus memory starters, runtime/evidence templates, and multi-agent/maintenance runbooks."
@@ -107,11 +123,13 @@ case_by_case:
 steps:
   - "Confirm exact target path/write authorization."
   - "Inspect target state first."
+  - "Detect target layout and classify dirty files before writing."
   - "Choose core_bootstrap, full_workflow, or template_provider_mode; default to core_bootstrap unless the user asks for more."
+  - "Build deployed_file_set from the selected mode and target layout."
   - "Copy/adapt only deployable_by_mode groups listed in mode_composition for the chosen deployment mode."
   - "Append/adapt gitignore.fragment; do not replace target .gitignore wholesale."
   - "Remove source-specific state and adapt target assumptions to target evidence."
-  - "Validate target git state, source-neutral templates, and deployed skill metadata."
+  - "Validate deployed_file_set for diff hygiene, source-neutral literals, and deployed skill metadata; keep legacy target docs separate."
   - "Report exact target paths read/written."
 
 hard_fail_gates:
@@ -121,6 +139,8 @@ hard_fail_gates:
   - "Target state stored in provider repo."
   - "Blocklisted file copied by default."
   - "Target-specific claim without target inspection."
+  - "Competing target layout created without explicit migration request."
+  - "Deployment cleanliness claim based on whole dirty target instead of deployed_file_set."
 
 validation_levels:
   repo_local_dry_run: "source/template/blocklist checks only"

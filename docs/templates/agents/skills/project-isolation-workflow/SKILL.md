@@ -13,6 +13,7 @@ Use this project-local skill when executing or maintaining isolation, memory, de
 - Use `docs/agents/policy.yaml` for isolation, authority, hard gates, and closeout.
 - Use `docs/agents/verify.yaml` for verification profile selection.
 - Use `docs/agents/deploy.yaml` before authorized target deployment.
+- For deployment, preserve the target's existing Agents layout, track `deployed_file_set`, validate only that set, and report legacy dirty target docs separately.
 - Read project memory details only from relevant `docs/memory/index.md` rows.
 
 ## Employee Path
