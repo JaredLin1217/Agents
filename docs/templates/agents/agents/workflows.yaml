@@ -46,6 +46,7 @@ progress_updates:
   short_read_only: "If expected under 30 seconds or under 5 assigned files, send no interim update unless blocked."
   ordinary_work: "At most one concise update every 30-60 seconds or at a material phase boundary."
   workers: "Update before risky edits, when blocked, after meaningful verification, and at final."
+  runtime_cleanup: "Default to one quiet batch; do not narrate each probe/table/file unless cleanup is blocked, destructive scope expands, or user asks for detail."
   cap: "One or two sentences; do not repeat unchanged status."
 
 memory:
@@ -81,7 +82,7 @@ multi_agent:
     queue_rule: "Fill the runtime's current maximum active slots, keep remaining employees queued, and refill immediately when any employee completes or is closed."
     wait_rule: "Wait only when the next controller step needs results; otherwise continue non-overlapping controller work."
     close_rule: "Close completed employees as soon as their final report is recorded; launch the next queued employee in the freed slot."
-    history_cleanup_rule: "A user request to close employees authorizes Codex App sidebar/history cleanup for the exact runtime ids closed in that request unless the user opts out; report DB access as XR/XW."
+    history_cleanup_rule: "A user request to close employees authorizes quiet batched Codex App sidebar/history cleanup for the exact runtime ids closed in that request unless the user opts out; report external state/history/cache access as XR/XW once."
     ledger_rule: "Append hired/report/closed/integrated events to the project-local ledger when recovery matters."
   ownership:
     required_for: "any worker, two active employees, or controller edits near employee scopes"
@@ -111,10 +112,17 @@ multi_agent:
   runtime:
     completion: "Final report is completion notification."
     close: "Close by exact runtime id before any history cleanup."
-    history_cleanup: "Codex App sidebar/history cleanup is external DB cleanup after runtime close; close requests authorize exact closed runtime ids, while standalone cleanup needs explicit authorization, schema check, and XR/XW closeout."
-    history_cleanup_scope: "Delete only thread_dynamic_tools, thread_spawn_edges, and threads rows for matching closed subagent runtime ids under the current repo cwd."
+    official_controls_first: "Prefer close_agent/runtime close, then official app-server status/archive/unsubscribe checks when available; do not start with DB edits."
+    official_status_checks: ["thread/list with cwd and subAgent sourceKinds", "thread/loaded/list", "runtime close tool result"]
+    official_delete_limit: "No official hard-delete thread API is assumed; archive hides stored threads from normal lists, unsubscribe unloads only after the no-subscriber grace period."
+    refresh_limit: "No official sidebar refresh API is assumed; if official lists and persisted state are clean but the sidebar still shows a closed employee, reload/restart Codex UI before further cleanup."
+    quiet_cleanup: "Close all target ids, verify exact current-project subagent matches, delete matching state/history rows/files, verify zero remaining hits, append one ledger summary, then report one compact result."
+    history_cleanup: "Codex App sidebar/history cleanup is external cleanup after runtime close; close requests authorize exact closed runtime ids, while standalone cleanup needs explicit authorization, source/schema check, and XR/XW closeout."
+    history_cleanup_scope: "Delete active DB rows plus matching subagent rollout history files only for closed subagent runtime ids under the current repo cwd; verify official app-server lists when available."
     orphan_cleanup_scope: "Delete orphan thread_spawn_edges only when both endpoints are missing and cleanup was requested; report the count."
-    history_cleanup_never: ["do not delete parent/controller threads", "do not clean unrelated project cwd", "do not use ledger-only ids without runtime/DB match"]
+    post_cleanup_ui_rule: "When restart clears a cleaned employee from the sidebar, record the Desktop UI refresh result and stop; do not keep deleting more state."
+    offline_cache_cleanup: "Only if the exact residue survives reload/restart and the user gives explicit shutdown/cache-cleanup authorization: close all Codex processes, clean exact current-project runtime id residues from Codex Desktop cache/log/state, then restart before claiming UI disappearance."
+    history_cleanup_never: ["do not delete parent/controller/user threads", "do not clean unrelated project cwd", "do not delete non-subagent rollout files", "do not use ledger-only ids without runtime/DB or rollout metadata match", "do not claim UI refresh while Codex Desktop may still hold live memory"]
   report_dedupe:
     report_hash: "Hash normalized agent, runtime id, task, status, score/findings, and files changed when recording batch reports."
     dedupe_key: "agent + runtime id + event + roster snapshot version + report hash"
@@ -148,7 +156,7 @@ handoff:
   files: [".agents/runtime/agent-ledger.jsonl", "agent-status.md", "controller-lease.md", "events/"]
   rules:
     - "Inspect project-local ledger first when employee history may matter; inspect temp cache only when external fallback is required and report XR."
-    - "Treat ledger and temp roster as advisory; verify git/runtime state and require unambiguous controller lease/runtime id before status writes or close actions."
+    - "Treat ledger and temp roster as advisory; verify git/runtime/app-server state and require unambiguous controller lease/runtime id before status writes or close actions."
 
 deployment: "Use docs/agents/deploy.yaml for authorized targets; source repo must not store target status/history/commits/remotes/results."
 

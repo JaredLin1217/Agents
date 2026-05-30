@@ -114,7 +114,7 @@ employee_final_report:
 agent_status_snapshot:
   location: "%TEMP%/codex-agent-status/<project-id>/agent-status.md"
   statuses: ["prepared", "active", "completed", "blocked", "stopped", "needs-review", "closed", "unknown"]
-  required_fields: ["Snapshot version", "Agent", "Runtime id", "Nickname", "Mode", "Role", "Status", "Task", "Ownership", "Owned write scope", "Normalized owned write scope", "Shared read scope", "Ownership matrix status", "Last known event", "Last poll result", "Close required", "Runtime close result", "Closed at", "History cleanup", "History cleanup authorization", "History cleanup target ids", "History cleanup DB", "History cleanup result", "Project-external status path"]
+  required_fields: ["Snapshot version", "Agent", "Runtime id", "Nickname", "Mode", "Role", "Status", "Task", "Ownership", "Owned write scope", "Normalized owned write scope", "Shared read scope", "Ownership matrix status", "Last known event", "Last poll result", "Close required", "Runtime close result", "Closed at", "History cleanup", "History cleanup authorization", "History cleanup target ids", "History cleanup sources", "History cleanup result", "Desktop UI refresh result", "Project-external status path"]
   explorer_queue_fields: ["Agent", "Runtime id", "Task", "Read scope", "Status", "Last poll", "Needs review", "Next action", "Report hash", "Duplicate count", "No-progress count"]
   history_cleanup_values: ["not requested", "not applicable", "authorized", "completed", "failed"]
 
@@ -122,7 +122,7 @@ agent_event:
   names: ["prepare", "hired", "launch", "spawn", "started", "input", "progress", "poll", "report", "completed", "blocked", "stopped", "wait", "close", "history_cleanup", "shutdown", "integrated", "reconciled"]
   explorer_event_fields: ["Agent", "Runtime id", "Event", "Status", "Summary", "Needs review", "Next action", "Report id", "Report observed at", "Report hash", "Duplicate count"]
   ownership_event_fields: ["Normalized owned write scope", "Ownership conflict status", "Ownership matrix status", "Checked against"]
-  close_event_fields: ["Close required", "Runtime close result", "Closed at", "History cleanup", "History cleanup authorization", "History cleanup target ids", "History cleanup DB", "History cleanup result", "Roster snapshot version"]
+  close_event_fields: ["Close required", "Runtime close result", "Closed at", "Official list result", "History cleanup", "History cleanup authorization", "History cleanup target ids", "History cleanup sources", "History cleanup result", "Desktop UI refresh result", "Roster snapshot version"]
   rule: "Report events preserve only fields relevant to the event; unavailable final-report fields may be not applicable."
 
 agent_ledger_event:
@@ -131,7 +131,7 @@ agent_ledger_event:
   status: "repo-local ignored runtime state; advisory, not Codex official runtime DB"
   names: ["initialized", "hired", "started", "completed", "blocked", "stopped", "closed", "history_cleanup", "shutdown", "integrated", "reconciled"]
   required_fields: ["time", "event", "agent_id", "mode", "role", "status", "task"]
-  optional_fields: ["nickname", "read_scope", "write_scope", "ledger_version", "report_hash", "final_report_summary", "controller_id", "source", "history_cleanup_db", "history_cleanup_target_ids", "history_cleanup_result", "deleted_rows", "notes", "isolation"]
+  optional_fields: ["nickname", "read_scope", "write_scope", "ledger_version", "report_hash", "final_report_summary", "controller_id", "source", "official_list_result", "history_cleanup_sources", "history_cleanup_db", "history_cleanup_target_ids", "history_cleanup_result", "desktop_ui_refresh_result", "deleted_rows", "notes", "isolation"]
   write_rule: "Controller appends by default; employees append only when assigned exact ledger path and append permission."
   storage_rule: "Never stage, commit, deploy, or copy .agents/runtime/**; ledger may be cleared and rebuilt from runtime evidence."
 
@@ -231,9 +231,12 @@ runtime_multi_agent_validation:
     - "Out-of-scope changes"
     - "Runtime close attempted"
     - "Runtime close result"
+    - "Official list result"
     - "History cleanup requested"
     - "History cleanup authorization"
+    - "History cleanup sources"
     - "History cleanup result"
+    - "Desktop UI refresh result"
     - "Pass condition met"
     - "Remaining runtime risk"
     - "Controller conclusion"

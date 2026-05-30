@@ -61,8 +61,9 @@
 - History cleanup:
 - History cleanup authorization:
 - History cleanup target ids:
-- History cleanup DB:
+- History cleanup sources:
 - History cleanup result:
+- Desktop UI refresh result:
 - System/global resources:
 - Global Memory:
 - Global Skill:

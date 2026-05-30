@@ -33,13 +33,17 @@ isolation:
     allowed:
       - "User-authorized exact path/action."
       - "Approved temp handoff cache: %TEMP%/codex-agent-status/<project-id>/."
-      - "Codex App sidebar/history cleanup for exact subagent runtime ids closed by a user close request, or by standalone exact cleanup authorization, in the active %USERPROFILE%/.codex/state_<n>.sqlite DB only."
-    report: "Report intentional external reads as XR and writes as XW; temp roster and Codex App DB access must be listed exactly once in closeout. Project-local ledger access is repo-local and not XR/XW."
+      - "Official Codex runtime/app-server status, close, archive, or unsubscribe controls for exact current-project thread ids when available."
+      - "Codex App sidebar/history cleanup for exact subagent runtime ids closed by a user close request, or by standalone exact cleanup authorization."
+      - "Offline Codex Desktop UI-cache cleanup only after explicit shutdown/cleanup authorization and only for exact current-project runtime ids."
+    report: "Report intentional external reads as XR and writes as XW; temp roster and Codex App state/history/cache access must be listed exactly once in closeout. Project-local ledger access is repo-local and not XR/XW."
   codex_app:
     local_policy: ".codex/config.toml is repo-local."
     live_environment: ".codex/environments/environment.toml is ignored runtime state."
     template_environment: ".codex/environments/environment.template.toml is reference-only."
-    sidebar_history_db: "%USERPROFILE%/.codex/state_<n>.sqlite is external runtime UI/history state; clean only the active DB, exclude backup/copy files, and require runtime close plus exact ids."
+    official_thread_controls: "Prefer runtime close plus app-server thread/list, thread/loaded/list, thread/archive, and thread/unsubscribe when available; no official hard-delete thread API is assumed."
+    sidebar_history_db: "%USERPROFILE%/.codex/state_<n>.sqlite plus matching subagent rollout files under %USERPROFILE%/.codex/sessions and archived_sessions are external runtime UI/history state; clean only current-project subagent records/files, exclude user/controller threads and backup/copy DB files."
+    desktop_ui_cache: "Codex Desktop may keep sidebar entries in live memory after official lists, DB rows, and rollout files are clean; first reload/restart the UI and use post-restart absence as refresh evidence before any cache cleanup claim."
 
 runtime_enforcement:
   default: "behavioral-only"
@@ -87,6 +91,7 @@ closeout:
   caps:
     answer_only: "answer/result, optional caveat, required isolation line"
     read_only_explorer: "score/result, up to 3 issues, up to 3 fixes, required isolation line"
+    runtime_cleanup: "closed ids, cleanup counts, remaining-hit summary, UI reload/restart note when needed, required isolation line"
     scoped_edit: "changed files, verification, risk, required isolation line"
     audit_or_deploy: "claim scope, checks, failures/risks, required isolation line"
   expand_for:
@@ -104,6 +109,7 @@ hard_fail_gates:
   - "No source-specific state in deployable templates."
   - "No overlapping active worker write scopes."
   - "No compact-risk/concurrent/editing employee without project-local ledger or temp roster evidence."
-  - "No Codex App DB sidebar/history cleanup without a user close request or standalone exact authorization, schema check, and exact closed runtime ids."
+  - "No Codex App sidebar/history/cache cleanup without runtime close first, exact current-project runtime ids, schema/source check, and user close request or standalone exact authorization."
+  - "No Desktop UI-cache cleanup before reload/restart is tried or explicitly bypassed with shutdown/cache-cleanup authorization."
   - "No hard-isolation claim without verified evidence."
   - "Keep AGENTS.md and project SKILL.md compact."

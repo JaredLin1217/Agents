@@ -30,8 +30,8 @@
 
 ## Controller Recovery
 
-| Agent | Nickname | Runtime id | Mode | Role | Status | Owned write scope | Normalized owned write scope | Shared read scope | Ownership matrix status | Last known event | Last ledger event | Last poll result | Close required | Runtime close result | Closed at | History cleanup | History cleanup authorization | History cleanup target ids | History cleanup DB | History cleanup result | Project-external status path |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Agent | Nickname | Runtime id | Mode | Role | Status | Owned write scope | Normalized owned write scope | Shared read scope | Ownership matrix status | Last known event | Last ledger event | Last poll result | Close required | Runtime close result | Closed at | History cleanup | History cleanup authorization | History cleanup target ids | History cleanup sources | History cleanup result | Desktop UI refresh result | Project-external status path |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 
 ## Pending Events
 
