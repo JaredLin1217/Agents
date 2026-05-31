@@ -9,6 +9,8 @@
     "owns",
     "principle",
     "scope_rule",
+    "stale_literal_rule",
+    "batch_rule",
     "profile_selection",
     "file_classes",
     "gate_matrix",

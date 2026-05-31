@@ -1312,6 +1312,8 @@ function Test-ReadinessLadderEvidence {
                 @("docs/agents/version.yaml", "P5:"),
                 @("docs/agents/version.yaml", "compatibility_rule"),
                 @("docs/agents/version.yaml", "rollback"),
+                @("docs/agents/verify.yaml", "stale_literal_rule"),
+                @("docs/agents/verify.yaml", "batch_rule"),
                 @("docs/agents/deploy.yaml", "target-owned state preserved"),
                 @("docs/agents/workflows.yaml", "compact_output"),
                 @("scripts/validate.ps1", "Test-SizeGates"),
