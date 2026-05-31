@@ -30,23 +30,100 @@
     }
   },
   "x-required-paths": [
+    "assignment.required_fields.Mode",
     "assignment.required_fields.Runtime id",
+    "assignment.required_fields.Runtime enforcement",
+    "assignment.required_fields.Role",
+    "assignment.required_fields.Ownership",
     "assignment.required_fields.Ledger path",
+    "explorer_brief_assignment.preset_rule",
     "scoring_rollup_report.aggregation_rule",
+    "report_validation.score_rule",
+    "report_validation.isolation_rule",
     "report_validation.scoring_required",
     "report_validation.validity_values",
     "ownership_matrix.conflict_checks",
     "employee_final_report.required_fields",
     "agent_ledger_event.location",
     "agent_ledger_event.names",
+    "agent_ledger_event.status",
+    "agent_ledger_event.storage_rule",
+    "hard_isolation_evidence.rule",
+    "runtime_multi_agent_validation.storage_rule",
     "runtime_multi_agent_validation.required_fields",
     "memory_entry.index_columns",
-    "skill.openai_yaml"
+    "skill.openai_yaml",
+    "skill.openai_yaml.policy",
+    "skill.constraints"
   ],
   "x-required-values": [
     {
+      "path": "assignment.required_fields.Mode",
+      "value": "session-managed | manual-detached | cloud-or-automation"
+    },
+    {
+      "path": "assignment.required_fields.Runtime enforcement",
+      "value": "behavioral-only | tool-enforced | externally-enforced"
+    },
+    {
+      "path": "assignment.required_fields.Role",
+      "value": "explorer | worker"
+    },
+    {
+      "path": "assignment.required_fields.Ownership",
+      "value": "read-only | exclusive-writer | controller-only-integration"
+    },
+    {
+      "path": "assignment.required_fields.Ledger path",
+      "value": ".agents/runtime/agent-ledger.jsonl"
+    },
+    {
       "path": "agent_ledger_event.location",
       "value": ".agents/runtime/agent-ledger.jsonl"
+    },
+    {
+      "path": "hard_isolation_evidence.rule",
+      "value": "Missing required evidence means behavioral-only."
+    }
+  ],
+  "x-required-contains": [
+    {
+      "path": "explorer_brief_assignment.preset_rule",
+      "values": [
+        "read-only/scoring explorers",
+        "Do not include ownership matrix"
+      ]
+    },
+    {
+      "path": "report_validation.score_rule",
+      "values": [
+        "numeric 0-100"
+      ]
+    },
+    {
+      "path": "report_validation.isolation_rule",
+      "values": [
+        "GM, GS, XR, and XW"
+      ]
+    },
+    {
+      "path": "agent_ledger_event.status",
+      "values": [
+        "repo-local ignored runtime state",
+        "not Codex official runtime DB"
+      ]
+    },
+    {
+      "path": "agent_ledger_event.storage_rule",
+      "values": [
+        "Never stage, commit, deploy, or copy .agents/runtime/**"
+      ]
+    },
+    {
+      "path": "runtime_multi_agent_validation.storage_rule",
+      "values": [
+        "local scratch"
+      ]
     }
   ]
 }
