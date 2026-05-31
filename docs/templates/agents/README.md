@@ -10,7 +10,7 @@ Deployable, source-neutral Agents rules for target repos.
 
 Use `docs/agents/deploy.yaml` and choose one mode:
 
-- `core_bootstrap`: default; router, policy pack, project skill, gitignore fragment, deployment and closeout runbooks.
+- `core_bootstrap`: default; router, Agents governance rules, project skill, gitignore fragment, deployment and closeout runbooks.
 - `full_workflow`: core plus memory starters, runtime/evidence templates, and remaining runbooks.
 - `template_provider_mode`: full workflow plus recursive `docs/templates/agents/**`.
 

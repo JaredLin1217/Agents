@@ -1,6 +1,6 @@
 # Tests
 
-This directory owns fixtures and automated tests for the Agents policy pack.
+This directory owns fixtures and automated tests for the Agents governance rules.
 
 Initial scope:
 

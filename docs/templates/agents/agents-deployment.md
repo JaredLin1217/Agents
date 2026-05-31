@@ -17,7 +17,7 @@ Use when copying this workflow into an explicitly authorized target repo.
 
 Mode bullets are summaries only; exact groups, file sets, and target-layout rewrites come from `docs/agents/deploy.yaml`.
 
-- `core_bootstrap`: `AGENTS.md`, policy pack, project skill, gitignore fragment, deployment and closeout runbooks.
+- `core_bootstrap`: `AGENTS.md`, Agents governance rules, project skill, gitignore fragment, deployment and closeout runbooks.
 - `full_workflow`: `core_bootstrap` plus memory starters, runtime/evidence templates, and remaining runbooks.
 - `template_provider_mode`: `full_workflow` plus recursive `docs/templates/agents/**` so the target can redeploy this workflow.
 

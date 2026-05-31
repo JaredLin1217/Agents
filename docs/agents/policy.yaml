@@ -63,7 +63,7 @@ editing:
 
 knowledge_layers:
   AGENTS.md: "Small every-session router."
-  docs/agents: "Canonical policy pack."
+  docs/agents: "Canonical Agents governance rules."
   docs/project-memory.md: "Project-local memory overview."
   docs/memory/index.md: "Searchable memory index."
   docs/memory/entries: "Verified reusable lessons."

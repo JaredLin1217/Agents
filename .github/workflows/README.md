@@ -1,10 +1,10 @@
 # Workflows
 
-This directory owns GitHub Actions workflows for the Agents policy pack.
+This directory owns GitHub Actions workflows for the Agents workflow checkpoint.
 
 Workflows:
 
-- `checkpoint.yml` runs the fast policy-pack gate on pull requests and pushes
+- `checkpoint.yml` runs the fast Agents workflow gate on pull requests and pushes
   to `main` or `master`.
 
 Planned workflows:

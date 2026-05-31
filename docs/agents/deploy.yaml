@@ -52,7 +52,7 @@ dirty_target:
   validation_scope: "Validate deployed_file_set, not the whole dirty target, unless the user asks for a full target audit."
 
 deployment_modes:
-  core_bootstrap: "Install AGENTS.md, policy pack, project skill, gitignore fragment, deployment and closeout runbooks."
+  core_bootstrap: "Install AGENTS.md, Agents governance rules, project skill, gitignore fragment, deployment and closeout runbooks."
   full_workflow: "Install core_bootstrap plus memory starters, runtime/evidence templates, and multi-agent/maintenance runbooks."
   template_provider_mode: "Install full_workflow plus docs/templates/agents/** so the target can redeploy this workflow later."
 

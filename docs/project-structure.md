@@ -1,7 +1,9 @@
 # Source Repo Structure
 
-This source repo owns the canonical Agents policy pack, deployment templates,
-and the v2 executable governance structure.
+This source repo owns the canonical AI Agents workflow architecture:
+repo-local routing, deployable governance rules, project-local skills,
+runtime boundaries, validation gates, deployment templates, and future
+extension points.
 
 ## Read Order
 
@@ -19,11 +21,11 @@ and the v2 executable governance structure.
 | `AGENTS.md` | Provider and target router | deploy |
 | `.agents/skills/project-isolation-workflow/` | Project-local skill | deploy |
 | `.agents/runtime/` | Project-local runtime coordination | never deploy |
-| `docs/agents/*.yaml` | Canonical policy pack | deploy |
+| `docs/agents/*.yaml` | Canonical Agents governance rules | deploy |
 | `docs/runbooks/*.md` | Task entry points | mode-based deploy |
 | `docs/templates/agents/` | Provider deploy bundle | `template_provider_mode` only |
 | `docs/memory/`, `docs/decisions/` | Provider-local knowledge | target-owned / do not deploy rows |
-| `docs/agents/decisions/` | Policy-pack structure decisions | provider source only |
+| `docs/agents/decisions/` | Agents workflow structure decisions | provider source only |
 | `schemas/` | Machine-readable policy contracts | provider source only until deploy rules include them |
 | `scripts/` | Local validation and maintenance commands | provider source only until deploy rules include them |
 | `tests/` | Fixtures and automated validation tests | provider source only |
@@ -35,14 +37,14 @@ and the v2 executable governance structure.
 - `AGENTS.md`: every-session router.
 - `.agents/skills/project-isolation-workflow/`: project-local skill.
 - `.agents/runtime/`: ignored coordination ledger and runtime state.
-- `docs/agents/*.yaml`: canonical policy pack.
+- `docs/agents/*.yaml`: canonical Agents governance rules.
 - `docs/runbooks/*.md`: short entry points.
 - `docs/templates/agents/`: source-neutral deploy bundle.
 - `docs/memory/`, `docs/decisions/`: source-local lessons and decisions.
-- `docs/agents/decisions/`: v2 policy-pack structure and governance decisions.
+- `docs/agents/decisions/`: v2 workflow structure and governance decisions.
 - `schemas/`: contracts for canonical YAML and future validation gates.
 - `scripts/`: local executable checks and maintenance commands.
-- `tests/`: fixtures and automated tests for policy-pack behavior.
+- `tests/`: fixtures and automated tests for Agents governance behavior.
 - `mcp/`: project-level capability registry before MCP implementation.
 - `artifacts/`: boundary for traces, evals, and audit outputs.
 - `.github/workflows/`: CI workflows for stable local validation gates.

@@ -11,15 +11,15 @@ permissions:
   contents: read
 
 jobs:
-  policy-pack:
-    name: policy pack
+  agents-workflow:
+    name: agents workflow
     runs-on: windows-latest
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Run policy validation
+      - name: Run Agents workflow validation
         shell: pwsh
         run: .\scripts\validate.ps1
 

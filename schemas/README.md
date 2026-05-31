@@ -1,6 +1,6 @@
 # Schemas
 
-This directory owns machine-readable contracts for the Agents policy pack.
+This directory owns machine-readable contracts for the Agents governance rules.
 
 Initial scope:
 

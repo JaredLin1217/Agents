@@ -7,7 +7,7 @@ Keep Codex project knowledge in this repo. Do not use global Codex Memory for no
 ## Rules
 
 - `AGENTS.md`: every-session router.
-- `docs/agents/*.yaml`: canonical compact policy pack.
+- `docs/agents/*.yaml`: canonical compact Agents governance rules.
 - `docs/memory/index.md` and `docs/memory/entries/`: verified reusable project lessons.
 - `docs/runbooks/` and `.agents/skills/`: repeatable workflows.
 - `docs/decisions/`: durable decisions.

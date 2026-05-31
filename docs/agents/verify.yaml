@@ -50,6 +50,7 @@ commands:
   diff_check: "git diff --check"
   changed_manifest: "git diff --name-only plus git diff --cached --name-only, de-duplicated"
   checkpoint_bundle: "one shell invocation: status, diff_check, changed_manifest, changed-file English/placeholder when prose changed, changed-file line endings, changed exact pairs, optional size gates, no staged runtime/local files"
+  full_audit_bundle: ".\\scripts\\validate.ps1 -Full"
   changed_english: 'rg -n "[\p{Han}]" <changed durable rule/template files>'
   changed_placeholders: 'rg -n "TO[D]O|\[TO[D]O\]|T[B]D|FI[X]ME" <changed durable rule/template files>'
   line_endings: "git ls-files --eol <changed files>"

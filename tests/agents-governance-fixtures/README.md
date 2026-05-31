@@ -1,6 +1,6 @@
 # Agents Policy Fixtures
 
-This directory contains inert fixtures for validating the policy-pack checks.
+This directory contains inert fixtures for validating the Agents workflow checks.
 
 Fixture rules:
 

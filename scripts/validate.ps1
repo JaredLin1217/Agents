@@ -1,5 +1,6 @@
 param(
-    [switch] $Quiet
+    [switch] $Quiet,
+    [switch] $Full
 )
 
 $ErrorActionPreference = "Stop"
@@ -246,7 +247,7 @@ function Test-SchemaContracts {
 }
 
 function Test-ValidationFixtures {
-    $casePath = Get-RepoPath "tests/agents-policy-fixtures/schema-contracts/cases.json"
+    $casePath = Get-RepoPath "tests/agents-governance-fixtures/schema-contracts/cases.json"
     if (-not (Test-Path -LiteralPath $casePath -PathType Leaf)) {
         Add-Warning "Validation fixture cases are not present yet."
         return
@@ -261,7 +262,7 @@ function Test-ValidationFixtures {
     }
 
     foreach ($case in $cases) {
-        $yamlLabel = Join-Path "tests/agents-policy-fixtures/schema-contracts" ([string] $case.yaml)
+        $yamlLabel = Join-Path "tests/agents-governance-fixtures/schema-contracts" ([string] $case.yaml)
         $schemaLabel = [string] $case.schema
         $yamlPath = Get-RepoPath $yamlLabel
         $schemaPath = Get-RepoPath $schemaLabel
@@ -348,6 +349,231 @@ function Test-RuntimeBoundaries {
     }
 }
 
+function Test-GitDiffCheck {
+    $previousErrorActionPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        $output = & git -C $RepoRoot diff --check 2>&1
+        $exitCode = $LASTEXITCODE
+    }
+    finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    if ($exitCode -ne 0) {
+        foreach ($line in $output) {
+            Add-Failure ("Git diff check failed: {0}" -f $line)
+        }
+    }
+}
+
+function Get-IntendedRepoFiles {
+    $files = @(
+        & git -C $RepoRoot ls-files
+        & git -C $RepoRoot ls-files --others --exclude-standard
+    ) | Where-Object { $_ } | Sort-Object -Unique
+
+    return @($files)
+}
+
+function Test-ExactPairs {
+    $pairs = @(
+        @("docs/agent-assignment.template.md", "docs/templates/agents/agent-assignment.template.md"),
+        @("docs/agent-status.template.md", "docs/templates/agents/agent-status.template.md"),
+        @("docs/agent-event.template.md", "docs/templates/agents/agent-event.template.md"),
+        @("docs/controller-lease.template.md", "docs/templates/agents/controller-lease.template.md"),
+        @("docs/hard-isolation-evidence.template.md", "docs/templates/agents/hard-isolation-evidence.template.md"),
+        @("docs/runtime-multi-agent-validation.template.md", "docs/templates/agents/runtime-multi-agent-validation.template.md"),
+        @("docs/memory-entry.template.md", "docs/templates/agents/memory-entry.template.md"),
+        @("docs/memory/entries/README.md", "docs/templates/agents/memory-entries-README.md"),
+        @(".agents/skills/project-isolation-workflow/agents/openai.yaml", "docs/templates/agents/skills/project-isolation-workflow/agents/openai.yaml"),
+        @("AGENTS.md", "docs/templates/agents/AGENTS.md"),
+        @(".agents/skills/project-isolation-workflow/SKILL.md", "docs/templates/agents/skills/project-isolation-workflow/SKILL.md"),
+        @("docs/agents/policy.yaml", "docs/templates/agents/agents/policy.yaml"),
+        @("docs/agents/workflows.yaml", "docs/templates/agents/agents/workflows.yaml"),
+        @("docs/agents/schemas.yaml", "docs/templates/agents/agents/schemas.yaml"),
+        @("docs/agents/deploy.yaml", "docs/templates/agents/agents/deploy.yaml"),
+        @("docs/agents/verify.yaml", "docs/templates/agents/agents/verify.yaml"),
+        @("docs/runbooks/agents-deployment.md", "docs/templates/agents/agents-deployment.md"),
+        @("docs/runbooks/isolation-audit.md", "docs/templates/agents/isolation-audit.md"),
+        @("docs/runbooks/multi-agent-workflow.md", "docs/templates/agents/multi-agent-workflow.md"),
+        @("docs/runbooks/repository-maintenance.md", "docs/templates/agents/repository-maintenance.md"),
+        @("docs/runbooks/session-handoff.md", "docs/templates/agents/session-handoff.md"),
+        @("docs/runbooks/skill-authoring.md", "docs/templates/agents/skill-authoring.md"),
+        @("docs/runbooks/task-closeout.md", "docs/templates/agents/task-closeout.md")
+    )
+
+    foreach ($pair in $pairs) {
+        $left = Get-RepoPath $pair[0]
+        $right = Get-RepoPath $pair[1]
+        if (-not (Test-Path -LiteralPath $left -PathType Leaf)) {
+            Add-Failure ("Exact-pair source missing: {0}" -f $pair[0])
+            continue
+        }
+        if (-not (Test-Path -LiteralPath $right -PathType Leaf)) {
+            Add-Failure ("Exact-pair template missing: {0}" -f $pair[1])
+            continue
+        }
+        $leftHash = (Get-FileHash -LiteralPath $left -Algorithm SHA256).Hash
+        $rightHash = (Get-FileHash -LiteralPath $right -Algorithm SHA256).Hash
+        if ($leftHash -ne $rightHash) {
+            Add-Failure ("Exact-pair drift: {0} != {1}" -f $pair[0], $pair[1])
+        }
+    }
+}
+
+function Test-TemplateCoverage {
+    $allowed = New-Object 'System.Collections.Generic.HashSet[string]'
+    $allowedItems = @(
+        "docs/templates/agents/agent-assignment.template.md",
+        "docs/templates/agents/agent-status.template.md",
+        "docs/templates/agents/agent-event.template.md",
+        "docs/templates/agents/controller-lease.template.md",
+        "docs/templates/agents/hard-isolation-evidence.template.md",
+        "docs/templates/agents/runtime-multi-agent-validation.template.md",
+        "docs/templates/agents/memory-entry.template.md",
+        "docs/templates/agents/memory-entries-README.md",
+        "docs/templates/agents/skills/project-isolation-workflow/agents/openai.yaml",
+        "docs/templates/agents/AGENTS.md",
+        "docs/templates/agents/skills/project-isolation-workflow/SKILL.md",
+        "docs/templates/agents/agents/policy.yaml",
+        "docs/templates/agents/agents/workflows.yaml",
+        "docs/templates/agents/agents/schemas.yaml",
+        "docs/templates/agents/agents/deploy.yaml",
+        "docs/templates/agents/agents/verify.yaml",
+        "docs/templates/agents/agents-deployment.md",
+        "docs/templates/agents/isolation-audit.md",
+        "docs/templates/agents/multi-agent-workflow.md",
+        "docs/templates/agents/repository-maintenance.md",
+        "docs/templates/agents/session-handoff.md",
+        "docs/templates/agents/skill-authoring.md",
+        "docs/templates/agents/task-closeout.md",
+        "docs/templates/agents/README.md",
+        "docs/templates/agents/gitignore.fragment",
+        "docs/templates/agents/project-memory.md",
+        "docs/templates/agents/project-structure.md",
+        "docs/templates/agents/memory-index.md"
+    )
+    foreach ($item in $allowedItems) {
+        [void] $allowed.Add($item)
+    }
+
+    $templateFiles = Get-IntendedRepoFiles | Where-Object { $_ -like "docs/templates/agents/*" }
+    foreach ($path in $templateFiles) {
+        $normalized = $path.Replace("\", "/")
+        if (-not $allowed.Contains($normalized)) {
+            Add-Failure ("Template bundle file is not covered by exact-pair or cleanliness list: {0}" -f $normalized)
+        }
+    }
+}
+
+function Test-DeployManifestIntegrity {
+    $deployPaths = @("docs/agents/deploy.yaml", "docs/templates/agents/agents/deploy.yaml")
+    foreach ($path in $deployPaths) {
+        $fullPath = Get-RepoPath $path
+        $content = Get-Content -LiteralPath $fullPath
+        if (-not ($content | Where-Object { $_ -match "^steps:" })) {
+            Add-Failure ("Deploy manifest has no top-level steps: {0}" -f $path)
+        }
+        if ($content | Where-Object { $_ -match "^  steps:" }) {
+            Add-Failure ("Deploy manifest contains nested steps: {0}" -f $path)
+        }
+
+        $fromPaths = @()
+        $toPaths = @()
+        foreach ($line in $content) {
+            if ($line -match '^\s+- from: "([^"]+)"') {
+                $fromPaths += $Matches[1]
+            }
+            elseif ($line -match '^\s+to: "([^"]+)"') {
+                $toPaths += $Matches[1]
+            }
+        }
+
+        foreach ($from in $fromPaths) {
+            if (-not (Test-Path -LiteralPath (Get-RepoPath $from) -PathType Leaf)) {
+                Add-Failure ("Deploy source path is missing in {0}: {1}" -f $path, $from)
+            }
+        }
+
+        $duplicateFrom = $fromPaths | Group-Object | Where-Object { $_.Count -gt 1 }
+        foreach ($group in $duplicateFrom) {
+            Add-Failure ("Deploy source path is duplicated in {0}: {1}" -f $path, $group.Name)
+        }
+
+        $nonAppendToPaths = $toPaths | Where-Object { $_ -notlike "*append/adapt*" }
+        $duplicateTo = $nonAppendToPaths | Group-Object | Where-Object { $_.Count -gt 1 }
+        foreach ($group in $duplicateTo) {
+            Add-Failure ("Deploy destination path is duplicated in {0}: {1}" -f $path, $group.Name)
+        }
+
+        foreach ($required in @(".agents/runtime/", ".codex/config.toml", ".codex/environments/environment.toml", ".git/")) {
+            if (-not ($content | Where-Object { $_ -match [regex]::Escape($required) })) {
+                Add-Failure ("Deploy blocklist is missing required path in {0}: {1}" -f $path, $required)
+            }
+        }
+    }
+}
+
+function Test-SkillMetadata {
+    $skillFiles = @(
+        ".agents/skills/project-isolation-workflow/SKILL.md",
+        "docs/templates/agents/skills/project-isolation-workflow/SKILL.md"
+    )
+    foreach ($path in $skillFiles) {
+        $fullPath = Get-RepoPath $path
+        $head = Get-Content -LiteralPath $fullPath -TotalCount 10
+        if ($head[0] -ne "---") {
+            Add-Failure ("Project skill is missing YAML front matter: {0}" -f $path)
+        }
+        if (-not ($head | Where-Object { $_ -match "^name:\s+.+" })) {
+            Add-Failure ("Project skill metadata is missing name: {0}" -f $path)
+        }
+        if (-not ($head | Where-Object { $_ -match "^description:\s+.+" })) {
+            Add-Failure ("Project skill metadata is missing description: {0}" -f $path)
+        }
+    }
+
+    foreach ($path in @(".agents/skills/project-isolation-workflow/agents/openai.yaml", "docs/templates/agents/skills/project-isolation-workflow/agents/openai.yaml")) {
+        $content = Get-Content -LiteralPath (Get-RepoPath $path)
+        if (-not ($content | Where-Object { $_ -match "^\s*default_prompt:" })) {
+            Add-Failure ("Agent skill metadata is missing default_prompt: {0}" -f $path)
+        }
+    }
+}
+
+function Test-SizeGates {
+    $agentsSize = (Get-Item -LiteralPath (Get-RepoPath "AGENTS.md")).Length
+    if ($agentsSize -gt 10240) {
+        Add-Failure ("AGENTS.md exceeds 10240 bytes: {0}" -f $agentsSize)
+    }
+
+    $skillSize = (Get-Item -LiteralPath (Get-RepoPath ".agents/skills/project-isolation-workflow/SKILL.md")).Length
+    if ($skillSize -gt 10240) {
+        Add-Failure ("Project skill exceeds 10240 bytes: {0}" -f $skillSize)
+    }
+
+    $total = 0
+    foreach ($path in Get-IntendedRepoFiles) {
+        $fullPath = Get-RepoPath $path
+        if (Test-Path -LiteralPath $fullPath -PathType Leaf) {
+            $total += (Get-Item -LiteralPath $fullPath).Length
+        }
+    }
+    $limit = 256 * 1024
+    if ($total -gt $limit) {
+        Add-Failure ("Tracked/intended repo size exceeds 256 KiB: {0} bytes" -f $total)
+    }
+}
+
+function Test-FullAuditGates {
+    Test-GitDiffCheck
+    Test-ExactPairs
+    Test-DeployManifestIntegrity
+    Test-TemplateCoverage
+    Test-SkillMetadata
+    Test-SizeGates
+}
+
 Push-Location $RepoRoot
 try {
     Write-Check "INFO" ("Repo root: {0}" -f $RepoRoot)
@@ -413,6 +639,13 @@ try {
     Test-RuntimeBoundaries
     if ($Failures.Count -eq 0) {
         Add-Pass "Runtime/local boundary checks passed."
+    }
+
+    if ($Full) {
+        Test-FullAuditGates
+        if ($Failures.Count -eq 0) {
+            Add-Pass "Full release audit gates passed."
+        }
     }
 }
 finally {

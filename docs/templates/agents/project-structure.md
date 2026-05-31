@@ -1,6 +1,6 @@
 # Target Repo Structure
 
-Agents rules and executable governance files live inside the target repo.
+Agents workflow rules and executable governance files live inside the target repo.
 
 ## Read Order
 
@@ -18,11 +18,11 @@ Agents rules and executable governance files live inside the target repo.
 | `AGENTS.md` | Target router | deploy |
 | `.agents/skills/project-isolation-workflow/` | Target-local skill | deploy |
 | `.agents/runtime/` | Target-local runtime coordination | never deploy |
-| `docs/agents/*.yaml` | Canonical policy pack | deploy |
+| `docs/agents/*.yaml` | Canonical Agents governance rules | deploy |
 | `docs/runbooks/*.md` | Task entry points | mode-based deploy |
 | `docs/templates/agents/` | Optional redeploy bundle | `template_provider_mode` only |
 | `docs/memory/`, `docs/decisions/` | Target-local knowledge | target-owned |
-| `docs/agents/decisions/` | Policy-pack structure decisions | target-owned unless explicitly deployed |
+| `docs/agents/decisions/` | Agents workflow structure decisions | target-owned unless explicitly deployed |
 | `schemas/` | Machine-readable policy contracts | deploy only when enabled by target mode |
 | `scripts/` | Local validation and maintenance commands | deploy only when enabled by target mode |
 | `tests/` | Fixtures and automated validation tests | deploy only when enabled by target mode |
@@ -34,13 +34,13 @@ Agents rules and executable governance files live inside the target repo.
 - `AGENTS.md`: every-session router.
 - `.agents/skills/project-isolation-workflow/`: project-local skill.
 - `.agents/runtime/`: ignored coordination ledger and runtime state.
-- `docs/agents/*.yaml`: canonical policy pack.
+- `docs/agents/*.yaml`: canonical Agents governance rules.
 - `docs/runbooks/*.md`: short entry points.
 - `docs/memory/`: target-local lessons.
 - `docs/templates/agents/`: optional template-provider bundle for redeployment.
 - `schemas/`: contracts for canonical YAML and future validation gates.
 - `scripts/`: local executable checks and maintenance commands.
-- `tests/`: fixtures and automated tests for policy-pack behavior.
+- `tests/`: fixtures and automated tests for Agents governance behavior.
 - `mcp/`: target-level capability registry before MCP implementation.
 - `artifacts/`: boundary for traces, evals, and audit outputs.
 - `.github/workflows/`: CI workflows for stable local validation gates.
