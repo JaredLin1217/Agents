@@ -10,12 +10,16 @@ Initial scope:
 - `docs/agents/schemas.yaml`
 - `docs/agents/version.yaml`
 - `docs/agents/deploy.yaml`
+- `docs/agents/mcp.yaml`
 
-The first schema contracts are standard JSON Schema documents with a small
-supported subset used by `scripts/validate.ps1`:
+Schema contracts are standard JSON Schema documents with a small supported
+subset used by `scripts/validate.ps1`:
 
 - top-level `required`
 - `properties.schema.const`
+- `x-required-paths`
+- `x-required-values`
+- `x-required-contains`
 
 This gives the repo an immediate contract gate without adding package
 dependencies. Full JSON Schema validation can be added later through the same
