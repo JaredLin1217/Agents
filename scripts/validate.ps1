@@ -289,6 +289,24 @@ function Get-SchemaContractIssues {
         }
     }
 
+    $requiredContainsProperty = $schemaDocument.PSObject.Properties["x-required-contains"]
+    if ($requiredContainsProperty) {
+        foreach ($requiredContains in @($requiredContainsProperty.Value)) {
+            $path = [string] $requiredContains.path
+            if (-not $yamlPathValues.ContainsKey($path)) {
+                $issues.Add(("{0} is missing required contains path from {1}: {2}" -f $YamlLabel, $SchemaLabel, $path)) | Out-Null
+                continue
+            }
+
+            $actual = [string] $yamlPathValues[$path]
+            foreach ($needle in @($requiredContains.contains)) {
+                if (-not $actual.Contains([string] $needle)) {
+                    $issues.Add(("{0} value at {1} must contain {2}." -f $YamlLabel, $path, $needle)) | Out-Null
+                }
+            }
+        }
+    }
+
     $expectedSchema = Get-JsonSchemaConst -SchemaDocument $schemaDocument -PropertyName "schema"
     if ($expectedSchema) {
         if (-not $yamlDocument.ContainsKey("schema")) {

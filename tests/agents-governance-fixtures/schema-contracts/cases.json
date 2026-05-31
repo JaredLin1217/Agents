@@ -16,5 +16,11 @@
     "yaml": "workflows.bad-schema.yaml",
     "schema": "schemas/agents-workflows.schema.json",
     "expected": "fail"
+  },
+  {
+    "name": "version-readiness-missing-anchor",
+    "yaml": "version.bad-readiness.yaml",
+    "schema": "schemas/agents-version.schema.json",
+    "expected": "fail"
   }
 ]
