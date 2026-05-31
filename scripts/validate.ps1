@@ -38,6 +38,31 @@ function Add-Pass {
     Write-Check "PASS" $Message
 }
 
+function Convert-AgentLedgerEventForValidation {
+    param([pscustomobject] $Event)
+
+    $normalized = [ordered]@{}
+    foreach ($property in $Event.PSObject.Properties) {
+        $normalized[$property.Name] = $property.Value
+    }
+
+    $aliases = @{
+        time       = "ts"
+        runtime_id = "agent_id"
+        agent      = "agent_id"
+        controller = "controller_id"
+        scope      = "read_scope"
+    }
+    foreach ($alias in $aliases.Keys) {
+        $canonical = $aliases[$alias]
+        if ($normalized.Contains($alias) -and -not $normalized.Contains($canonical)) {
+            $normalized[$canonical] = $normalized[$alias]
+        }
+    }
+
+    return [pscustomobject]$normalized
+}
+
 function Get-RepoPath {
     param([string] $Path)
     return Join-Path $RepoRoot $Path
@@ -967,6 +992,38 @@ function Test-MultiAgentWorkflowIntegrity {
     }
 }
 
+function Test-AgentLedgerCompatibility {
+    $startFailureCount = $Failures.Count
+    $samples = @(
+        '{"ts":"2026-05-31T00:00:00Z","event":"completed","agent_id":"agent-1","mode":"session-managed","role":"explorer","task":"audit","status":"completed"}',
+        '{"time":"2026-05-31T00:00:00Z","event":"completed","runtime_id":"agent-2","mode":"session-managed","role":"explorer","task":"audit","status":"completed"}',
+        '{"ts":"2026-05-31T00:00:00Z","event":"closed","agent":"agent-3","controller":"codex","scope":"read-only audit","mode":"session-managed","role":"explorer","task":"audit"}'
+    )
+    $requiredFields = @("ts", "event", "agent_id", "mode", "role", "task")
+
+    foreach ($sample in $samples) {
+        try {
+            $event = $sample | ConvertFrom-Json
+        }
+        catch {
+            Add-Failure ("Agent ledger sample is invalid JSON: {0}" -f $sample)
+            continue
+        }
+
+        $normalized = Convert-AgentLedgerEventForValidation -Event $event
+        foreach ($field in $requiredFields) {
+            $property = $normalized.PSObject.Properties[$field]
+            if ($null -eq $property -or [string]::IsNullOrWhiteSpace([string]$property.Value)) {
+                Add-Failure ("Agent ledger compatibility sample is missing canonical field after normalization: {0}" -f $field)
+            }
+        }
+    }
+
+    if ($Failures.Count -eq $startFailureCount) {
+        Add-Pass "Agent ledger compatibility checks passed."
+    }
+}
+
 function Test-EvidenceTemplateSchemaCoverage {
     $startFailureCount = $Failures.Count
     $schemaContent = Get-Content -LiteralPath (Get-RepoPath "docs/agents/schemas.yaml") -Raw
@@ -1087,7 +1144,8 @@ function Test-ReadinessLadderEvidence {
                 @("docs/agents/workflows.yaml", "before:"),
                 @("docs/agents/workflows.yaml", "during:"),
                 @("docs/agents/workflows.yaml", "after:"),
-                @("scripts/validate.ps1", "Test-MultiAgentWorkflowIntegrity")
+                @("scripts/validate.ps1", "Test-MultiAgentWorkflowIntegrity"),
+                @("scripts/validate.ps1", "Test-AgentLedgerCompatibility")
             )
         },
         @{
@@ -1213,6 +1271,7 @@ function Test-FullAuditGates {
     Test-DeploymentScriptSafety
     Test-DeploymentSelfTest
     Test-MultiAgentWorkflowIntegrity
+    Test-AgentLedgerCompatibility
     Test-EvidenceTemplateSchemaCoverage
     Test-CIWorkflowStability
     Test-ReadinessLadderEvidence
