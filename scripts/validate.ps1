@@ -846,6 +846,56 @@ function Test-MultiAgentWorkflowIntegrity {
     }
 }
 
+function Test-EvidenceTemplateSchemaCoverage {
+    $startFailureCount = $Failures.Count
+    $schemaContent = Get-Content -LiteralPath (Get-RepoPath "docs/agents/schemas.yaml") -Raw
+
+    function Get-RequiredFields {
+        param(
+            [string] $Section,
+            [string] $NextSection
+        )
+        $sectionStart = $schemaContent.IndexOf(("{0}:" -f $Section))
+        $sectionEnd = $schemaContent.IndexOf(("{0}:" -f $NextSection), $sectionStart + 1)
+        if ($sectionStart -lt 0 -or $sectionEnd -lt 0) {
+            Add-Failure ("Schema section boundary is missing: {0} -> {1}" -f $Section, $NextSection)
+            return @()
+        }
+
+        $sectionText = $schemaContent.Substring($sectionStart, $sectionEnd - $sectionStart)
+        return [regex]::Matches($sectionText, '^\s*-\s+"([^"]+)"', [System.Text.RegularExpressions.RegexOptions]::Multiline) |
+            ForEach-Object { $_.Groups[1].Value }
+    }
+
+    $checks = @(
+        @{
+            Name = "hard-isolation evidence"
+            Paths = @("docs/hard-isolation-evidence.template.md", "docs/templates/agents/hard-isolation-evidence.template.md")
+            Markers = Get-RequiredFields "hard_isolation_evidence" "runtime_multi_agent_validation"
+        },
+        @{
+            Name = "runtime multi-agent validation"
+            Paths = @("docs/runtime-multi-agent-validation.template.md", "docs/templates/agents/runtime-multi-agent-validation.template.md")
+            Markers = Get-RequiredFields "runtime_multi_agent_validation" "memory_entry"
+        }
+    )
+
+    foreach ($check in $checks) {
+        foreach ($path in $check.Paths) {
+            $content = Get-Content -LiteralPath (Get-RepoPath $path) -Raw
+            foreach ($marker in $check.Markers) {
+                if (-not $content.Contains($marker)) {
+                    Add-Failure ("{0} template is missing schema marker in {1}: {2}" -f $check.Name, $path, $marker)
+                }
+            }
+        }
+    }
+
+    if ($Failures.Count -eq $startFailureCount) {
+        Add-Pass "Evidence template schema coverage checks passed."
+    }
+}
+
 function Test-ReadinessLadderEvidence {
     $startFailureCount = $Failures.Count
     $checks = @(
@@ -899,6 +949,7 @@ function Test-ReadinessLadderEvidence {
                 @("docs/agents/verify.yaml", "runtime_multi_agent"),
                 @("docs/agents/verify.yaml", "hard_isolation"),
                 @("scripts/validate.ps1", "Test-SizeGates"),
+                @("scripts/validate.ps1", "Test-EvidenceTemplateSchemaCoverage"),
                 @("scripts/validate.ps1", "Full release audit gates passed")
             )
         },
@@ -1009,6 +1060,7 @@ function Test-FullAuditGates {
     Test-DeploymentScriptSafety
     Test-DeploymentSelfTest
     Test-MultiAgentWorkflowIntegrity
+    Test-EvidenceTemplateSchemaCoverage
     Test-ReadinessLadderEvidence
     Test-SizeGates
 }
