@@ -667,6 +667,12 @@ function Invoke-DeploymentSelfTest {
     Assert-SelfTestFile -Root $dotTarget -RelativePath "AGENTS.md"
     Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/agents/workflows.yaml"
     Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/agents-workflow-deployment.md"
+    Invoke-ChildDeployment -CommandArgs @{ TargetPath = $dotTarget; Mode = "full_workflow"; Upgrade = $true; Quiet = $true }
+    Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/project-memory.md"
+    Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/memory/index.md"
+    Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/project-structure.md"
+    Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/runbooks/session-handoff.md"
+    Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/agent-status.template.md"
     Assert-NoSourceLiteral -Root $dotTarget
 
     $protectedTarget = Join-Path $selfTestRoot "protected-existing"
