@@ -860,8 +860,19 @@ function Invoke-ChildDeploymentOutput {
     }
 }
 
+function Get-SafeStatusProjectId {
+    param([string] $SourceRoot)
+
+    $leaf = Split-Path -Leaf $SourceRoot
+    $safe = ($leaf.ToLowerInvariant() -replace "[^a-z0-9._-]+", "-").Trim("-._")
+    if ([string]::IsNullOrWhiteSpace($safe)) {
+        return "agents-workflow"
+    }
+    return $safe
+}
+
 function Invoke-DeploymentSelfTest {
-    $projectId = "jared-ai-team"
+    $projectId = Get-SafeStatusProjectId -SourceRoot $RepoRoot.Path
     $statusRoot = Join-Path ([System.IO.Path]::GetTempPath()) "codex-agent-status"
     $projectRoot = Join-Path $statusRoot $projectId
     $selfTestRoot = Join-Path $projectRoot ("deploy-selftest-{0}" -f $PID)

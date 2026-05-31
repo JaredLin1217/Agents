@@ -875,6 +875,13 @@ function Test-DeploymentScriptSafety {
         }
     }
 
+    if ($content -match '\$projectId\s*=\s*["''][^"'']+["'']') {
+        Add-Failure "Deployment self-test temp namespace must be derived from the source root, not hard-coded."
+    }
+    if (-not $content.Contains("Get-SafeStatusProjectId")) {
+        Add-Failure "Deployment script is missing source-neutral self-test status namespace derivation."
+    }
+
     $selfTestScriptMarkers = @(
         "root-docs",
         "template-provider",
