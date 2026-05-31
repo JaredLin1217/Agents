@@ -904,8 +904,8 @@ function Test-CIWorkflowStability {
     if ($content -match "runs-on:\s*windows-latest") {
         Add-Failure "Checkpoint workflow must pin a Windows runner instead of using windows-latest."
     }
-    if ($content -notmatch "runs-on:\s*windows-2025") {
-        Add-Failure "Checkpoint workflow is missing the pinned windows-2025 runner."
+    if ($content -notmatch "runs-on:\s*windows-2025-vs2026") {
+        Add-Failure "Checkpoint workflow is missing the pinned windows-2025-vs2026 runner."
     }
 
     if ($Failures.Count -eq $startFailureCount) {
