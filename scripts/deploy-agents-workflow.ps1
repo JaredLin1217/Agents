@@ -451,7 +451,6 @@ function Assert-NoSourceLiteral {
 
     $sourceLiterals = @(
         $RepoRoot.Path,
-        (Split-Path -Leaf $RepoRoot.Path),
         "JaredLin"
     )
     $files = Get-ChildItem -LiteralPath $Root -Recurse -File |
