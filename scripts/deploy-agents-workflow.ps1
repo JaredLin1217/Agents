@@ -673,6 +673,9 @@ function Invoke-DeploymentSelfTest {
     Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/project-structure.md"
     Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/runbooks/session-handoff.md"
     Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/agent-status.template.md"
+    Invoke-ChildDeployment -CommandArgs @{ TargetPath = $dotTarget; Mode = "template_provider_mode"; Upgrade = $true; Quiet = $true }
+    Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/templates/agents/AGENTS.md"
+    Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/templates/agents/agents/deploy.yaml"
     Assert-NoSourceLiteral -Root $dotTarget
 
     $protectedTarget = Join-Path $selfTestRoot "protected-existing"
