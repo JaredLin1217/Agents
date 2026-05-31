@@ -875,6 +875,56 @@ function Test-DeploymentScriptSafety {
         }
     }
 
+    $selfTestScriptMarkers = @(
+        "root-docs",
+        "template-provider",
+        "dot-agents-docs",
+        "dry-run",
+        "protected-existing",
+        "git-backed-foreign-project",
+        "missing-target",
+        "target-owned-state",
+        "routed-legacy",
+        "ambiguous-layout"
+    )
+    foreach ($marker in $selfTestScriptMarkers) {
+        if (-not $content.Contains(('"{0}"' -f $marker))) {
+            Add-Failure ("Deployment self-test scenario is missing from script: {0}" -f $marker)
+        }
+    }
+
+    $documentationPaths = @(
+        "docs/agents/deploy.yaml",
+        "docs/templates/agents/agents/deploy.yaml",
+        "docs/agents/verify.yaml"
+    )
+    $selfTestDocumentationMarkers = @(
+        "root_docs",
+        "template-provider",
+        "dot_agents_docs",
+        "dry-run",
+        "protected-existing",
+        "git-backed foreign project",
+        "missing-target",
+        "target-owned-state",
+        "routed-legacy",
+        "ambiguous-layout",
+        "app-file preservation"
+    )
+    foreach ($docPath in $documentationPaths) {
+        $docFullPath = Get-RepoPath $docPath
+        if (-not (Test-Path -LiteralPath $docFullPath -PathType Leaf)) {
+            Add-Failure ("Deployment self-test documentation file is missing: {0}" -f $docPath)
+            continue
+        }
+        $docContent = Get-Content -LiteralPath $docFullPath -Raw
+        foreach ($marker in $selfTestDocumentationMarkers) {
+            if (-not $docContent.Contains($marker)) {
+                Add-Failure ("Deployment self-test documentation is missing marker {0} in {1}" -f $marker, $docPath)
+            }
+        }
+    }
+
     $forbiddenPatterns = @(
         "#requires",
         "RunAsAdministrator",
