@@ -596,6 +596,19 @@ function Get-IntendedRepoFiles {
     return @($files)
 }
 
+function Get-RepoFilesSize {
+    param([string[]] $Paths)
+
+    $total = 0
+    foreach ($path in $Paths) {
+        $fullPath = Get-RepoPath $path
+        if (Test-Path -LiteralPath $fullPath -PathType Leaf) {
+            $total += (Get-Item -LiteralPath $fullPath).Length
+        }
+    }
+    return $total
+}
+
 function Test-ExactPairs {
     $startFailureCount = $Failures.Count
     $pairs = @(
@@ -952,7 +965,8 @@ function Test-DeploymentScriptSafety {
         "target-owned-state",
         "routed-legacy",
         "ambiguous-layout",
-        "app-file preservation"
+        "app-file preservation",
+        "target git rollback scope"
     )
     foreach ($docPath in $documentationPaths) {
         $docFullPath = Get-RepoPath $docPath
@@ -1314,9 +1328,13 @@ function Test-ReadinessLadderEvidence {
                 @("docs/agents/version.yaml", "rollback"),
                 @("docs/agents/verify.yaml", "stale_literal_rule"),
                 @("docs/agents/verify.yaml", "batch_rule"),
+                @("docs/agents/verify.yaml", "target-owned state preservation"),
+                @("docs/agents/verify.yaml", "target git rollback scope"),
                 @("docs/agents/deploy.yaml", "target-owned state preserved"),
+                @("docs/agents/deploy.yaml", "target git rollback scope"),
                 @("docs/agents/workflows.yaml", "compact_output"),
                 @("scripts/validate.ps1", "Test-SizeGates"),
+                @("scripts/deploy-agents-workflow.ps1", "target git rollback scope"),
                 @("scripts/deploy-agents-workflow.ps1", "Update-TargetStateClassification"),
                 @("scripts/deploy-agents-workflow.ps1", "Protected dirty/local target state observed"),
                 @("scripts/deploy-agents-workflow.ps1", "Target-owned legacy Agents files outside deployed file set")
@@ -1380,30 +1398,69 @@ function Test-SkillMetadata {
 
 function Test-SizeGates {
     $startFailureCount = $Failures.Count
+    $verifyContent = Get-Content -LiteralPath (Get-RepoPath "docs/agents/verify.yaml") -Raw
+
+    function Get-SizeGateLimit {
+        param([string] $Name)
+        $match = [regex]::Match($verifyContent, ("(?m)^\s*{0}:\s*(\d+)\s*$" -f [regex]::Escape($Name)))
+        if (-not $match.Success) {
+            Add-Failure ("Size gate config is missing or non-numeric: {0}" -f $Name)
+            return $null
+        }
+        return [int] $match.Groups[1].Value
+    }
+
+    $agentsLimit = Get-SizeGateLimit "AGENTS.md"
+    $skillLimit = Get-SizeGateLimit "project_skill"
+    $canonicalYamlLimit = Get-SizeGateLimit "canonical_agents_yaml"
+    $scriptLimit = Get-SizeGateLimit "script_ps1"
+    $repoLimitKiB = Get-SizeGateLimit "tracked_repo_kib"
+    if ($null -in @($agentsLimit, $skillLimit, $canonicalYamlLimit, $scriptLimit, $repoLimitKiB)) {
+        return
+    }
+
     $agentsSize = (Get-Item -LiteralPath (Get-RepoPath "AGENTS.md")).Length
-    if ($agentsSize -gt 10240) {
-        Add-Failure ("AGENTS.md exceeds 10240 bytes: {0}" -f $agentsSize)
+    if ($agentsSize -gt $agentsLimit) {
+        Add-Failure ("AGENTS.md exceeds {0} bytes: {1}" -f $agentsLimit, $agentsSize)
     }
 
     $skillSize = (Get-Item -LiteralPath (Get-RepoPath ".agents/skills/project-isolation-workflow/SKILL.md")).Length
-    if ($skillSize -gt 10240) {
-        Add-Failure ("Project skill exceeds 10240 bytes: {0}" -f $skillSize)
+    if ($skillSize -gt $skillLimit) {
+        Add-Failure ("Project skill exceeds {0} bytes: {1}" -f $skillLimit, $skillSize)
     }
 
-    $total = 0
-    foreach ($path in Get-IntendedRepoFiles) {
-        $fullPath = Get-RepoPath $path
-        if (Test-Path -LiteralPath $fullPath -PathType Leaf) {
-            $total += (Get-Item -LiteralPath $fullPath).Length
+    $maxYamlSize = 0
+    foreach ($file in Get-ChildItem -LiteralPath (Get-RepoPath "docs/agents") -Filter "*.yaml") {
+        if ($file.Length -gt $maxYamlSize) {
+            $maxYamlSize = $file.Length
+        }
+        if ($file.Length -gt $canonicalYamlLimit) {
+            Add-Failure ("Canonical Agents YAML exceeds {0} bytes: {1} ({2} bytes)" -f $canonicalYamlLimit, $file.FullName, $file.Length)
         }
     }
-    $limit = 384 * 1024
-    if ($total -gt $limit) {
-        Add-Failure ("Tracked/intended repo size exceeds 384 KiB: {0} bytes" -f $total)
+
+    $maxScriptSize = 0
+    foreach ($file in Get-ChildItem -LiteralPath (Get-RepoPath "scripts") -Filter "*.ps1") {
+        if ($file.Length -gt $maxScriptSize) {
+            $maxScriptSize = $file.Length
+        }
+        if ($file.Length -gt $scriptLimit) {
+            Add-Failure ("PowerShell script exceeds {0} bytes: {1} ({2} bytes)" -f $scriptLimit, $file.FullName, $file.Length)
+        }
+    }
+
+    $trackedTotal = Get-RepoFilesSize -Paths @(& git -C $RepoRoot ls-files)
+    $intendedTotal = Get-RepoFilesSize -Paths (Get-IntendedRepoFiles)
+    $limit = $repoLimitKiB * 1024
+    if ($trackedTotal -gt $limit) {
+        Add-Failure ("Tracked repo size exceeds {0} KiB: {1} bytes" -f $repoLimitKiB, $trackedTotal)
+    }
+    if ($intendedTotal -gt $limit) {
+        Add-Failure ("Intended repo size exceeds {0} KiB: {1} bytes" -f $repoLimitKiB, $intendedTotal)
     }
 
     if ($Failures.Count -eq $startFailureCount) {
-        Add-Pass ("Size gates passed: AGENTS.md {0} bytes; project skill {1} bytes; tracked repo {2} bytes." -f $agentsSize, $skillSize, $total)
+        Add-Pass ("Size gates passed: AGENTS.md {0} bytes; project skill {1} bytes; max yaml {2} bytes; max ps1 {3} bytes; tracked repo {4} bytes; intended repo {5} bytes." -f $agentsSize, $skillSize, $maxYamlSize, $maxScriptSize, $trackedTotal, $intendedTotal)
     }
 }
 

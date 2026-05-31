@@ -21,6 +21,7 @@ Use this project-local skill as a compact router for isolation, memory, deployme
 - Assign exact read/write scope first; explorers are read-only, workers need exclusive normalized write scope.
 - Use `.agents/runtime/agent-ledger.jsonl` for recovery-sensitive work; use temp roster only as authorized external fallback.
 - Runtime close, sidebar/history cleanup, fast hiring, and scoring batch details are canonical in `docs/agents/workflows.yaml`.
+- After explicit employee dismissal/cleanup wording, complete the standard finish with authorized Codex App sidebar/history cleanup verification.
 
 ## Guardrails
 

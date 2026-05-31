@@ -978,6 +978,7 @@ function Invoke-DeploymentSelfTest {
     Set-Content -LiteralPath (Join-Path $foreignTarget "src/app.txt") -Value "target app code" -Encoding utf8
     Set-Content -LiteralPath (Join-Path $foreignTarget ".gitignore") -Value "bin/" -Encoding utf8
     Invoke-SelfTestGit -Root $foreignTarget -Arguments @("init") | Out-Null
+    Invoke-SelfTestGit -Root $foreignTarget -Arguments @("config", "core.autocrlf", "false") | Out-Null
     Invoke-SelfTestGit -Root $foreignTarget -Arguments @("add", "README.md", "src/app.txt", ".gitignore") | Out-Null
     Invoke-SelfTestGit -Root $foreignTarget -Arguments @("-c", "user.name=Agents Self Test", "-c", "user.email=agents-selftest@example.invalid", "commit", "-m", "Initial foreign project") | Out-Null
     Invoke-ChildDeployment -CommandArgs @{ TargetPath = $foreignTarget; Mode = "core_bootstrap"; Quiet = $true }
@@ -991,6 +992,17 @@ function Invoke-DeploymentSelfTest {
     Assert-SelfTestContains -Path (Join-Path $foreignTarget ".gitignore") -Expected ".agents/runtime/"
     Assert-SelfTestContains -Path (Join-Path $foreignTarget ".gitignore") -Expected ".codex/config.toml"
     Assert-SelfTestContains -Path (Join-Path $foreignTarget ".gitignore") -Expected ".codex/environments/environment.toml"
+    Invoke-SelfTestGit -Root $foreignTarget -Arguments @("add", "--", "AGENTS.md", "docs/agents", "docs/runbooks", ".agents/skills", "docs/agents-workflow-deployment.md", ".gitignore") | Out-Null
+    Invoke-SelfTestGit -Root $foreignTarget -Arguments @("-c", "user.name=Agents Self Test", "-c", "user.email=agents-selftest@example.invalid", "commit", "-m", "Deploy agents workflow") | Out-Null
+    $rollbackScope = Invoke-SelfTestGit -Root $foreignTarget -Arguments @("diff", "--name-only", "HEAD~1..HEAD", "--")
+    $rollbackScopeText = ($rollbackScope -join [Environment]::NewLine)
+    Assert-SelfTestTextContains -Text $rollbackScopeText -Expected "AGENTS.md"
+    Assert-SelfTestTextContains -Text $rollbackScopeText -Expected "docs/agents/workflows.yaml"
+    foreach ($appPath in @("README.md", "src/app.txt")) {
+        if ($rollbackScope -contains $appPath) {
+            throw "Deployment self-test expected target git rollback scope to exclude app file: $appPath"
+        }
+    }
 
     $missingTarget = Join-Path $selfTestRoot "missing-target"
     foreach ($args in @(

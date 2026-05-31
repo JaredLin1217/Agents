@@ -18,6 +18,8 @@
     "capability_classes.browser.optional_for",
     "capability_classes.desktop_control.optional_for",
     "capability_classes.automation.optional_for",
+    "capability_classes.openai_docs.required_for",
+    "capability_classes.openai_docs.claim_rule",
     "capability_classes.mcp_servers.optional_for",
     "deployment.deploy_policy",
     "deployment.target_rule",

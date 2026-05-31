@@ -9,6 +9,7 @@ Repo-local Codex rules for an isolated, deployable Agents workflow. Durable rule
 - Before edits, git/deploy actions, or current-state claims, inspect only the needed state and protect existing changes.
 - Use the smallest profile in `docs/agents/verify.yaml`; ordinary commit/tag/branch-push uses fast checkpoint gates.
 - Use `.agents/skills/project-isolation-workflow/SKILL.md` for executing or maintaining isolation, memory, deployment, multi-agent, skill, or maintenance procedures.
+- For OpenAI API, ChatGPT Apps SDK, Codex, Agents SDK, MCP, model, or tool guidance, consult the OpenAI developer documentation MCP server first, or official OpenAI docs if the server is unavailable.
 
 ## Boundaries
 

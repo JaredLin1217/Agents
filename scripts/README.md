@@ -40,12 +40,13 @@ workflow YAML syntax, required file references, schema contracts, validation
 fixtures, placeholder scans, durable English-only rules, and
 runtime/source-state boundaries.
 
-The `-Full` mode adds release-audit gates for diff hygiene, exact-pair drift,
-deploy manifest integrity, template bundle coverage, project skill metadata,
-and size budgets.
+The `-Full` mode adds release-audit gates for diff hygiene, deployment
+safety/self-test, template/schema/skill/CI integrity, P0-P5 evidence, and size
+budgets.
 
-Full JSON Schema validation belongs in `schemas/` and can be added later
-without changing the command entry point.
+Schema files define compact repo-local contracts. The validator enforces the
+required top-level keys, nested paths, required values, and fixture cases needed
+by the V2 policy pack without external package dependencies.
 
 The deployment entry point reads `docs/agents/deploy.yaml`, detects the target
 layout, builds a deployed file set, rewrites target paths when the target uses

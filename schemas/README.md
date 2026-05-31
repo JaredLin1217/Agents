@@ -22,5 +22,5 @@ subset used by `scripts/validate.ps1`:
 - `x-required-contains`
 
 This gives the repo an immediate contract gate without adding package
-dependencies. Full JSON Schema validation can be added later through the same
-schema files.
+dependencies. A fuller JSON Schema validator can replace the lightweight
+runner without changing the schema ownership model.
