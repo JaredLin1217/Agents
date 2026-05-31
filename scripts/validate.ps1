@@ -609,6 +609,8 @@ function Test-DeploymentScriptSafety {
         "Assert-InsideRoot",
         "Test-PathInsideRoot",
         "Confirm-SourceAllowed",
+        "Assert-DeployWriteAllowed",
+        "requires -Upgrade",
         "Assert-NoSourceLiteral",
         "Assert-SelfTestMissing",
         "Assert-SelfTestContent",

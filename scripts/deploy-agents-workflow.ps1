@@ -79,6 +79,28 @@ function Write-Step {
     }
 }
 
+function Assert-DeployWriteAllowed {
+    param(
+        [string] $Path,
+        [string] $RelativePath,
+        [string] $Content
+    )
+
+    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
+        return $true
+    }
+
+    $ProtectedExisting.Add($RelativePath) | Out-Null
+    $existing = Get-Content -LiteralPath $Path -Raw
+    if ($existing -eq $Content) {
+        return $false
+    }
+    if (-not $Upgrade) {
+        throw "Existing target file requires -Upgrade after dry-run: $RelativePath"
+    }
+    return $true
+}
+
 function Normalize-RepoPath {
     param([string] $Path)
     return $Path.Replace("\", "/").Trim("/")
@@ -354,6 +376,9 @@ function Copy-DeployEntry {
     $DeployedFiles.Add($targetRelative) | Out-Null
     $PlannedWrites.Add($targetRelative) | Out-Null
 
+    $content = Get-Content -LiteralPath $sourcePath -Raw
+    $content = Rewrite-ContentForLayout -Content $content -Layout $Layout
+
     if (Test-Path -LiteralPath $targetFull -PathType Leaf) {
         $ProtectedExisting.Add($targetRelative) | Out-Null
     }
@@ -362,13 +387,16 @@ function Copy-DeployEntry {
         return
     }
 
+    $shouldWrite = Assert-DeployWriteAllowed -Path $targetFull -RelativePath $targetRelative -Content $content
+    if (-not $shouldWrite) {
+        return
+    }
+
     $targetDir = Split-Path -Parent $targetFull
     if (-not (Test-Path -LiteralPath $targetDir -PathType Container)) {
         New-Item -ItemType Directory -Path $targetDir | Out-Null
     }
 
-    $content = Get-Content -LiteralPath $sourcePath -Raw
-    $content = Rewrite-ContentForLayout -Content $content -Layout $Layout
     Set-Content -LiteralPath $targetFull -Value $content -NoNewline -Encoding utf8
 }
 
@@ -409,8 +437,14 @@ function Write-DeploymentReport {
         "- Runtime, local Codex config, Git metadata, status, event, and filled evidence files are not deployed.",
         "- Target-owned legacy Agents files are reported separately and remain target-owned."
     )
+    $reportContent = ($reportLines -join [System.Environment]::NewLine) + [System.Environment]::NewLine
 
     if ($PlanOnly) {
+        return
+    }
+
+    $shouldWrite = Assert-DeployWriteAllowed -Path $reportPath -RelativePath $reportRelative -Content $reportContent
+    if (-not $shouldWrite) {
         return
     }
 
@@ -418,7 +452,7 @@ function Write-DeploymentReport {
     if (-not (Test-Path -LiteralPath $reportDir -PathType Container)) {
         New-Item -ItemType Directory -Path $reportDir | Out-Null
     }
-    Set-Content -LiteralPath $reportPath -Value $reportLines -Encoding utf8
+    Set-Content -LiteralPath $reportPath -Value $reportContent -NoNewline -Encoding utf8
 }
 
 function Reset-Directory {
@@ -525,16 +559,34 @@ function Invoke-DeploymentSelfTest {
     Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents/workflows.yaml"
     Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents-workflow-deployment.md"
     Assert-NoSourceLiteral -Root $rootTarget
+    Invoke-ChildDeployment -CommandArgs @{ TargetPath = $rootTarget; Mode = "full_workflow"; Quiet = $true }
 
     $dotTarget = Join-Path $selfTestRoot "dot-agents-docs"
     New-Item -ItemType Directory -Path $dotTarget | Out-Null
     New-Item -ItemType Directory -Path (Join-Path $dotTarget ".agents/skills") -Force | Out-Null
     Set-Content -LiteralPath (Join-Path $dotTarget "AGENTS.md") -Value "Route to .agents/docs/agents." -Encoding utf8
-    Invoke-ChildDeployment -CommandArgs @{ TargetPath = $dotTarget; Mode = "core_bootstrap"; Quiet = $true }
+    Invoke-ChildDeployment -CommandArgs @{ TargetPath = $dotTarget; Mode = "core_bootstrap"; Upgrade = $true; Quiet = $true }
     Assert-SelfTestFile -Root $dotTarget -RelativePath "AGENTS.md"
     Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/agents/workflows.yaml"
     Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/agents-workflow-deployment.md"
     Assert-NoSourceLiteral -Root $dotTarget
+
+    $protectedTarget = Join-Path $selfTestRoot "protected-existing"
+    New-Item -ItemType Directory -Path $protectedTarget | Out-Null
+    Set-Content -LiteralPath (Join-Path $protectedTarget "AGENTS.md") -Value "target-owned agents" -Encoding utf8
+    $protectedWriteBlocked = $false
+    try {
+        Invoke-ChildDeployment -CommandArgs @{ TargetPath = $protectedTarget; Mode = "core_bootstrap"; Quiet = $true }
+    }
+    catch {
+        $protectedWriteBlocked = $true
+    }
+    if (-not $protectedWriteBlocked) {
+        throw "Deployment self-test expected existing target file to require -Upgrade."
+    }
+    Assert-SelfTestContent -Path (Join-Path $protectedTarget "AGENTS.md") -Expected "target-owned agents"
+    Invoke-ChildDeployment -CommandArgs @{ TargetPath = $protectedTarget; Mode = "core_bootstrap"; Upgrade = $true; Quiet = $true }
+    Assert-SelfTestFile -Root $protectedTarget -RelativePath "docs/agents/workflows.yaml"
 
     $dryRunTarget = Join-Path $selfTestRoot "dry-run"
     New-Item -ItemType Directory -Path $dryRunTarget | Out-Null
