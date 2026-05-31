@@ -59,6 +59,7 @@ deployment_modes:
 upgrade:
   rule: "Upgrade is the same allowlisted deployment operation with dry-run first and target-owned state preserved."
   overwrite_gate: "Existing deployed files with content changes require -Upgrade after dry-run; unchanged files may be skipped."
+  dry_run_plan: "Dry-run classifies allowlisted target paths as planned create/update, already current, or requiring -Upgrade without writing files."
   version_source: "docs/agents/version.yaml"
   target_marker: "The deployed version file records workflow compatibility, not target status or provider runtime state."
   no_permission_repair: "Do not run OS permission, ownership, ACL, or .git metadata repair as part of deployment or upgrade."

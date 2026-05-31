@@ -615,8 +615,11 @@ function Test-DeploymentScriptSafety {
         "Assert-SelfTestMissing",
         "Assert-SelfTestContent",
         "Assert-SelfTestContains",
+        "Assert-SelfTestTextContains",
         "CreateTarget",
         "SelfTest",
+        "Target files planned for create/update",
+        "Existing target files already current",
         "Refusing to write into the provider/source repo"
     )
     foreach ($marker in $requiredMarkers) {

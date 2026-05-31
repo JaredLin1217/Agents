@@ -19,6 +19,7 @@ $GitignoreFragmentPath = Join-Path $RepoRoot "docs/templates/agents/gitignore.fr
 $DeployedFiles = New-Object System.Collections.Generic.List[string]
 $PlannedWrites = New-Object System.Collections.Generic.List[string]
 $ProtectedExisting = New-Object System.Collections.Generic.List[string]
+$UnchangedExisting = New-Object System.Collections.Generic.List[string]
 
 function Test-SameDirectory {
     param(
@@ -75,7 +76,7 @@ function Write-Step {
     )
 
     if (-not $Quiet) {
-        Write-Host ("[{0}] {1}" -f $Status, $Message)
+        Write-Output ("[{0}] {1}" -f $Status, $Message)
     }
 }
 
@@ -86,19 +87,37 @@ function Assert-DeployWriteAllowed {
         [string] $Content
     )
 
-    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
+    $state = Get-DeployWriteState -Path $Path -Content $Content
+    if ($state -eq "create") {
         return $true
+    }
+    if ($state -eq "current") {
+        $UnchangedExisting.Add($RelativePath) | Out-Null
+        return $false
     }
 
     $ProtectedExisting.Add($RelativePath) | Out-Null
-    $existing = Get-Content -LiteralPath $Path -Raw
-    if ($existing -eq $Content) {
-        return $false
-    }
     if (-not $Upgrade) {
         throw "Existing target file requires -Upgrade after dry-run: $RelativePath"
     }
     return $true
+}
+
+function Get-DeployWriteState {
+    param(
+        [string] $Path,
+        [string] $Content
+    )
+
+    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
+        return "create"
+    }
+
+    $existing = Get-Content -LiteralPath $Path -Raw
+    if ($existing -eq $Content) {
+        return "current"
+    }
+    return "upgrade_required"
 }
 
 function Normalize-RepoPath {
@@ -333,6 +352,7 @@ function Append-GitignoreFragment {
     $missing = @($fragment | Where-Object { $_.Trim().Length -gt 0 -and ($existing -notcontains $_) })
     if ($missing.Count -eq 0) {
         $DeployedFiles.Add(".gitignore") | Out-Null
+        $UnchangedExisting.Add(".gitignore") | Out-Null
         return
     }
 
@@ -374,12 +394,18 @@ function Copy-DeployEntry {
     $targetRelative = Get-TargetRelativePath -ProviderPath $Entry.To -Layout $Layout
     $targetFull = Join-TargetPath -Root $Root -RelativePath $targetRelative
     $DeployedFiles.Add($targetRelative) | Out-Null
-    $PlannedWrites.Add($targetRelative) | Out-Null
 
     $content = Get-Content -LiteralPath $sourcePath -Raw
     $content = Rewrite-ContentForLayout -Content $content -Layout $Layout
 
-    if (Test-Path -LiteralPath $targetFull -PathType Leaf) {
+    $state = Get-DeployWriteState -Path $targetFull -Content $content
+    if ($state -eq "create" -or ($state -eq "upgrade_required" -and $Upgrade)) {
+        $PlannedWrites.Add($targetRelative) | Out-Null
+    }
+    elseif ($state -eq "current") {
+        $UnchangedExisting.Add($targetRelative) | Out-Null
+    }
+    else {
         $ProtectedExisting.Add($targetRelative) | Out-Null
     }
 
@@ -415,7 +441,6 @@ function Write-DeploymentReport {
     }
     $reportPath = Join-TargetPath -Root $Root -RelativePath $reportRelative
     $DeployedFiles.Add($reportRelative) | Out-Null
-    $PlannedWrites.Add($reportRelative) | Out-Null
     $reportLines = @(
         "# Agents Workflow Deployment",
         "",
@@ -438,6 +463,17 @@ function Write-DeploymentReport {
         "- Target-owned legacy Agents files are reported separately and remain target-owned."
     )
     $reportContent = ($reportLines -join [System.Environment]::NewLine) + [System.Environment]::NewLine
+
+    $state = Get-DeployWriteState -Path $reportPath -Content $reportContent
+    if ($state -eq "create" -or ($state -eq "upgrade_required" -and $Upgrade)) {
+        $PlannedWrites.Add($reportRelative) | Out-Null
+    }
+    elseif ($state -eq "current") {
+        $UnchangedExisting.Add($reportRelative) | Out-Null
+    }
+    else {
+        $ProtectedExisting.Add($reportRelative) | Out-Null
+    }
 
     if ($PlanOnly) {
         return
@@ -516,6 +552,17 @@ function Assert-SelfTestContains {
     }
 }
 
+function Assert-SelfTestTextContains {
+    param(
+        [string] $Text,
+        [string] $Expected
+    )
+
+    if (-not $Text.Contains($Expected)) {
+        throw "Deployment self-test expected output is missing: $Expected"
+    }
+}
+
 function Assert-NoSourceLiteral {
     param([string] $Root)
 
@@ -550,6 +597,18 @@ function Invoke-ChildDeployment {
     }
 }
 
+function Invoke-ChildDeploymentOutput {
+    param([hashtable] $CommandArgs)
+
+    try {
+        $output = & $PSCommandPath @CommandArgs 2>&1
+        return ($output -join [System.Environment]::NewLine)
+    }
+    catch {
+        throw $_
+    }
+}
+
 function Invoke-DeploymentSelfTest {
     $projectId = "jared-ai-team"
     $statusRoot = Join-Path ([System.IO.Path]::GetTempPath()) "codex-agent-status"
@@ -572,6 +631,9 @@ function Invoke-DeploymentSelfTest {
     Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents-workflow-deployment.md"
     Assert-NoSourceLiteral -Root $rootTarget
     Invoke-ChildDeployment -CommandArgs @{ TargetPath = $rootTarget; Mode = "full_workflow"; Quiet = $true }
+    $currentPlan = Invoke-ChildDeploymentOutput -CommandArgs @{ TargetPath = $rootTarget; Mode = "full_workflow"; DryRun = $true }
+    Assert-SelfTestTextContains -Text $currentPlan -Expected "Existing target files already current:"
+    Assert-SelfTestTextContains -Text $currentPlan -Expected "[CURRENT] AGENTS.md"
 
     $templateProviderTarget = Join-Path $selfTestRoot "template-provider"
     Invoke-ChildDeployment -CommandArgs @{ TargetPath = $templateProviderTarget; Mode = "template_provider_mode"; CreateTarget = $true; Quiet = $true }
@@ -592,6 +654,10 @@ function Invoke-DeploymentSelfTest {
     $protectedTarget = Join-Path $selfTestRoot "protected-existing"
     New-Item -ItemType Directory -Path $protectedTarget | Out-Null
     Set-Content -LiteralPath (Join-Path $protectedTarget "AGENTS.md") -Value "target-owned agents" -Encoding utf8
+    $protectedPlan = Invoke-ChildDeploymentOutput -CommandArgs @{ TargetPath = $protectedTarget; Mode = "core_bootstrap"; DryRun = $true }
+    Assert-SelfTestTextContains -Text $protectedPlan -Expected "Existing target files requiring -Upgrade:"
+    Assert-SelfTestTextContains -Text $protectedPlan -Expected "[EXISTING] AGENTS.md"
+    Assert-SelfTestContent -Path (Join-Path $protectedTarget "AGENTS.md") -Expected "target-owned agents"
     $protectedWriteBlocked = $false
     try {
         Invoke-ChildDeployment -CommandArgs @{ TargetPath = $protectedTarget; Mode = "core_bootstrap"; Quiet = $true }
@@ -716,9 +782,23 @@ foreach ($file in ($DeployedFiles | Sort-Object -Unique)) {
 }
 
 if ($ProtectedExisting.Count -gt 0) {
-    Write-Step "INFO" "Existing target files that would be updated:"
+    Write-Step "INFO" "Existing target files requiring -Upgrade:"
     foreach ($file in ($ProtectedExisting | Sort-Object -Unique)) {
         Write-Step "EXISTING" $file
+    }
+}
+
+if ($PlannedWrites.Count -gt 0) {
+    Write-Step "INFO" "Target files planned for create/update:"
+    foreach ($file in ($PlannedWrites | Sort-Object -Unique)) {
+        Write-Step "WRITE" $file
+    }
+}
+
+if ($UnchangedExisting.Count -gt 0) {
+    Write-Step "INFO" "Existing target files already current:"
+    foreach ($file in ($UnchangedExisting | Sort-Object -Unique)) {
+        Write-Step "CURRENT" $file
     }
 }
 
