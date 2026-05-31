@@ -504,6 +504,18 @@ function Assert-SelfTestContent {
     }
 }
 
+function Assert-SelfTestContains {
+    param(
+        [string] $Path,
+        [string] $Expected
+    )
+
+    $content = Get-Content -LiteralPath $Path -Raw
+    if (-not $content.Contains($Expected)) {
+        throw "Deployment self-test expected content is missing from: $Path"
+    }
+}
+
 function Assert-NoSourceLiteral {
     param([string] $Root)
 
@@ -601,10 +613,36 @@ function Invoke-DeploymentSelfTest {
     Set-Content -LiteralPath (Join-Path $ownedTarget ".codex/config.toml") -Value "local = true" -Encoding utf8
     Set-Content -LiteralPath (Join-Path $ownedTarget ".agents/runtime/agent-ledger.jsonl") -Value '{"local":true}' -Encoding utf8
     Set-Content -LiteralPath (Join-Path $ownedTarget ".git/HEAD") -Value "ref: refs/heads/main" -Encoding utf8
+    Set-Content -LiteralPath (Join-Path $ownedTarget ".gitignore") -Value "target-local/" -Encoding utf8
     Invoke-ChildDeployment -CommandArgs @{ TargetPath = $ownedTarget; Mode = "core_bootstrap"; Quiet = $true }
     Assert-SelfTestContent -Path (Join-Path $ownedTarget ".codex/config.toml") -Expected "local = true"
     Assert-SelfTestContent -Path (Join-Path $ownedTarget ".agents/runtime/agent-ledger.jsonl") -Expected '{"local":true}'
     Assert-SelfTestContent -Path (Join-Path $ownedTarget ".git/HEAD") -Expected "ref: refs/heads/main"
+    Assert-SelfTestContains -Path (Join-Path $ownedTarget ".gitignore") -Expected "target-local/"
+    Assert-SelfTestContains -Path (Join-Path $ownedTarget ".gitignore") -Expected ".agents/runtime/"
+
+    $routedLegacyTarget = Join-Path $selfTestRoot "routed-legacy"
+    New-Item -ItemType Directory -Path (Join-Path $routedLegacyTarget "docs/agents") -Force | Out-Null
+    New-Item -ItemType Directory -Path (Join-Path $routedLegacyTarget ".agents/docs/agents") -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $routedLegacyTarget "AGENTS.md") -Value "Route to .agents/docs/agents." -Encoding utf8
+    Set-Content -LiteralPath (Join-Path $routedLegacyTarget "docs/agents/legacy.md") -Value "legacy root docs" -Encoding utf8
+    Invoke-ChildDeployment -CommandArgs @{ TargetPath = $routedLegacyTarget; Mode = "core_bootstrap"; Upgrade = $true; Quiet = $true }
+    Assert-SelfTestFile -Root $routedLegacyTarget -RelativePath ".agents/docs/agents/workflows.yaml"
+    Assert-SelfTestContent -Path (Join-Path $routedLegacyTarget "docs/agents/legacy.md") -Expected "legacy root docs"
+
+    $ambiguousTarget = Join-Path $selfTestRoot "ambiguous-layout"
+    New-Item -ItemType Directory -Path (Join-Path $ambiguousTarget "docs/agents") -Force | Out-Null
+    New-Item -ItemType Directory -Path (Join-Path $ambiguousTarget ".agents/docs/agents") -Force | Out-Null
+    $ambiguousBlocked = $false
+    try {
+        Invoke-ChildDeployment -CommandArgs @{ TargetPath = $ambiguousTarget; Mode = "core_bootstrap"; DryRun = $true; Quiet = $true }
+    }
+    catch {
+        $ambiguousBlocked = $true
+    }
+    if (-not $ambiguousBlocked) {
+        throw "Deployment self-test expected ambiguous target layout to require an AGENTS.md route."
+    }
 
     $sourceWriteBlocked = $false
     try {

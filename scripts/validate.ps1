@@ -614,6 +614,7 @@ function Test-DeploymentScriptSafety {
         "Assert-NoSourceLiteral",
         "Assert-SelfTestMissing",
         "Assert-SelfTestContent",
+        "Assert-SelfTestContains",
         "CreateTarget",
         "SelfTest",
         "Refusing to write into the provider/source repo"
