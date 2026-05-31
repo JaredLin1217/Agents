@@ -20,7 +20,7 @@ committed state.
 | Local validation entry point exists | `scripts/validate.ps1` runs YAML, workflow YAML, required-file, schema-contract, fixture, placeholder, English-only, and runtime-boundary checks; `-Full` adds release-audit gates. | Pass |
 | Canonical YAML has machine-readable contracts | `schemas/agents-*.schema.json` define required top-level keys, schema version constants, required paths, required values, and readiness content anchors. | Pass |
 | Validator has regression fixtures | `tests/agents-governance-fixtures/schema-contracts/` includes passing and failing schema-contract cases, including readiness-anchor regression coverage. | Pass |
-| CI checkpoint exists | `.github/workflows/checkpoint.yml` runs `scripts/validate.ps1` and `git diff --check` on pull requests and pushes to `main` or `master`. | Pass |
+| CI checkpoint exists | `.github/workflows/checkpoint.yml` runs the default fast `scripts/validate.ps1` gate on pull requests and pushes to `main` or `master`; full audit and whitespace gates stay local release-audit checks. | Pass |
 | Deployment boundaries remain conservative | `docs/agents/deploy.yaml` keeps new v2 support directories provider-source-only unless a deployment mode includes them. | Pass |
 | Runtime/local state remains excluded | `scripts/validate.ps1` checks ignored runtime/local paths and tracked runtime paths. | Pass |
 | Durable docs remain English-only | `scripts/validate.ps1` scans durable text roots for CJK characters. | Pass |
@@ -39,7 +39,7 @@ committed state.
 
 ## Verification
 
-Current local checkpoint profile:
+Current local release-audit profile:
 
 - `scripts/validate.ps1 -Full`: release-audit static gates.
 - `git diff --check`: whitespace gate.

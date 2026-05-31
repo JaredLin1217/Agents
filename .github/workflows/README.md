@@ -4,7 +4,7 @@ This directory owns GitHub Actions workflows for the Agents workflow checkpoint.
 
 Workflows:
 
-- `checkpoint.yml` runs the full Agents workflow gate on pull requests and pushes
+- `checkpoint.yml` runs the fast Agents checkpoint gate on pull requests and pushes
   to `main` or `master`.
 
 Planned workflows:
@@ -16,5 +16,7 @@ workflows that claim coverage before the corresponding local command exists.
 
 The checkpoint gate currently runs:
 
-- `.\scripts\validate.ps1 -Full`
-- `git diff --check`
+- `.\scripts\validate.ps1`
+
+Run `.\scripts\validate.ps1 -Full` and `git diff --check` locally for release
+or full-audit validation.

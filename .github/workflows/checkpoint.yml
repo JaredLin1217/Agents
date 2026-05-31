@@ -21,8 +21,4 @@ jobs:
 
       - name: Run Agents workflow validation
         shell: pwsh
-        run: .\scripts\validate.ps1 -Full
-
-      - name: Check diff whitespace
-        shell: pwsh
-        run: git diff --check
+        run: .\scripts\validate.ps1

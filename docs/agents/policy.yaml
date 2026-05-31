@@ -76,7 +76,7 @@ placement:
   deploy_templates: "docs/templates/agents/"
   project_local_agent_ledger: ".agents/runtime/agent-ledger.jsonl"
   volatile_agent_status: "%TEMP%/codex-agent-status/<project-id>/"
-  ignored_local_scratch: ".agents/runtime/, docs/tmp-approval-*/, docs/hard-isolation-evidence/, docs/runtime-multi-agent-validation/"
+  ignored_local_scratch: ".agents/runtime/, docs/agent-status.md, docs/agent-events/, docs/tmp-approval-*/, docs/hard-isolation-evidence/, docs/runtime-multi-agent-validation/, .agents/docs/<same local-only state>"
   rule: "Volatile status, ledger, and validation records are coordination aids, not deployable project knowledge."
 
 template_cleanliness:

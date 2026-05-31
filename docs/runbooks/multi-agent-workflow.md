@@ -18,6 +18,7 @@ Before launch:
 
 - Confirm the user explicitly requested employees or delegation.
 - Assign role, task, read scope, write scope, allowed commands, report schema, and close condition.
+- Match assignment and final report fields to `docs/agents/schemas.yaml` for the selected report schema.
 - Normalize write scopes and block overlaps before any worker can edit.
 - Decide whether the project-local ledger is required for recovery.
 

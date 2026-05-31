@@ -109,7 +109,7 @@ multi_agent_runtime:
   roster:
     project_local_ledger: ".agents/runtime/agent-ledger.jsonl"
     ledger_purpose: "Ignored repo-local JSONL employee lifecycle ledger; advisory, not Codex's official runtime DB, not deployable, and not XR/XW."
-    ledger_events: ["initialized", "hired", "started", "completed", "blocked", "stopped", "closed", "shutdown", "integrated", "reconciled"]
+    ledger_events: ["initialized", "hired", "started", "report", "completed", "blocked", "stopped", "closed", "shutdown", "integrated", "reconciled"]
     ledger_writer: "Controller appends JSONL events; employees may append only when assignment grants the exact ledger path."
     ledger_git_rule: "Never stage, commit, deploy, or copy .agents/runtime/**."
     ledger_missing_or_cleared: "Recover from runtime notifications, git status, final reports, and temp cache; missing ledger does not invalidate current evidence."
@@ -209,6 +209,11 @@ maintenance:
     - "docs/tmp-approval-*/"
     - "docs/hard-isolation-evidence/"
     - "docs/runtime-multi-agent-validation/"
+    - ".agents/docs/agent-status.md"
+    - ".agents/docs/agent-events/"
+    - ".agents/docs/tmp-approval-*/"
+    - ".agents/docs/hard-isolation-evidence/"
+    - ".agents/docs/runtime-multi-agent-validation/"
 
 closeout:
   compact_when: "answer-only with no files/current-state/external/git/deploy/runtime/hard-isolation/durable-knowledge claim"

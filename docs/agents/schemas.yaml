@@ -129,7 +129,7 @@ agent_ledger_event:
   location: ".agents/runtime/agent-ledger.jsonl"
   format: "JSONL; one JSON object per event"
   status: "repo-local ignored runtime state; advisory, not Codex official runtime DB"
-  names: ["initialized", "hired", "started", "completed", "blocked", "stopped", "closed", "history_cleanup", "shutdown", "integrated", "reconciled"]
+  names: ["initialized", "hired", "started", "report", "completed", "blocked", "stopped", "closed", "history_cleanup", "shutdown", "integrated", "reconciled"]
   required_fields: ["time", "event", "agent_id", "mode", "role", "status", "task"]
   optional_fields: ["nickname", "read_scope", "write_scope", "ledger_version", "report_hash", "final_report_summary", "controller_id", "source", "official_list_result", "history_cleanup_sources", "history_cleanup_db", "history_cleanup_target_ids", "history_cleanup_result", "desktop_ui_refresh_result", "deleted_rows", "notes", "isolation"]
   write_rule: "Controller appends by default; employees append only when assigned exact ledger path and append permission."

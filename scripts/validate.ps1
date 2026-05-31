@@ -365,7 +365,7 @@ function Test-SchemaContracts {
 function Test-ValidationFixtures {
     $casePath = Get-RepoPath "tests/agents-governance-fixtures/schema-contracts/cases.json"
     if (-not (Test-Path -LiteralPath $casePath -PathType Leaf)) {
-        Add-Warning "Validation fixture cases are not present yet."
+        Add-Failure "Validation fixture cases are missing."
         return
     }
 
@@ -436,9 +436,14 @@ function Test-RuntimeBoundaries {
         ".codex/environments/environment.toml",
         "docs/agent-status.md",
         "docs/agent-events/example.jsonl",
+        ".agents/docs/agent-status.md",
+        ".agents/docs/agent-events/example.jsonl",
         "docs/tmp-approval-example/report.md",
+        ".agents/docs/tmp-approval-example/report.md",
         "docs/hard-isolation-evidence/example.md",
-        "docs/runtime-multi-agent-validation/example.md"
+        ".agents/docs/hard-isolation-evidence/example.md",
+        "docs/runtime-multi-agent-validation/example.md",
+        ".agents/docs/runtime-multi-agent-validation/example.md"
     )
 
     foreach ($path in $ignoredRuntimePaths) {
@@ -454,9 +459,14 @@ function Test-RuntimeBoundaries {
         ".codex/environments/environment.toml" `
         "docs/agent-status.md" `
         "docs/agent-events" `
+        ".agents/docs/agent-status.md" `
+        ".agents/docs/agent-events" `
         "docs/tmp-approval-example" `
+        ".agents/docs/tmp-approval-example" `
         "docs/hard-isolation-evidence" `
-        "docs/runtime-multi-agent-validation"
+        ".agents/docs/hard-isolation-evidence" `
+        "docs/runtime-multi-agent-validation" `
+        ".agents/docs/runtime-multi-agent-validation"
 
     if ($trackedRuntime) {
         foreach ($path in $trackedRuntime) {
@@ -652,6 +662,32 @@ function Test-TemplateSourceNeutrality {
 function Test-DeployManifestIntegrity {
     $startFailureCount = $Failures.Count
     $deployPaths = @("docs/agents/deploy.yaml", "docs/templates/agents/agents/deploy.yaml")
+    $deploymentScriptContent = Get-Content -LiteralPath (Get-RepoPath "scripts/deploy-agents-workflow.ps1") -Raw
+    $scriptModes = @()
+    $modeSetMatch = [regex]::Match($deploymentScriptContent, '\[ValidateSet\(([^)]*)\)\]\s*\r?\n\s*\[string\]\s*\$Mode')
+    if ($modeSetMatch.Success) {
+        $scriptModes = @([regex]::Matches($modeSetMatch.Groups[1].Value, '"([^"]+)"') | ForEach-Object { $_.Groups[1].Value })
+    }
+    else {
+        Add-Failure "Deployment script mode ValidateSet is missing."
+    }
+    $requiredBlocklist = @(
+        @{ Manifest = ".agents/runtime/"; Script = ".agents/runtime/" },
+        @{ Manifest = "docs/agent-status.md"; Script = "docs/agent-status.md" },
+        @{ Manifest = "docs/agent-events/"; Script = "docs/agent-events/" },
+        @{ Manifest = ".agents/docs/agent-status.md"; Script = ".agents/docs/agent-status.md" },
+        @{ Manifest = ".agents/docs/agent-events/"; Script = ".agents/docs/agent-events/" },
+        @{ Manifest = "docs/tmp-approval-*/"; Script = "docs/tmp-approval-" },
+        @{ Manifest = ".agents/docs/tmp-approval-*/"; Script = ".agents/docs/tmp-approval-" },
+        @{ Manifest = "docs/hard-isolation-evidence/"; Script = "docs/hard-isolation-evidence/" },
+        @{ Manifest = ".agents/docs/hard-isolation-evidence/"; Script = ".agents/docs/hard-isolation-evidence/" },
+        @{ Manifest = "docs/runtime-multi-agent-validation/"; Script = "docs/runtime-multi-agent-validation/" },
+        @{ Manifest = ".agents/docs/runtime-multi-agent-validation/"; Script = ".agents/docs/runtime-multi-agent-validation/" },
+        @{ Manifest = ".codex/config.toml"; Script = ".codex/config.toml" },
+        @{ Manifest = ".codex/environments/environment.toml"; Script = ".codex/environments/environment.toml" },
+        @{ Manifest = ".git/"; Script = ".git/" }
+    )
+
     foreach ($path in $deployPaths) {
         $fullPath = Get-RepoPath $path
         $content = Get-Content -LiteralPath $fullPath
@@ -664,7 +700,39 @@ function Test-DeployManifestIntegrity {
 
         $fromPaths = @()
         $toPaths = @()
+        $deployableGroups = @()
+        $declaredModes = @()
+        $modeNames = @()
+        $modeGroupRefs = @()
+        $section = $null
         foreach ($line in $content) {
+            if ($line -match "^deployment_modes:") {
+                $section = "deployment_modes"
+                continue
+            }
+            if ($line -match "^mode_composition:") {
+                $section = "mode_composition"
+                continue
+            }
+            if ($line -match "^deployable_by_mode:") {
+                $section = "deployable_by_mode"
+                continue
+            }
+            if ($line -match "^[a-zA-Z_]+:") {
+                $section = $null
+            }
+
+            if ($section -eq "deployment_modes" -and $line -match '^\s{2}([a-zA-Z0-9_]+):') {
+                $declaredModes += $Matches[1]
+            }
+            elseif ($section -eq "mode_composition" -and $line -match '^\s{2}([a-zA-Z0-9_]+):\s*\[(.+)\]') {
+                $modeNames += $Matches[1]
+                $modeGroupRefs += @($Matches[2] -split "," | ForEach-Object { $_.Trim().Trim('"') } | Where-Object { $_.Length -gt 0 })
+            }
+            elseif ($section -eq "deployable_by_mode" -and $line -match '^\s{2}([a-zA-Z0-9_]+):') {
+                $deployableGroups += $Matches[1]
+            }
+
             if ($line -match '^\s+- from: "([^"]+)"') {
                 $fromPaths += $Matches[1]
             }
@@ -690,9 +758,52 @@ function Test-DeployManifestIntegrity {
             Add-Failure ("Deploy destination path is duplicated in {0}: {1}" -f $path, $group.Name)
         }
 
-        foreach ($required in @(".agents/runtime/", ".codex/config.toml", ".codex/environments/environment.toml", ".git/")) {
+        foreach ($group in ($modeGroupRefs | Select-Object -Unique)) {
+            if ($deployableGroups -notcontains $group) {
+                Add-Failure ("Deploy mode_composition references missing deployable_by_mode group in {0}: {1}" -f $path, $group)
+            }
+            if (-not $deploymentScriptContent.Contains(('"{0}"' -f $group))) {
+                Add-Failure ("Deployment script mode groups are not synchronized with deploy manifest group: {0}" -f $group)
+            }
+        }
+
+        foreach ($group in ($deployableGroups | Select-Object -Unique)) {
+            if ($modeGroupRefs -notcontains $group) {
+                Add-Failure ("Deploy deployable_by_mode group is not reachable from mode_composition in {0}: {1}" -f $path, $group)
+            }
+        }
+
+        foreach ($mode in ($declaredModes | Select-Object -Unique)) {
+            if ($modeNames -notcontains $mode) {
+                Add-Failure ("Deploy deployment_modes entry is missing mode_composition in {0}: {1}" -f $path, $mode)
+            }
+            if ($scriptModes -notcontains $mode) {
+                Add-Failure ("Deployment script ValidateSet is missing deploy manifest mode: {0}" -f $mode)
+            }
+        }
+
+        foreach ($mode in ($modeNames | Select-Object -Unique)) {
+            if ($declaredModes -notcontains $mode) {
+                Add-Failure ("Deploy mode_composition entry is missing deployment_modes entry in {0}: {1}" -f $path, $mode)
+            }
+            if (-not $deploymentScriptContent.Contains(('"{0}"' -f $mode))) {
+                Add-Failure ("Deployment script mode names are not synchronized with deploy manifest mode: {0}" -f $mode)
+            }
+        }
+
+        foreach ($mode in ($scriptModes | Select-Object -Unique)) {
+            if ($declaredModes -notcontains $mode) {
+                Add-Failure ("Deployment script ValidateSet has a mode missing from deploy manifest: {0}" -f $mode)
+            }
+        }
+
+        foreach ($block in $requiredBlocklist) {
+            $required = $block.Manifest
             if (-not ($content | Where-Object { $_ -match [regex]::Escape($required) })) {
                 Add-Failure ("Deploy blocklist is missing required path in {0}: {1}" -f $path, $required)
+            }
+            if (-not $deploymentScriptContent.Contains($block.Script)) {
+                Add-Failure ("Deployment script blocklist is not synchronized with deploy manifest path: {0}" -f $required)
             }
         }
     }
@@ -725,8 +836,10 @@ function Test-DeploymentScriptSafety {
         "Assert-SelfTestContent",
         "Assert-SelfTestContains",
         "Assert-SelfTestTextContains",
+        "Assert-SelfTestBlockedDeployPath",
         "CreateTarget",
         "SelfTest",
+        "Validation Summary",
         "Target files planned for create/update",
         "Existing target files already current",
         "Refusing to write into the provider/source repo"
@@ -780,6 +893,12 @@ function Test-DeploymentSelfTest {
         Add-Failure "Deployment self-test failed."
         foreach ($line in $output) {
             Add-Failure ("Deployment self-test detail: {0}" -f $line)
+        }
+    }
+    elseif (@($output).Count -gt 0) {
+        Add-Failure "Deployment self-test quiet mode produced output."
+        foreach ($line in $output) {
+            Add-Failure ("Deployment self-test quiet output: {0}" -f $line)
         }
     }
 
@@ -907,6 +1026,15 @@ function Test-CIWorkflowStability {
     if ($content -notmatch "runs-on:\s*windows-2025-vs2026") {
         Add-Failure "Checkpoint workflow is missing the pinned windows-2025-vs2026 runner."
     }
+    if ($content -match "validate\.ps1\s+-Full") {
+        Add-Failure "Checkpoint workflow must use the default fast validation gate, not -Full."
+    }
+    if ($content -notmatch "run:\s*\.\\scripts\\validate\.ps1\s*(\r?\n|$)") {
+        Add-Failure "Checkpoint workflow is missing the default validate.ps1 command."
+    }
+    if ($content -match "git\s+diff\s+--check") {
+        Add-Failure "Checkpoint workflow must not duplicate git diff --check; full audits run that gate in scripts/validate.ps1 -Full."
+    }
 
     if ($Failures.Count -eq $startFailureCount) {
         Add-Pass "CI workflow stability checks passed."
@@ -932,7 +1060,9 @@ function Test-ReadinessLadderEvidence {
                 @("scripts/deploy-agents-workflow.ps1", "DryRun"),
                 @("scripts/deploy-agents-workflow.ps1", "Get-TargetLayout"),
                 @("scripts/deploy-agents-workflow.ps1", "Refusing to write into the provider/source repo"),
-                @("scripts/deploy-agents-workflow.ps1", "requires -Upgrade")
+                @("scripts/deploy-agents-workflow.ps1", "requires -Upgrade"),
+                @("scripts/deploy-agents-workflow.ps1", "Test-DeployPathAllowed"),
+                @("scripts/deploy-agents-workflow.ps1", "Test-DeployedFileSet")
             )
         },
         @{
@@ -979,7 +1109,10 @@ function Test-ReadinessLadderEvidence {
                 @("docs/agents/version.yaml", "rollback"),
                 @("docs/agents/deploy.yaml", "target-owned state preserved"),
                 @("docs/agents/workflows.yaml", "compact_output"),
-                @("scripts/validate.ps1", "Test-SizeGates")
+                @("scripts/validate.ps1", "Test-SizeGates"),
+                @("scripts/deploy-agents-workflow.ps1", "Update-TargetStateClassification"),
+                @("scripts/deploy-agents-workflow.ps1", "Protected dirty/local target state observed"),
+                @("scripts/deploy-agents-workflow.ps1", "Target-owned legacy Agents files outside deployed file set")
             )
         }
     )

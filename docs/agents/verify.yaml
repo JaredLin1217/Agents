@@ -29,7 +29,7 @@ file_classes:
   runbooks: ["docs/runbooks/*.md"]
   deploy_templates: ["docs/templates/agents/**"]
   memory_docs: ["docs/project-memory.md", "docs/memory/**", "docs/memory-entry.template.md"]
-  runtime_local: [".agents/runtime/**", ".codex/config.toml", ".codex/environments/environment.toml", "docs/agent-status.md", "docs/agent-events/**", "docs/runtime-multi-agent-validation/**", "docs/hard-isolation-evidence/**"]
+  runtime_local: [".agents/runtime/**", ".codex/config.toml", ".codex/environments/environment.toml", "docs/agent-status.md", "docs/agent-events/**", "docs/tmp-approval-*/**", "docs/runtime-multi-agent-validation/**", "docs/hard-isolation-evidence/**", ".agents/docs/agent-status.md", ".agents/docs/agent-events/**", ".agents/docs/tmp-approval-*/**", ".agents/docs/runtime-multi-agent-validation/**", ".agents/docs/hard-isolation-evidence/**"]
   generated_or_cache: ["generated output", "cache", "build output", "vendor"]
 
 gate_matrix:
@@ -54,17 +54,17 @@ commands:
   changed_english: 'rg -n "[\p{Han}]" <changed durable rule/template files>'
   changed_placeholders: 'rg -n "TO[D]O|\[TO[D]O\]|T[B]D|FI[X]ME" <changed durable rule/template files>'
   line_endings: "git ls-files --eol <changed files>"
-  ignored_runtime: "git check-ignore -v --no-index .agents/runtime/agent-ledger.jsonl docs/agent-status.md docs/agent-events/ docs/tmp-approval-example/report.md docs/hard-isolation-evidence/example.md docs/runtime-multi-agent-validation/example.md .codex/config.toml .codex/environments/environment.toml"
+  ignored_runtime: "git check-ignore -v --no-index .agents/runtime/agent-ledger.jsonl docs/agent-status.md docs/agent-events/ docs/tmp-approval-example/report.md docs/hard-isolation-evidence/example.md docs/runtime-multi-agent-validation/example.md .agents/docs/agent-status.md .agents/docs/agent-events/ .agents/docs/tmp-approval-example/report.md .agents/docs/hard-isolation-evidence/example.md .agents/docs/runtime-multi-agent-validation/example.md .codex/config.toml .codex/environments/environment.toml"
   deploy_steps_top_level: 'rg -n "^steps:" docs/agents/deploy.yaml docs/templates/agents/agents/deploy.yaml'
   deploy_steps_not_nested: 'rg -n "^  steps:" docs/agents/deploy.yaml docs/templates/agents/agents/deploy.yaml'
-  deploy_sources_exist: "Every deployable_by_mode from path exists; mode_composition names existing groups."
+  deploy_sources_exist: "Every deployable_by_mode from path exists; deployment_modes, mode_composition, deployable groups, and deployment script mode ValidateSet stay synchronized."
   deploy_manifest_unique: "deployable_by_mode from paths unique per group; non-append to paths unique."
   deploy_blocklist_required_paths: "do_not_deploy includes local runtime, scratch, Codex runtime, and .git paths."
-  deployment_script_safety: "scripts/deploy-agents-workflow.ps1 contains path-containment gates and no admin elevation, OS permission, ACL, ownership, .git repair, or destructive Git fallback."
-  deployment_script_selftest: ".\\scripts\\deploy-agents-workflow.ps1 -SelfTest writes disposable root_docs, template-provider, dot_agents_docs, dry-run, protected-existing, missing-target, target-owned-state, routed-legacy, and ambiguous-layout targets under a per-process %TEMP%/codex-agent-status/<project-id>/deploy-selftest-* path and verifies dry-run write-state classification, deployed report file set, explicit target creation gate, and provider self-write refusal."
+  deployment_script_safety: "scripts/deploy-agents-workflow.ps1 contains path-containment gates, stays synchronized with deploy.yaml blocklists, and has no admin elevation, OS permission, ACL, ownership, .git repair, or destructive Git fallback."
+  deployment_script_selftest: ".\\scripts\\deploy-agents-workflow.ps1 -SelfTest writes disposable root_docs, template-provider, dot_agents_docs, dry-run, protected-existing, git-backed foreign project, missing-target, target-owned-state, routed-legacy, and ambiguous-layout targets under a per-process %TEMP%/codex-agent-status/<project-id>/deploy-selftest-* path and verifies quiet success, blocked deployed path rejection, app-file preservation, dry-run write-state classification, deployed report file set and validation summary, explicit target creation gate, and provider self-write refusal."
   multi_agent_workflow_integrity: "scripts/validate.ps1 checks that workflows and schemas keep lifecycle, ownership, roster/ledger recovery, report dedupe, scoring, delegated deployment, and runtime validation fields together."
   evidence_template_schema_coverage: "scripts/validate.ps1 checks that hard-isolation and runtime multi-agent evidence templates retain required schema fields."
-  ci_workflow_stability: "scripts/validate.ps1 checks that the checkpoint workflow pins a Windows runner instead of using the floating windows-latest label."
+  ci_workflow_stability: "scripts/validate.ps1 checks that the checkpoint workflow pins a Windows runner, uses the default fast validation gate, and does not duplicate full-audit or whitespace checks."
   template_pollution_rule: "Search deployable templates for concrete source/target literals relevant to the task."
   deployed_file_set_status: "git status -sb -- <deployed_file_set>"
   deployed_file_set_diff_check: "git diff --check -- <deployed_file_set>"

@@ -20,6 +20,8 @@ $DeployedFiles = New-Object System.Collections.Generic.List[string]
 $PlannedWrites = New-Object System.Collections.Generic.List[string]
 $ProtectedExisting = New-Object System.Collections.Generic.List[string]
 $UnchangedExisting = New-Object System.Collections.Generic.List[string]
+$TargetLegacyAgents = New-Object System.Collections.Generic.List[string]
+$ProtectedDirty = New-Object System.Collections.Generic.List[string]
 
 function Test-SameDirectory {
     param(
@@ -160,6 +162,176 @@ function Join-TargetPath {
     }
     Assert-InsideRoot -Path $path -Root $Root -Label "Target path"
     return $path
+}
+
+function Get-RelativeTargetPath {
+    param(
+        [string] $Root,
+        [string] $Path
+    )
+
+    Assert-InsideRoot -Path $Path -Root $Root -Label "Target classification path"
+    $rootFull = [System.IO.Path]::GetFullPath($Root).TrimEnd("\", "/")
+    $pathFull = [System.IO.Path]::GetFullPath($Path)
+    return Normalize-RepoPath ($pathFull.Substring($rootFull.Length).TrimStart("\", "/"))
+}
+
+function Test-DeployPathAllowed {
+    param([string] $RelativePath)
+
+    $normalized = Normalize-RepoPath $RelativePath
+    Assert-RelativeDeployPath -RelativePath $normalized
+    $blockedPrefixes = @(
+        ".git/",
+        ".codex/",
+        ".agents/runtime/",
+        "docs/agent-events/",
+        ".agents/docs/agent-events/",
+        "docs/tmp-approval-",
+        ".agents/docs/tmp-approval-",
+        "docs/hard-isolation-evidence/",
+        ".agents/docs/hard-isolation-evidence/",
+        "docs/runtime-multi-agent-validation/",
+        ".agents/docs/runtime-multi-agent-validation/"
+    )
+    $blockedFiles = @(
+        "docs/agent-status.md",
+        ".agents/docs/agent-status.md"
+    )
+
+    foreach ($prefix in $blockedPrefixes) {
+        if ($normalized.StartsWith($prefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+            throw "Blocked target path selected for deployment: $normalized"
+        }
+    }
+    if ($blockedFiles -contains $normalized) {
+        throw "Blocked target path selected for deployment: $normalized"
+    }
+}
+
+function Test-DeploymentTextFile {
+    param([System.IO.FileInfo] $File)
+
+    $textExtensions = @(".md", ".yaml", ".yml", ".json", ".toml", ".ps1", ".txt", ".gitignore")
+    if ($File.Name -eq ".gitignore") {
+        return $true
+    }
+    return ($textExtensions -contains $File.Extension.ToLowerInvariant())
+}
+
+function Update-TargetStateClassification {
+    param(
+        [string] $Root,
+        [string] $Layout
+    )
+
+    $deployed = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($file in ($DeployedFiles | Sort-Object -Unique)) {
+        [void] $deployed.Add((Normalize-RepoPath $file))
+    }
+
+    $legacyCandidates = @(
+        "docs/agents",
+        ".agents/docs/agents",
+        "docs/runbooks",
+        ".agents/docs/runbooks",
+        "docs/memory",
+        ".agents/docs/memory",
+        "docs/decisions",
+        ".agents/docs/decisions",
+        "docs/project-memory.md",
+        ".agents/docs/project-memory.md",
+        "docs/project-structure.md",
+        ".agents/docs/project-structure.md",
+        "docs/agent-status.md",
+        ".agents/docs/agent-status.md",
+        "docs/agent-events",
+        ".agents/docs/agent-events",
+        "docs/hard-isolation-evidence",
+        ".agents/docs/hard-isolation-evidence",
+        "docs/runtime-multi-agent-validation",
+        ".agents/docs/runtime-multi-agent-validation"
+    )
+    foreach ($relative in $legacyCandidates) {
+        $candidate = Join-TargetPath -Root $Root -RelativePath $relative
+        if (-not (Test-Path -LiteralPath $candidate)) {
+            continue
+        }
+
+        $items = if (Test-Path -LiteralPath $candidate -PathType Leaf) {
+            @(Get-Item -LiteralPath $candidate)
+        }
+        else {
+            @(Get-ChildItem -LiteralPath $candidate -Recurse -Force -File)
+        }
+        foreach ($item in $items) {
+            $itemRelative = Get-RelativeTargetPath -Root $Root -Path $item.FullName
+            if (-not $deployed.Contains($itemRelative)) {
+                $TargetLegacyAgents.Add($itemRelative) | Out-Null
+            }
+        }
+    }
+
+    foreach ($relative in @(".codex/config.toml", ".codex/environments/environment.toml", ".agents/runtime/agent-ledger.jsonl", ".git/HEAD")) {
+        $candidate = Join-TargetPath -Root $Root -RelativePath $relative
+        if (Test-Path -LiteralPath $candidate) {
+            $ProtectedDirty.Add($relative) | Out-Null
+        }
+    }
+}
+
+function Test-DeployedFileSet {
+    param(
+        [string] $Root,
+        [switch] $PlanOnly
+    )
+
+    $sourceLiterals = Get-SourceSpecificLiterals
+    foreach ($relative in ($DeployedFiles | Sort-Object -Unique)) {
+        $normalized = Normalize-RepoPath $relative
+        Test-DeployPathAllowed -RelativePath $normalized
+
+        if ($PlanOnly) {
+            continue
+        }
+
+        $path = Join-TargetPath -Root $Root -RelativePath $normalized
+        if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+            throw "Deployed file set validation found a missing file: $normalized"
+        }
+
+        $item = Get-Item -LiteralPath $path
+        if (-not (Test-DeploymentTextFile -File $item)) {
+            continue
+        }
+
+        $lines = @(Get-Content -LiteralPath $path)
+        for ($i = 0; $i -lt $lines.Count; $i++) {
+            if ($lines[$i] -match "\s+$") {
+                throw "Deployed file set validation found trailing whitespace in $normalized line $($i + 1)."
+            }
+        }
+
+        foreach ($literal in $sourceLiterals) {
+            $match = Select-String -LiteralPath $path -Pattern $literal -SimpleMatch -Quiet -ErrorAction SilentlyContinue
+            if ($match) {
+                throw "Deployed file set validation found source-specific literal in $normalized`: $literal"
+            }
+        }
+
+        if ($normalized.EndsWith("/SKILL.md", [System.StringComparison]::OrdinalIgnoreCase)) {
+            $head = @(Get-Content -LiteralPath $path -TotalCount 10)
+            if ($head[0] -ne "---" -or -not ($head | Where-Object { $_ -match "^name:\s+.+" }) -or -not ($head | Where-Object { $_ -match "^description:\s+.+" })) {
+                throw "Deployed skill metadata is incomplete: $normalized"
+            }
+        }
+        if ($normalized.EndsWith("/openai.yaml", [System.StringComparison]::OrdinalIgnoreCase)) {
+            $content = @(Get-Content -LiteralPath $path)
+            if (-not ($content | Where-Object { $_ -match "^\s*default_prompt:" })) {
+                throw "Deployed agent metadata is missing default_prompt: $normalized"
+            }
+        }
+    }
 }
 
 function Get-TargetRelativePath {
@@ -460,6 +632,7 @@ function Write-DeploymentReport {
     else {
         "docs/agents-workflow-deployment.md"
     }
+    $deployedValidationState = if ($PlanOnly) { "planned" } else { "checked" }
     $reportPath = Join-TargetPath -Root $Root -RelativePath $reportRelative
     $DeployedFiles.Add($reportRelative) | Out-Null
     $reportLines = @(
@@ -477,6 +650,38 @@ function Write-DeploymentReport {
         $reportLines += ("- {0}" -f $file)
     }
     $reportLines += @(
+        "",
+        "## Target State Classification",
+        "",
+        "Protected dirty/local state:"
+    )
+    if ($ProtectedDirty.Count -gt 0) {
+        foreach ($file in ($ProtectedDirty | Sort-Object -Unique)) {
+            $reportLines += ("- {0}" -f $file)
+        }
+    }
+    else {
+        $reportLines += "- none observed"
+    }
+    $reportLines += @(
+        "",
+        "Target-owned legacy Agents files outside deployed file set:"
+    )
+    if ($TargetLegacyAgents.Count -gt 0) {
+        foreach ($file in ($TargetLegacyAgents | Sort-Object -Unique)) {
+            $reportLines += ("- {0}" -f $file)
+        }
+    }
+    else {
+        $reportLines += "- none observed"
+    }
+    $reportLines += @(
+        "",
+        "## Validation Summary",
+        "",
+        "- Deployment path blocklist: enforced.",
+        ("- Deployed file set validation: {0}." -f $deployedValidationState),
+        "- Target-owned runtime/local state: classified outside deployed file set.",
         "",
         "## Notes",
         "",
@@ -584,6 +789,21 @@ function Assert-SelfTestTextContains {
     }
 }
 
+function Assert-SelfTestBlockedDeployPath {
+    param([string] $RelativePath)
+
+    $blocked = $false
+    try {
+        Test-DeployPathAllowed -RelativePath $RelativePath
+    }
+    catch {
+        $blocked = $true
+    }
+    if (-not $blocked) {
+        throw "Deployment self-test expected blocked deployed path rejection: $RelativePath"
+    }
+}
+
 function Assert-NoSourceLiteral {
     param([string] $Root)
 
@@ -599,6 +819,19 @@ function Assert-NoSourceLiteral {
             }
         }
     }
+}
+
+function Invoke-SelfTestGit {
+    param(
+        [string] $Root,
+        [string[]] $Arguments
+    )
+
+    $output = & git -C $Root @Arguments 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        throw "Deployment self-test git command failed in ${Root}: git $($Arguments -join ' '): $($output -join ' ')"
+    }
+    return @($output)
 }
 
 function Invoke-ChildDeployment {
@@ -642,12 +875,33 @@ function Invoke-DeploymentSelfTest {
     Assert-InsideRoot -Path $selfTestRoot -Root $projectRoot -Label "Self-test root"
     Reset-Directory -Path $selfTestRoot -AllowedRoot $projectRoot
 
+    foreach ($blockedPath in @(
+        ".git/HEAD",
+        ".codex/config.toml",
+        ".codex/environments/environment.toml",
+        ".agents/runtime/agent-ledger.jsonl",
+        "docs/agent-status.md",
+        ".agents/docs/agent-status.md",
+        "docs/agent-events/event.jsonl",
+        ".agents/docs/agent-events/event.jsonl",
+        "docs/tmp-approval-example/report.md",
+        ".agents/docs/tmp-approval-example/report.md",
+        "docs/hard-isolation-evidence/example.md",
+        ".agents/docs/hard-isolation-evidence/example.md",
+        "docs/runtime-multi-agent-validation/example.md",
+        ".agents/docs/runtime-multi-agent-validation/example.md"
+    )) {
+        Assert-SelfTestBlockedDeployPath -RelativePath $blockedPath
+    }
+
     $rootTarget = Join-Path $selfTestRoot "root-docs"
     Invoke-ChildDeployment -CommandArgs @{ TargetPath = $rootTarget; Mode = "full_workflow"; CreateTarget = $true; Quiet = $true }
     Assert-SelfTestFile -Root $rootTarget -RelativePath "AGENTS.md"
     Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents/workflows.yaml"
     Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents-workflow-deployment.md"
     Assert-SelfTestContains -Path (Join-Path $rootTarget "docs/agents-workflow-deployment.md") -Expected "- docs/agents/workflows.yaml"
+    Assert-SelfTestContains -Path (Join-Path $rootTarget "docs/agents-workflow-deployment.md") -Expected "## Validation Summary"
+    Assert-SelfTestContains -Path (Join-Path $rootTarget "docs/agents-workflow-deployment.md") -Expected "- Deployment path blocklist: enforced."
     Assert-NoSourceLiteral -Root $rootTarget
     Invoke-ChildDeployment -CommandArgs @{ TargetPath = $rootTarget; Mode = "full_workflow"; Quiet = $true }
     $currentPlan = Invoke-ChildDeploymentOutput -CommandArgs @{ TargetPath = $rootTarget; Mode = "full_workflow"; DryRun = $true }
@@ -707,6 +961,24 @@ function Invoke-DeploymentSelfTest {
     Assert-SelfTestMissing -Root $dryRunTarget -RelativePath "AGENTS.md"
     Assert-SelfTestMissing -Root $dryRunTarget -RelativePath "docs/agents/workflows.yaml"
 
+    $foreignTarget = Join-Path $selfTestRoot "git-backed-foreign-project"
+    New-Item -ItemType Directory -Path (Join-Path $foreignTarget "src") -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $foreignTarget "README.md") -Value "# Foreign Project" -Encoding utf8
+    Set-Content -LiteralPath (Join-Path $foreignTarget "src/app.txt") -Value "target app code" -Encoding utf8
+    Set-Content -LiteralPath (Join-Path $foreignTarget ".gitignore") -Value "bin/" -Encoding utf8
+    Invoke-SelfTestGit -Root $foreignTarget -Arguments @("init") | Out-Null
+    Invoke-SelfTestGit -Root $foreignTarget -Arguments @("add", "README.md", "src/app.txt", ".gitignore") | Out-Null
+    Invoke-SelfTestGit -Root $foreignTarget -Arguments @("-c", "user.name=Agents Self Test", "-c", "user.email=agents-selftest@example.invalid", "commit", "-m", "Initial foreign project") | Out-Null
+    Invoke-ChildDeployment -CommandArgs @{ TargetPath = $foreignTarget; Mode = "core_bootstrap"; Quiet = $true }
+    Assert-SelfTestContent -Path (Join-Path $foreignTarget "README.md") -Expected "# Foreign Project"
+    Assert-SelfTestContent -Path (Join-Path $foreignTarget "src/app.txt") -Expected "target app code"
+    $appStatus = Invoke-SelfTestGit -Root $foreignTarget -Arguments @("status", "--porcelain", "--", "README.md", "src/app.txt")
+    if (@($appStatus).Count -gt 0) {
+        throw "Deployment self-test expected foreign project app files to stay clean: $($appStatus -join '; ')"
+    }
+    Assert-SelfTestContains -Path (Join-Path $foreignTarget ".gitignore") -Expected "bin/"
+    Assert-SelfTestContains -Path (Join-Path $foreignTarget ".gitignore") -Expected ".agents/runtime/"
+
     $missingTarget = Join-Path $selfTestRoot "missing-target"
     foreach ($args in @(
         @{ TargetPath = $missingTarget; Mode = "core_bootstrap"; DryRun = $true; Quiet = $true },
@@ -726,18 +998,28 @@ function Invoke-DeploymentSelfTest {
 
     $ownedTarget = Join-Path $selfTestRoot "target-owned-state"
     New-Item -ItemType Directory -Path (Join-Path $ownedTarget ".codex") -Force | Out-Null
+    New-Item -ItemType Directory -Path (Join-Path $ownedTarget ".codex/environments") -Force | Out-Null
     New-Item -ItemType Directory -Path (Join-Path $ownedTarget ".agents/runtime") -Force | Out-Null
     New-Item -ItemType Directory -Path (Join-Path $ownedTarget ".git") -Force | Out-Null
     Set-Content -LiteralPath (Join-Path $ownedTarget ".codex/config.toml") -Value "local = true" -Encoding utf8
+    Set-Content -LiteralPath (Join-Path $ownedTarget ".codex/environments/environment.toml") -Value "runtime = true" -Encoding utf8
     Set-Content -LiteralPath (Join-Path $ownedTarget ".agents/runtime/agent-ledger.jsonl") -Value '{"local":true}' -Encoding utf8
     Set-Content -LiteralPath (Join-Path $ownedTarget ".git/HEAD") -Value "ref: refs/heads/main" -Encoding utf8
     Set-Content -LiteralPath (Join-Path $ownedTarget ".gitignore") -Value "target-local/" -Encoding utf8
     Invoke-ChildDeployment -CommandArgs @{ TargetPath = $ownedTarget; Mode = "core_bootstrap"; Quiet = $true }
     Assert-SelfTestContent -Path (Join-Path $ownedTarget ".codex/config.toml") -Expected "local = true"
+    Assert-SelfTestContent -Path (Join-Path $ownedTarget ".codex/environments/environment.toml") -Expected "runtime = true"
     Assert-SelfTestContent -Path (Join-Path $ownedTarget ".agents/runtime/agent-ledger.jsonl") -Expected '{"local":true}'
     Assert-SelfTestContent -Path (Join-Path $ownedTarget ".git/HEAD") -Expected "ref: refs/heads/main"
     Assert-SelfTestContains -Path (Join-Path $ownedTarget ".gitignore") -Expected "target-local/"
     Assert-SelfTestContains -Path (Join-Path $ownedTarget ".gitignore") -Expected ".agents/runtime/"
+    Assert-SelfTestContains -Path (Join-Path $ownedTarget "docs/agents-workflow-deployment.md") -Expected "Protected dirty/local state:"
+    $ownedPlan = Invoke-ChildDeploymentOutput -CommandArgs @{ TargetPath = $ownedTarget; Mode = "core_bootstrap"; DryRun = $true }
+    Assert-SelfTestTextContains -Text $ownedPlan -Expected "Protected dirty/local target state observed:"
+    Assert-SelfTestTextContains -Text $ownedPlan -Expected "[PROTECTED] .codex/config.toml"
+    Assert-SelfTestTextContains -Text $ownedPlan -Expected "[PROTECTED] .codex/environments/environment.toml"
+    Assert-SelfTestTextContains -Text $ownedPlan -Expected "[PROTECTED] .agents/runtime/agent-ledger.jsonl"
+    Assert-SelfTestTextContains -Text $ownedPlan -Expected "[PROTECTED] .git/HEAD"
 
     $routedLegacyTarget = Join-Path $selfTestRoot "routed-legacy"
     New-Item -ItemType Directory -Path (Join-Path $routedLegacyTarget "docs/agents") -Force | Out-Null
@@ -747,6 +1029,10 @@ function Invoke-DeploymentSelfTest {
     Invoke-ChildDeployment -CommandArgs @{ TargetPath = $routedLegacyTarget; Mode = "core_bootstrap"; Upgrade = $true; Quiet = $true }
     Assert-SelfTestFile -Root $routedLegacyTarget -RelativePath ".agents/docs/agents/workflows.yaml"
     Assert-SelfTestContent -Path (Join-Path $routedLegacyTarget "docs/agents/legacy.md") -Expected "legacy root docs"
+    Assert-SelfTestContains -Path (Join-Path $routedLegacyTarget ".agents/docs/agents-workflow-deployment.md") -Expected "- docs/agents/legacy.md"
+    $legacyPlan = Invoke-ChildDeploymentOutput -CommandArgs @{ TargetPath = $routedLegacyTarget; Mode = "core_bootstrap"; DryRun = $true; Upgrade = $true }
+    Assert-SelfTestTextContains -Text $legacyPlan -Expected "Target-owned legacy Agents files outside deployed file set:"
+    Assert-SelfTestTextContains -Text $legacyPlan -Expected "[LEGACY] docs/agents/legacy.md"
 
     $ambiguousTarget = Join-Path $selfTestRoot "ambiguous-layout"
     New-Item -ItemType Directory -Path (Join-Path $ambiguousTarget "docs/agents") -Force | Out-Null
@@ -821,7 +1107,9 @@ Write-Step "INFO" ("Dry run: {0}" -f [bool] $DryRun)
 foreach ($entry in $entries) {
     Copy-DeployEntry -Entry $entry -Root $targetRoot -Layout $layout -PlanOnly:$DryRun
 }
+Update-TargetStateClassification -Root $targetRoot -Layout $layout
 Write-DeploymentReport -Root $targetRoot -Layout $layout -PlanOnly:$DryRun
+Test-DeployedFileSet -Root $targetRoot -PlanOnly:$DryRun
 
 Write-Step "INFO" "Deployed file set:"
 foreach ($file in ($DeployedFiles | Sort-Object -Unique)) {
@@ -846,6 +1134,20 @@ if ($UnchangedExisting.Count -gt 0) {
     Write-Step "INFO" "Existing target files already current:"
     foreach ($file in ($UnchangedExisting | Sort-Object -Unique)) {
         Write-Step "CURRENT" $file
+    }
+}
+
+if ($ProtectedDirty.Count -gt 0) {
+    Write-Step "INFO" "Protected dirty/local target state observed:"
+    foreach ($file in ($ProtectedDirty | Sort-Object -Unique)) {
+        Write-Step "PROTECTED" $file
+    }
+}
+
+if ($TargetLegacyAgents.Count -gt 0) {
+    Write-Step "INFO" "Target-owned legacy Agents files outside deployed file set:"
+    foreach ($file in ($TargetLegacyAgents | Sort-Object -Unique)) {
+        Write-Step "LEGACY" $file
     }
 }
 

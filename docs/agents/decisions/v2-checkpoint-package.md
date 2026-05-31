@@ -19,7 +19,7 @@ claim.
 | Validation | `scripts/validate.ps1`, `scripts/README.md` | Provide the local executable checkpoint. |
 | Contracts | `schemas/` | Define initial machine-readable contracts for canonical YAML files. |
 | Fixtures | `tests/agents-governance-fixtures/` | Prove passing and failing schema-contract cases. |
-| CI | `.github/workflows/checkpoint.yml`, `.github/workflows/README.md` | Run local validation and whitespace checks in GitHub Actions. |
+| CI | `.github/workflows/checkpoint.yml`, `.github/workflows/README.md` | Run the fast checkpoint gate in GitHub Actions; full audit and whitespace checks remain local release-audit gates. |
 | Boundaries | `mcp/README.md`, `artifacts/README.md`, `tests/README.md`, `schemas/README.md` | Reserve explicit source-controlled boundaries for later v2 work. |
 
 ## Excluded From This Package
