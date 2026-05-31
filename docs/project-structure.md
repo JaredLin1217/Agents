@@ -12,7 +12,9 @@ extension points.
 3. `docs/agents/policy.yaml`
 4. `docs/agents/verify.yaml`
 5. `docs/agents/schemas.yaml` only for assignments, reports, status, or templates
-6. `docs/agents/deploy.yaml` only for authorized target deployment
+6. `docs/agents/mcp.yaml` only when optional runtime integrations matter
+7. `docs/agents/version.yaml` for workflow version and upgrade compatibility
+8. `docs/agents/deploy.yaml` only for authorized target deployment
 
 ## Role Matrix
 
@@ -22,6 +24,7 @@ extension points.
 | `.agents/skills/project-isolation-workflow/` | Project-local skill | deploy |
 | `.agents/runtime/` | Project-local runtime coordination | never deploy |
 | `docs/agents/*.yaml` | Canonical Agents governance rules | deploy |
+| `docs/agents/mcp.yaml` | Optional tool and MCP capability boundaries | deploy |
 | `docs/runbooks/*.md` | Task entry points | mode-based deploy |
 | `docs/templates/agents/` | Provider deploy bundle | `template_provider_mode` only |
 | `docs/memory/`, `docs/decisions/` | Provider-local knowledge | target-owned / do not deploy rows |

@@ -22,5 +22,26 @@
     "schema": {
       "const": "agents-workflows/v2"
     }
-  }
+  },
+  "x-required-paths": [
+    "startup.common_task_matrix",
+    "startup.fast_classification",
+    "multi_agent_runtime.fast_spawn.queue_rule",
+    "multi_agent_runtime.fast_spawn.close_rule",
+    "multi_agent_runtime.lifecycle_checks.before",
+    "multi_agent_runtime.lifecycle_checks.during",
+    "multi_agent_runtime.lifecycle_checks.after",
+    "multi_agent_runtime.ownership.hard_fail",
+    "multi_agent_runtime.roster.project_local_ledger",
+    "scoring_batches",
+    "handoff.project_id",
+    "deployment.delegated_worker",
+    "maintenance.local_permission_boundary"
+  ],
+  "x-required-values": [
+    {
+      "path": "multi_agent_runtime.roster.project_local_ledger",
+      "value": ".agents/runtime/agent-ledger.jsonl"
+    }
+  ]
 }

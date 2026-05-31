@@ -60,6 +60,8 @@ commands:
   deploy_sources_exist: "Every deployable_by_mode from path exists; mode_composition names existing groups."
   deploy_manifest_unique: "deployable_by_mode from paths unique per group; non-append to paths unique."
   deploy_blocklist_required_paths: "do_not_deploy includes local runtime, scratch, Codex runtime, and .git paths."
+  deployment_script_safety: "scripts/deploy-agents-workflow.ps1 contains path-containment gates and no OS permission, ACL, ownership, .git repair, or destructive Git fallback."
+  deployment_script_selftest: ".\\scripts\\deploy-agents-workflow.ps1 -SelfTest writes disposable root_docs and dot_agents_docs targets under %TEMP%/codex-agent-status/<project-id>/ and verifies provider self-write refusal."
   template_pollution_rule: "Search deployable templates for concrete source/target literals relevant to the task."
   deployed_file_set_status: "git status -sb -- <deployed_file_set>"
   deployed_file_set_diff_check: "git diff --check -- <deployed_file_set>"
@@ -123,6 +125,7 @@ profiles:
     do:
       baseline: ["status_full", "diff_check", "English-only/placeholder gates on applicable paths", "line-ending readiness", "ignored_runtime"]
       deployment_integrity: ["deploy steps/source/uniqueness/blocklist gates", "task-specific template pollution checks"]
+      deployment_script: ["path containment", "provider self-write refusal", "explicit target creation switch", "no local permission repair", "disposable deployment self-test"]
       template_integrity: ["exact-pair drift checks", "template bundle coverage"]
       schema_skill_integrity: ["schema field coverage", "skill metadata checks"]
       size: ["size gates including prospective tracked size"]
@@ -139,7 +142,7 @@ size_gates:
   targets:
     AGENTS.md: 10240
     project_skill: 10240
-    tracked_repo_kib: 256
+    tracked_repo_kib: 384
   tracked_rule: "Ignored/untracked files do not count; intended new files count before commit."
 
 claim_scopes:
@@ -209,6 +212,8 @@ drift_checks:
     - ["docs/agents/workflows.yaml", "docs/templates/agents/agents/workflows.yaml"]
     - ["docs/agents/schemas.yaml", "docs/templates/agents/agents/schemas.yaml"]
     - ["docs/agents/deploy.yaml", "docs/templates/agents/agents/deploy.yaml"]
+    - ["docs/agents/mcp.yaml", "docs/templates/agents/agents/mcp.yaml"]
+    - ["docs/agents/version.yaml", "docs/templates/agents/agents/version.yaml"]
     - ["docs/agents/verify.yaml", "docs/templates/agents/agents/verify.yaml"]
     - ["docs/runbooks/agents-deployment.md", "docs/templates/agents/agents-deployment.md"]
     - ["docs/runbooks/isolation-audit.md", "docs/templates/agents/isolation-audit.md"]

@@ -2,12 +2,29 @@ schema: agents-workflows/v2
 purpose: "Fixture for a valid workflow document."
 owns: "Fixture ownership text."
 read_first: []
-startup: {}
+startup:
+  common_task_matrix: {}
+  fast_classification: {}
 progress_updates: {}
 memory: {}
-multi_agent_runtime: {}
-handoff: {}
-deployment: "Fixture deployment text."
+multi_agent_runtime:
+  fast_spawn:
+    queue_rule: "Fixture queue rule."
+    close_rule: "Fixture close rule."
+  lifecycle_checks:
+    before: []
+    during: []
+    after: []
+  ownership:
+    hard_fail: []
+  roster:
+    project_local_ledger: ".agents/runtime/agent-ledger.jsonl"
+scoring_batches: {}
+handoff:
+  project_id: "fixture-project"
+deployment:
+  delegated_worker: "Fixture worker rule."
 skill_authoring: {}
-maintenance: {}
+maintenance:
+  local_permission_boundary: []
 closeout: {}

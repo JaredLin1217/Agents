@@ -12,6 +12,28 @@ Use only after explicit hire/spawn/delegate/parallel-agent request or clear equi
 6. Close completed employees after recording the final report; final report is the completion notification.
 7. If sidebar/history cleanup is explicitly authorized, run it as one quiet batch for the exact closed runtime ids, record one `history_cleanup` ledger summary, and report compact counts.
 
+## Dispatch Checklist
+
+Before launch:
+
+- Confirm the user explicitly requested employees or delegation.
+- Assign role, task, read scope, write scope, allowed commands, report schema, and close condition.
+- Normalize write scopes and block overlaps before any worker can edit.
+- Decide whether the project-local ledger is required for recovery.
+
+During work:
+
+- Refill available runtime slots only within the requested batch.
+- Poll only when controller progress depends on a result or an owned scope may be affected.
+- Record each final report once, using report hash dedupe for scoring batches.
+- Stop scoring expansion when convergence is reached or the cap is hit.
+
+After work:
+
+- Close completed runtimes after report capture.
+- Reconcile git status and owned scopes before claiming integration.
+- Keep `.agents/runtime/**`, temp roster, status, and filled validation records unstaged and undeployed.
+
 ## Close And Sidebar Cleanup
 
 - Runtime close comes first. Do not use DB deletion as a substitute for `close_agent`.
@@ -38,6 +60,13 @@ Use only after explicit hire/spawn/delegate/parallel-agent request or clear equi
 - Dedupe findings by scope, root cause, and proposed fix. Count duplicates as confidence.
 - Ignore repeated identical final reports after the first recorded report hash.
 - After the hard cap, report disagreement instead of spawning more scorers.
+
+## Deployment Workers
+
+- Use one `deployment_worker` per exact target path.
+- Assignment must name the target path, deployment mode, dry-run/write scope, and deployed file set boundary.
+- Worker may inspect target layout and run the provider deployment script; worker must not edit target app code, copy provider runtime state, repair OS permissions, or modify `.git` metadata.
+- Controller reviews the dry-run/write report before claiming deployment or upgrade completion.
 
 ## Safety Rules
 

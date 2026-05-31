@@ -7,6 +7,7 @@ read_first:
   - "Policy/isolation/closeout -> policy.yaml."
   - "Verification profile -> verify.yaml."
   - "Assignment/report/status fields -> schemas.yaml only when needed."
+  - "Tool capability boundaries -> mcp.yaml only when optional runtime integrations matter."
   - "Target deployment -> deploy.yaml."
 
 startup:
@@ -34,6 +35,7 @@ startup:
     multi_agent_runtime: "Use explicit hire/delegate flow; start max available employees first."
     deploy_release_audit: "Use deploy.yaml plus release_deploy_push_audit profile."
     hard_isolation: "Do not claim beyond behavioral-only without current enforcement evidence."
+    delegated_deployment: "Use deploy.yaml, assign one deployment_worker only after exact target authorization, and keep writes inside deployed_file_set."
   employee:
     - "Read assignment first."
     - "Read only assigned paths and required project-local skills."
@@ -84,6 +86,19 @@ multi_agent_runtime:
     close_rule: "Close completed employees as soon as their final report is recorded; launch the next queued employee in the freed slot."
     history_cleanup_rule: "Plain close requests close runtime only. Sidebar/history cleanup needs explicit cleanup wording or standalone exact cleanup authorization; when authorized, run one quiet batch for exact closed runtime ids and report XR/XW once."
     ledger_rule: "Append hired/report/closed/integrated events to the project-local ledger when recovery matters."
+  lifecycle_checks:
+    before:
+      - "Classify the request and confirm employee use is explicit."
+      - "Define role, read scope, write scope, command scope, report schema, and close condition before launch."
+      - "Verify worker write scopes are exclusive and normalized when edits are possible."
+    during:
+      - "Poll only when controller progress needs results or a worker may affect owned scope."
+      - "Record reports once with report_dedupe before integration."
+      - "Stop expansion when scoring convergence or hard cap is reached."
+    after:
+      - "Close completed runtimes after final reports are recorded."
+      - "Reconcile git status and owned scopes before claiming integration."
+      - "Leave ledger/runtime state ignored and unstaged."
   ownership:
     required_for: "any worker, two active employees, or controller edits near employee scopes"
     normalize: "repo-relative, normalized separators, containment-aware, case-insensitive where needed"
@@ -162,7 +177,10 @@ handoff:
     - "Treat docs/agent-status.md and docs/agent-events/ as ignored legacy/local-only paths, not canonical handoff state."
     - "Treat ledger and temp roster as advisory; verify git/runtime/app-server state and require unambiguous controller lease/runtime id before status writes or close actions."
 
-deployment: "Use docs/agents/deploy.yaml for authorized targets; source repo must not store target status/history/commits/remotes/results."
+deployment:
+  rule: "Use docs/agents/deploy.yaml for authorized targets; source repo must not store target status/history/commits/remotes/results."
+  delegated_worker: "For requests such as deploy this project to an exact target, the controller may assign a deployment_worker with one target path, one mode, dry-run/write scope, and no app-code or OS-permission repair authority."
+  upgrade: "Treat upgrades as allowlisted redeployments: dry-run first, preserve target-owned state, and update only deployed_file_set."
 
 skill_authoring:
   create_when: "Repeatable workflow is better as procedural instructions than AGENTS, memory, decision, or runbook."

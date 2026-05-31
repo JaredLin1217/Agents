@@ -56,6 +56,22 @@ deployment_modes:
   full_workflow: "Install core_bootstrap plus memory starters, runtime/evidence templates, and multi-agent/maintenance runbooks."
   template_provider_mode: "Install full_workflow plus docs/templates/agents/** so the target can redeploy this workflow later."
 
+upgrade:
+  rule: "Upgrade is the same allowlisted deployment operation with dry-run first and target-owned state preserved."
+  version_source: "docs/agents/version.yaml"
+  target_marker: "The deployed version file records workflow compatibility, not target status or provider runtime state."
+  no_permission_repair: "Do not run OS permission, ownership, ACL, or .git metadata repair as part of deployment or upgrade."
+  same_repo_guard: "The deployment script must not write into the provider/source repo; provider self-maintenance uses patches plus validation, with deployment dry-run only."
+  target_creation: "A missing target directory may be created only by an explicit non-dry run with a target-creation switch after exact path authorization; dry-run requires an existing target."
+
+delegated_deployment:
+  trigger: "When the controller receives a request such as deploy this project to an exact target path."
+  worker_role: "deployment_worker"
+  assignment_scope: "One exact target path, one mode, dry-run/write flag, and the deployment script/runbook only."
+  controller_duties: ["verify exact target authorization", "choose mode", "review dry-run plan", "integrate the worker report"]
+  worker_duties: ["inspect target layout", "run dry-run first unless explicitly waived", "write only deployed_file_set", "report exact XR/XW paths"]
+  forbidden: ["copy provider runtime state", "edit target app code outside deployed_file_set", "repair local OS or Git metadata", "store target deployment history in provider repo"]
+
 mode_composition:
   core_bootstrap: ["core_bootstrap"]
   full_workflow: ["core_bootstrap", "full_workflow_additions"]
@@ -75,6 +91,10 @@ deployable_by_mode:
       to: "docs/agents/schemas.yaml"
     - from: "docs/templates/agents/agents/deploy.yaml"
       to: "docs/agents/deploy.yaml"
+    - from: "docs/templates/agents/agents/mcp.yaml"
+      to: "docs/agents/mcp.yaml"
+    - from: "docs/templates/agents/agents/version.yaml"
+      to: "docs/agents/version.yaml"
     - from: "docs/templates/agents/agents/verify.yaml"
       to: "docs/agents/verify.yaml"
     - from: "docs/templates/agents/skills/project-isolation-workflow/SKILL.md"
@@ -152,6 +172,7 @@ steps:
   - "Inspect target state first."
   - "Detect target layout and classify dirty files before writing."
   - "Choose core_bootstrap, full_workflow, or template_provider_mode; default to core_bootstrap unless the user asks for more."
+  - "For upgrades, use the same selected mode, start with dry-run, preserve target-owned state, and update only deployed_file_set."
   - "Build deployed_file_set from the selected mode, target layout, and layout_destination_map."
   - "Rewrite internal documentation references for the selected target layout."
   - "Copy/adapt only deployable_by_mode groups listed in mode_composition for the chosen deployment mode."
@@ -166,11 +187,14 @@ hard_fail_gates:
   - "Default deploy claims unverified target mode/scripts/stack."
   - "Target state stored in provider repo."
   - "Blocklisted file copied by default."
+  - "Deployment or upgrade attempts OS permission, ACL, ownership, or .git metadata repair."
+  - "Deployment script write into the provider/source repo."
   - "Target-specific claim without target inspection."
   - "Competing target layout created without explicit migration request."
   - "Deployment cleanliness claim based on whole dirty target instead of deployed_file_set."
 
 validation_levels:
   repo_local_dry_run: "source/template/blocklist checks only"
+  disposable_selftest: "write root_docs and dot_agents_docs targets under approved temp status space and verify provider self-write refusal"
   authorized_target_dry_run: "read target and report plan"
   authorized_target_deployment_test: "write allowlisted/approved files and validate target"

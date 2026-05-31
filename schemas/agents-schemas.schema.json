@@ -28,5 +28,25 @@
     "schema": {
       "const": "agents-schemas/v2"
     }
-  }
+  },
+  "x-required-paths": [
+    "assignment.required_fields.Runtime id",
+    "assignment.required_fields.Ledger path",
+    "scoring_rollup_report.aggregation_rule",
+    "report_validation.scoring_required",
+    "report_validation.validity_values",
+    "ownership_matrix.conflict_checks",
+    "employee_final_report.required_fields",
+    "agent_ledger_event.location",
+    "agent_ledger_event.names",
+    "runtime_multi_agent_validation.required_fields",
+    "memory_entry.index_columns",
+    "skill.openai_yaml"
+  ],
+  "x-required-values": [
+    {
+      "path": "agent_ledger_event.location",
+      "value": ".agents/runtime/agent-ledger.jsonl"
+    }
+  ]
 }

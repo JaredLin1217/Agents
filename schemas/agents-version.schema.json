@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "agents-version.schema.json",
+  "title": "Agents workflow version metadata",
+  "type": "object",
+  "required": [
+    "schema",
+    "purpose",
+    "owns",
+    "workflow",
+    "upgrade_policy",
+    "delegation"
+  ],
+  "properties": {
+    "schema": {
+      "const": "agents-version/v2"
+    }
+  },
+  "x-required-paths": [
+    "workflow.version",
+    "workflow.compatibility",
+    "workflow.v1_preservation",
+    "upgrade_policy.compatibility_rule",
+    "upgrade_policy.breaking_change_rule",
+    "delegation.large_batch_rule"
+  ]
+}

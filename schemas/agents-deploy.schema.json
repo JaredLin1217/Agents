@@ -23,5 +23,25 @@
     "schema": {
       "const": "agents-deploy/v2"
     }
-  }
+  },
+  "x-required-paths": [
+    "boundary.requires",
+    "target_layout.detect_first",
+    "target_layout.layout_destination_map.root_docs",
+    "target_layout.layout_destination_map.dot_agents_docs",
+    "dirty_target.deployed_file_set",
+    "upgrade.no_permission_repair",
+    "upgrade.same_repo_guard",
+    "upgrade.target_creation",
+    "delegated_deployment.forbidden",
+    "mode_composition.core_bootstrap",
+    "mode_composition.full_workflow",
+    "mode_composition.template_provider_mode",
+    "deployable_by_mode.core_bootstrap",
+    "deployable_by_mode.full_workflow_additions",
+    "deployable_by_mode.template_provider_additions",
+    "do_not_deploy.paths",
+    "validation_levels.disposable_selftest",
+    "validation_levels.authorized_target_deployment_test"
+  ]
 }

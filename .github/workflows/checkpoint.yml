@@ -13,7 +13,7 @@ permissions:
 jobs:
   agents-workflow:
     name: agents workflow
-    runs-on: windows-2025-vs2026
+    runs-on: windows-latest
 
     steps:
       - name: Check out repository
@@ -21,7 +21,7 @@ jobs:
 
       - name: Run Agents workflow validation
         shell: pwsh
-        run: .\scripts\validate.ps1
+        run: .\scripts\validate.ps1 -Full
 
       - name: Check diff whitespace
         shell: pwsh

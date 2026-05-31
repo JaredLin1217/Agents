@@ -8,6 +8,7 @@ Initial scope:
 - `docs/agents/verify.yaml`
 - `docs/agents/policy.yaml`
 - `docs/agents/schemas.yaml`
+- `docs/agents/version.yaml`
 - `docs/agents/deploy.yaml`
 
 The first schema contracts are standard JSON Schema documents with a small

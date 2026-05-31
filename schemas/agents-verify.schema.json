@@ -23,5 +23,25 @@
     "schema": {
       "const": "agents-verify/v2"
     }
-  }
+  },
+  "x-required-paths": [
+    "profile_selection.order",
+    "file_classes.runtime_local",
+    "commands.full_audit_bundle",
+    "commands.deployment_script_selftest",
+    "commands.deployed_file_set_status",
+    "profiles.release_deploy_push_audit",
+    "profiles.runtime_multi_agent",
+    "claim_scopes.deploy_clean",
+    "minimum_evidence.deploy_clean",
+    "live_employee_validation.required",
+    "drift_checks.exact_pairs",
+    "release_appendix.provider_repo_checks"
+  ],
+  "x-required-values": [
+    {
+      "path": "commands.full_audit_bundle",
+      "value": ".\\\\scripts\\\\validate.ps1 -Full"
+    }
+  ]
 }

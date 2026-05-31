@@ -23,5 +23,18 @@
     "schema": {
       "const": "agents-policy/v2"
     }
-  }
+  },
+  "x-required-paths": [
+    "authority.repo_reality",
+    "task_classification",
+    "isolation.global_memory",
+    "isolation.global_skills",
+    "isolation.external_filesystem",
+    "runtime_enforcement.stronger_claims_require",
+    "editing.before",
+    "knowledge_layers.docs/project-memory.md",
+    "template_cleanliness.deployable_templates_must_not_contain",
+    "closeout.required_line",
+    "hard_fail_gates"
+  ]
 }

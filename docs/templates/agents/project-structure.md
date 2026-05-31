@@ -1,6 +1,9 @@
-# Target Repo Structure
+# Source Repo Structure
 
-Agents workflow rules and executable governance files live inside the target repo.
+This source repo owns the canonical AI Agents workflow architecture:
+repo-local routing, deployable governance rules, project-local skills,
+runtime boundaries, validation gates, deployment templates, and future
+extension points.
 
 ## Read Order
 
@@ -9,26 +12,29 @@ Agents workflow rules and executable governance files live inside the target rep
 3. `docs/agents/policy.yaml`
 4. `docs/agents/verify.yaml`
 5. `docs/agents/schemas.yaml` only for assignments, reports, status, or templates
-6. `docs/agents/deploy.yaml` only for authorized redeployment
+6. `docs/agents/mcp.yaml` only when optional runtime integrations matter
+7. `docs/agents/version.yaml` for workflow version and upgrade compatibility
+8. `docs/agents/deploy.yaml` only for authorized target deployment
 
 ## Role Matrix
 
 | Area | Role | Deploy policy |
 |---|---|---|
-| `AGENTS.md` | Target router | deploy |
-| `.agents/skills/project-isolation-workflow/` | Target-local skill | deploy |
-| `.agents/runtime/` | Target-local runtime coordination | never deploy |
+| `AGENTS.md` | Provider and target router | deploy |
+| `.agents/skills/project-isolation-workflow/` | Project-local skill | deploy |
+| `.agents/runtime/` | Project-local runtime coordination | never deploy |
 | `docs/agents/*.yaml` | Canonical Agents governance rules | deploy |
+| `docs/agents/mcp.yaml` | Optional tool and MCP capability boundaries | deploy |
 | `docs/runbooks/*.md` | Task entry points | mode-based deploy |
-| `docs/templates/agents/` | Optional redeploy bundle | `template_provider_mode` only |
-| `docs/memory/`, `docs/decisions/` | Target-local knowledge | target-owned |
-| `docs/agents/decisions/` | Agents workflow structure decisions | target-owned unless explicitly deployed |
-| `schemas/` | Machine-readable policy contracts | deploy only when enabled by target mode |
-| `scripts/` | Local validation and maintenance commands | deploy only when enabled by target mode |
-| `tests/` | Fixtures and automated validation tests | deploy only when enabled by target mode |
-| `mcp/` | MCP capability registry and boundaries | deploy only when enabled by target mode |
+| `docs/templates/agents/` | Provider deploy bundle | `template_provider_mode` only |
+| `docs/memory/`, `docs/decisions/` | Provider-local knowledge | target-owned / do not deploy rows |
+| `docs/agents/decisions/` | Agents workflow structure decisions | provider source only |
+| `schemas/` | Machine-readable policy contracts | provider source only until deploy rules include them |
+| `scripts/` | Local validation and maintenance commands | provider source only until deploy rules include them |
+| `tests/` | Fixtures and automated validation tests | provider source only |
+| `mcp/` | MCP capability registry and boundaries | provider source only until explicitly deployed |
 | `artifacts/` | Trace, eval, and audit artifact boundary | runtime outputs ignored unless promoted |
-| `.github/workflows/` | CI delivery lane | deploy only when enabled by target mode |
+| `.github/workflows/` | CI delivery lane | provider source only |
 | `.codex/`, status, validation records | Local runtime state | never deploy |
 
 - `AGENTS.md`: every-session router.
@@ -36,17 +42,21 @@ Agents workflow rules and executable governance files live inside the target rep
 - `.agents/runtime/`: ignored coordination ledger and runtime state.
 - `docs/agents/*.yaml`: canonical Agents governance rules.
 - `docs/runbooks/*.md`: short entry points.
-- `docs/memory/`: target-local lessons.
-- `docs/templates/agents/`: optional template-provider bundle for redeployment.
+- `docs/templates/agents/`: source-neutral deploy bundle.
+- `docs/memory/`, `docs/decisions/`: source-local lessons and decisions.
+- `docs/agents/decisions/`: v2 workflow structure and governance decisions.
 - `schemas/`: contracts for canonical YAML and future validation gates.
 - `scripts/`: local executable checks and maintenance commands.
 - `tests/`: fixtures and automated tests for Agents governance behavior.
-- `mcp/`: target-level capability registry before MCP implementation.
+- `mcp/`: project-level capability registry before MCP implementation.
 - `artifacts/`: boundary for traces, evals, and audit outputs.
 - `.github/workflows/`: CI workflows for stable local validation gates.
 
-Target memory, decisions, agent ledger, status, Codex App config, local environment state, and validation history stay target-owned.
+Do not deploy source `.agents/runtime/`, `.codex/config.toml`, `.codex/environments/environment.toml`, source memory rows, decisions, status, or validation history by default.
 
-V2 structure changes should preserve existing mirror pairs and deployment rules
+## V2 Structure Rule
+
+V2 structure changes must preserve existing mirror pairs and deployment rules
 until the corresponding drift checks are updated. Large moves of runbooks,
-templates, decisions, or memory docs should be handled as dedicated changes.
+templates, decisions, or memory docs should be handled as dedicated changes,
+not mixed with validation, MCP, or CI implementation.

@@ -118,8 +118,11 @@ function Test-RequiredFiles {
         "docs/agents/verify.yaml",
         "docs/agents/schemas.yaml",
         "docs/agents/deploy.yaml",
+        "docs/agents/mcp.yaml",
+        "docs/agents/version.yaml",
         ".agents/skills/project-isolation-workflow/SKILL.md",
-        "docs/project-structure.md"
+        "docs/project-structure.md",
+        "scripts/deploy-agents-workflow.ps1"
     )
 
     foreach ($path in $required) {
@@ -157,6 +160,54 @@ function Get-LightweightYamlTopLevel {
     }
 
     return $document
+}
+
+function Get-LightweightYamlPathValues {
+    param([System.IO.FileInfo] $File)
+
+    $paths = @{}
+    $stack = @{}
+
+    foreach ($line in Get-Content -LiteralPath $File.FullName) {
+        if ($line.Trim().Length -eq 0 -or $line.TrimStart().StartsWith("#")) {
+            continue
+        }
+
+        $indent = $line.Length - $line.TrimStart(" ").Length
+        $level = [int] ($indent / 2)
+        $trimmed = $line.Trim()
+
+        if ($trimmed -match '^- ') {
+            continue
+        }
+
+        if ($trimmed -match '^("[^"]+"|''[^'']+''|[^:\[\]\{\},]+):\s*(.*)$') {
+            $key = $Matches[1].Trim().Trim('"').Trim("'")
+            $value = $Matches[2].Trim()
+
+            foreach ($existingLevel in @($stack.Keys)) {
+                if ([int] $existingLevel -ge $level) {
+                    $stack.Remove($existingLevel)
+                }
+            }
+
+            $stack[$level] = $key
+            $orderedKeys = @()
+            foreach ($stackLevel in ($stack.Keys | Sort-Object { [int] $_ })) {
+                $orderedKeys += $stack[$stackLevel]
+            }
+
+            $path = $orderedKeys -join "."
+            if ($value.Length -ge 2) {
+                if (($value.StartsWith('"') -and $value.EndsWith('"')) -or ($value.StartsWith("'") -and $value.EndsWith("'"))) {
+                    $value = $value.Substring(1, $value.Length - 2)
+                }
+            }
+            $paths[$path] = $value
+        }
+    }
+
+    return $paths
 }
 
 function Get-JsonSchemaConst {
@@ -214,6 +265,30 @@ function Get-SchemaContractIssues {
         }
     }
 
+    $yamlPathValues = Get-LightweightYamlPathValues -File (Get-Item -LiteralPath $YamlPath)
+    $requiredPathsProperty = $schemaDocument.PSObject.Properties["x-required-paths"]
+    if ($requiredPathsProperty) {
+        foreach ($requiredPath in @($requiredPathsProperty.Value)) {
+            if (-not $yamlPathValues.ContainsKey([string] $requiredPath)) {
+                $issues.Add(("{0} is missing required nested path from {1}: {2}" -f $YamlLabel, $SchemaLabel, $requiredPath)) | Out-Null
+            }
+        }
+    }
+
+    $requiredValuesProperty = $schemaDocument.PSObject.Properties["x-required-values"]
+    if ($requiredValuesProperty) {
+        foreach ($requiredValue in @($requiredValuesProperty.Value)) {
+            $path = [string] $requiredValue.path
+            $expected = [string] $requiredValue.value
+            if (-not $yamlPathValues.ContainsKey($path)) {
+                $issues.Add(("{0} is missing required value path from {1}: {2}" -f $YamlLabel, $SchemaLabel, $path)) | Out-Null
+            }
+            elseif ([string] $yamlPathValues[$path] -ne $expected) {
+                $issues.Add(("{0} value mismatch at {1}. Expected {2}; found {3}." -f $YamlLabel, $path, $expected, $yamlPathValues[$path])) | Out-Null
+            }
+        }
+    }
+
     $expectedSchema = Get-JsonSchemaConst -SchemaDocument $schemaDocument -PropertyName "schema"
     if ($expectedSchema) {
         if (-not $yamlDocument.ContainsKey("schema")) {
@@ -233,7 +308,9 @@ function Test-SchemaContracts {
         @{ Yaml = "docs/agents/verify.yaml"; Schema = "schemas/agents-verify.schema.json" },
         @{ Yaml = "docs/agents/policy.yaml"; Schema = "schemas/agents-policy.schema.json" },
         @{ Yaml = "docs/agents/schemas.yaml"; Schema = "schemas/agents-schemas.schema.json" },
-        @{ Yaml = "docs/agents/deploy.yaml"; Schema = "schemas/agents-deploy.schema.json" }
+        @{ Yaml = "docs/agents/deploy.yaml"; Schema = "schemas/agents-deploy.schema.json" },
+        @{ Yaml = "docs/agents/mcp.yaml"; Schema = "schemas/agents-mcp.schema.json" },
+        @{ Yaml = "docs/agents/version.yaml"; Schema = "schemas/agents-version.schema.json" }
     )
 
     foreach ($contract in $contracts) {
@@ -392,6 +469,8 @@ function Test-ExactPairs {
         @("docs/agents/workflows.yaml", "docs/templates/agents/agents/workflows.yaml"),
         @("docs/agents/schemas.yaml", "docs/templates/agents/agents/schemas.yaml"),
         @("docs/agents/deploy.yaml", "docs/templates/agents/agents/deploy.yaml"),
+        @("docs/agents/mcp.yaml", "docs/templates/agents/agents/mcp.yaml"),
+        @("docs/agents/version.yaml", "docs/templates/agents/agents/version.yaml"),
         @("docs/agents/verify.yaml", "docs/templates/agents/agents/verify.yaml"),
         @("docs/runbooks/agents-deployment.md", "docs/templates/agents/agents-deployment.md"),
         @("docs/runbooks/isolation-audit.md", "docs/templates/agents/isolation-audit.md"),
@@ -439,6 +518,8 @@ function Test-TemplateCoverage {
         "docs/templates/agents/agents/workflows.yaml",
         "docs/templates/agents/agents/schemas.yaml",
         "docs/templates/agents/agents/deploy.yaml",
+        "docs/templates/agents/agents/mcp.yaml",
+        "docs/templates/agents/agents/version.yaml",
         "docs/templates/agents/agents/verify.yaml",
         "docs/templates/agents/agents-deployment.md",
         "docs/templates/agents/isolation-audit.md",
@@ -514,6 +595,66 @@ function Test-DeployManifestIntegrity {
     }
 }
 
+function Test-DeploymentScriptSafety {
+    $path = "scripts/deploy-agents-workflow.ps1"
+    $fullPath = Get-RepoPath $path
+    if (-not (Test-Path -LiteralPath $fullPath -PathType Leaf)) {
+        Add-Failure "Deployment entry point is missing: scripts/deploy-agents-workflow.ps1"
+        return
+    }
+
+    $content = Get-Content -LiteralPath $fullPath -Raw
+    $requiredMarkers = @(
+        "Assert-RelativeDeployPath",
+        "Assert-InsideRoot",
+        "Test-PathInsideRoot",
+        "Confirm-SourceAllowed",
+        "Assert-NoSourceLiteral",
+        "CreateTarget",
+        "SelfTest",
+        "Refusing to write into the provider/source repo"
+    )
+    foreach ($marker in $requiredMarkers) {
+        if (-not $content.Contains($marker)) {
+            Add-Failure ("Deployment script is missing safety marker: {0}" -f $marker)
+        }
+    }
+
+    $forbiddenPatterns = @(
+        "icacls",
+        "takeown",
+        "Set-Acl",
+        "Get-Acl",
+        "attrib ",
+        "git reset --hard",
+        "git checkout --"
+    )
+    foreach ($pattern in $forbiddenPatterns) {
+        if ($content -match [regex]::Escape($pattern)) {
+            Add-Failure ("Deployment script contains forbidden local repair or destructive pattern: {0}" -f $pattern)
+        }
+    }
+}
+
+function Test-DeploymentSelfTest {
+    $previousErrorActionPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        $output = & (Get-RepoPath "scripts/deploy-agents-workflow.ps1") -SelfTest -Quiet 2>&1
+        $exitCode = $LASTEXITCODE
+    }
+    finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+
+    if ($exitCode -ne 0) {
+        Add-Failure "Deployment self-test failed."
+        foreach ($line in $output) {
+            Add-Failure ("Deployment self-test detail: {0}" -f $line)
+        }
+    }
+}
+
 function Test-SkillMetadata {
     $skillFiles = @(
         ".agents/skills/project-isolation-workflow/SKILL.md",
@@ -559,9 +700,9 @@ function Test-SizeGates {
             $total += (Get-Item -LiteralPath $fullPath).Length
         }
     }
-    $limit = 256 * 1024
+    $limit = 384 * 1024
     if ($total -gt $limit) {
-        Add-Failure ("Tracked/intended repo size exceeds 256 KiB: {0} bytes" -f $total)
+        Add-Failure ("Tracked/intended repo size exceeds 384 KiB: {0} bytes" -f $total)
     }
 }
 
@@ -571,6 +712,8 @@ function Test-FullAuditGates {
     Test-DeployManifestIntegrity
     Test-TemplateCoverage
     Test-SkillMetadata
+    Test-DeploymentScriptSafety
+    Test-DeploymentSelfTest
     Test-SizeGates
 }
 
