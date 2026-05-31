@@ -17,6 +17,10 @@
     "size_gates",
     "claim_scopes",
     "minimum_evidence",
+    "no_deduction_audit",
+    "coverage_gates",
+    "live_employee_validation",
+    "release_appendix",
     "drift_checks"
   ],
   "properties": {
@@ -72,6 +76,14 @@
     {
       "path": "claim_scopes.hard_isolation",
       "contains": ["current tool/external enforcement evidence", "behavioral-only"]
+    },
+    {
+      "path": "minimum_evidence.runtime_multi_agent",
+      "contains": ["real runtime id", "assignment/report match", "git status"]
+    },
+    {
+      "path": "minimum_evidence.hard_isolation",
+      "contains": ["current tool/runtime/OS/account/cloud enforcement evidence"]
     }
   ]
 }
