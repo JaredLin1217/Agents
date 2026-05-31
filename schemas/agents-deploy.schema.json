@@ -11,6 +11,8 @@
     "target_layout",
     "dirty_target",
     "deployment_modes",
+    "upgrade",
+    "delegated_deployment",
     "mode_composition",
     "deployable_by_mode",
     "do_not_deploy",
@@ -26,11 +28,20 @@
   },
   "x-required-paths": [
     "boundary.requires",
+    "boundary.method",
     "boundary.target_owns",
     "boundary.source_must_not_store",
     "target_layout.detect_first",
+    "target_layout.rule",
+    "target_layout.target_path_rule",
+    "target_layout.path_rewrite",
     "target_layout.layout_destination_map.root_docs",
     "target_layout.layout_destination_map.dot_agents_docs",
+    "target_layout.ambiguous",
+    "dirty_target.classify_before_write.deploy_scope",
+    "dirty_target.classify_before_write.protected_dirty",
+    "dirty_target.classify_before_write.target_legacy_agents",
+    "dirty_target.rule",
     "dirty_target.deployed_file_set",
     "dirty_target.validation_scope",
     "upgrade.rule",
@@ -69,6 +80,22 @@
     {
       "path": "boundary.source_must_not_store",
       "contains": ["target status", "commits", "remotes", "deployment results"]
+    },
+    {
+      "path": "target_layout.rule",
+      "contains": ["Preserve one target layout", "do not create a competing root docs layout and .agents/docs layout"]
+    },
+    {
+      "path": "target_layout.path_rewrite",
+      "contains": ["rewrite internal references", "selected layout_destination_map"]
+    },
+    {
+      "path": "target_layout.ambiguous",
+      "contains": ["follow the layout referenced by AGENTS.md", "target-owned legacy state"]
+    },
+    {
+      "path": "dirty_target.rule",
+      "contains": ["Do not fail or broaden cleanup", "report them separately"]
     },
     {
       "path": "dirty_target.validation_scope",
