@@ -445,6 +445,7 @@ function Test-RuntimeBoundaries {
 }
 
 function Test-GitDiffCheck {
+    $startFailureCount = $Failures.Count
     $previousErrorActionPreference = $ErrorActionPreference
     $ErrorActionPreference = "Continue"
     try {
@@ -458,6 +459,10 @@ function Test-GitDiffCheck {
         foreach ($line in $output) {
             Add-Failure ("Git diff check failed: {0}" -f $line)
         }
+    }
+
+    if ($Failures.Count -eq $startFailureCount) {
+        Add-Pass "Git diff hygiene checks passed."
     }
 }
 
@@ -500,6 +505,7 @@ function Get-IntendedRepoFiles {
 }
 
 function Test-ExactPairs {
+    $startFailureCount = $Failures.Count
     $pairs = @(
         @("docs/agent-assignment.template.md", "docs/templates/agents/agent-assignment.template.md"),
         @("docs/agent-status.template.md", "docs/templates/agents/agent-status.template.md"),
@@ -545,9 +551,14 @@ function Test-ExactPairs {
             Add-Failure ("Exact-pair drift: {0} != {1}" -f $pair[0], $pair[1])
         }
     }
+
+    if ($Failures.Count -eq $startFailureCount) {
+        Add-Pass "Exact-pair drift checks passed."
+    }
 }
 
 function Test-TemplateCoverage {
+    $startFailureCount = $Failures.Count
     $allowed = New-Object 'System.Collections.Generic.HashSet[string]'
     $allowedItems = @(
         "docs/templates/agents/agent-assignment.template.md",
@@ -592,6 +603,10 @@ function Test-TemplateCoverage {
             Add-Failure ("Template bundle file is not covered by exact-pair or cleanliness list: {0}" -f $normalized)
         }
     }
+
+    if ($Failures.Count -eq $startFailureCount) {
+        Add-Pass "Template bundle coverage checks passed."
+    }
 }
 
 function Test-TemplateSourceNeutrality {
@@ -619,6 +634,7 @@ function Test-TemplateSourceNeutrality {
 }
 
 function Test-DeployManifestIntegrity {
+    $startFailureCount = $Failures.Count
     $deployPaths = @("docs/agents/deploy.yaml", "docs/templates/agents/agents/deploy.yaml")
     foreach ($path in $deployPaths) {
         $fullPath = Get-RepoPath $path
@@ -664,9 +680,14 @@ function Test-DeployManifestIntegrity {
             }
         }
     }
+
+    if ($Failures.Count -eq $startFailureCount) {
+        Add-Pass "Deploy manifest integrity checks passed."
+    }
 }
 
 function Test-DeploymentScriptSafety {
+    $startFailureCount = $Failures.Count
     $path = "scripts/deploy-agents-workflow.ps1"
     $fullPath = Get-RepoPath $path
     if (-not (Test-Path -LiteralPath $fullPath -PathType Leaf)) {
@@ -713,9 +734,14 @@ function Test-DeploymentScriptSafety {
             Add-Failure ("Deployment script contains forbidden local repair or destructive pattern: {0}" -f $pattern)
         }
     }
+
+    if ($Failures.Count -eq $startFailureCount) {
+        Add-Pass "Deployment script safety checks passed."
+    }
 }
 
 function Test-DeploymentSelfTest {
+    $startFailureCount = $Failures.Count
     $previousErrorActionPreference = $ErrorActionPreference
     $ErrorActionPreference = "Continue"
     try {
@@ -732,9 +758,14 @@ function Test-DeploymentSelfTest {
             Add-Failure ("Deployment self-test detail: {0}" -f $line)
         }
     }
+
+    if ($Failures.Count -eq $startFailureCount) {
+        Add-Pass "Deployment self-test passed."
+    }
 }
 
 function Test-SkillMetadata {
+    $startFailureCount = $Failures.Count
     $skillFiles = @(
         ".agents/skills/project-isolation-workflow/SKILL.md",
         "docs/templates/agents/skills/project-isolation-workflow/SKILL.md"
@@ -758,6 +789,10 @@ function Test-SkillMetadata {
         if (-not ($content | Where-Object { $_ -match "^\s*default_prompt:" })) {
             Add-Failure ("Agent skill metadata is missing default_prompt: {0}" -f $path)
         }
+    }
+
+    if ($Failures.Count -eq $startFailureCount) {
+        Add-Pass "Skill metadata checks passed."
     }
 }
 
