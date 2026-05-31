@@ -1,0 +1,13 @@
+schema: agents-workflows/v2
+purpose: "Fixture for a valid workflow document."
+owns: "Fixture ownership text."
+read_first: []
+startup: {}
+progress_updates: {}
+memory: {}
+multi_agent_runtime: {}
+handoff: {}
+deployment: "Fixture deployment text."
+skill_authoring: {}
+maintenance: {}
+closeout: {}

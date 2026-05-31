@@ -1,0 +1,20 @@
+[
+  {
+    "name": "workflows-minimal-valid",
+    "yaml": "workflows.valid.yaml",
+    "schema": "schemas/agents-workflows.schema.json",
+    "expected": "pass"
+  },
+  {
+    "name": "workflows-missing-startup",
+    "yaml": "workflows.missing-startup.yaml",
+    "schema": "schemas/agents-workflows.schema.json",
+    "expected": "fail"
+  },
+  {
+    "name": "workflows-bad-schema-version",
+    "yaml": "workflows.bad-schema.yaml",
+    "schema": "schemas/agents-workflows.schema.json",
+    "expected": "fail"
+  }
+]

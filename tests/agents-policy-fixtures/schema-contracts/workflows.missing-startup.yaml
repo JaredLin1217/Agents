@@ -1,0 +1,12 @@
+schema: agents-workflows/v2
+purpose: "Fixture missing a required workflow key."
+owns: "Fixture ownership text."
+read_first: []
+progress_updates: {}
+memory: {}
+multi_agent_runtime: {}
+handoff: {}
+deployment: "Fixture deployment text."
+skill_authoring: {}
+maintenance: {}
+closeout: {}

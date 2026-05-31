@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "agents-schemas.schema.json",
+  "title": "Agents field schemas",
+  "type": "object",
+  "required": [
+    "schema",
+    "purpose",
+    "owns",
+    "assignment",
+    "explorer_brief_assignment",
+    "explorer_final_report",
+    "scoring_explorer_report",
+    "scoring_rollup_report",
+    "report_validation",
+    "ownership_matrix",
+    "employee_final_report",
+    "agent_status_snapshot",
+    "agent_event",
+    "agent_ledger_event",
+    "controller_lease",
+    "hard_isolation_evidence",
+    "runtime_multi_agent_validation",
+    "memory_entry",
+    "skill"
+  ],
+  "properties": {
+    "schema": {
+      "const": "agents-schemas/v2"
+    }
+  }
+}
