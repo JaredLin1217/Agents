@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "agents-workflows.schema.json",
+  "title": "Agents workflows policy",
+  "type": "object",
+  "required": [
+    "schema",
+    "purpose",
+    "owns",
+    "read_first",
+    "startup",
+    "progress_updates",
+    "memory",
+    "multi_agent_runtime",
+    "handoff",
+    "deployment",
+    "skill_authoring",
+    "maintenance",
+    "closeout"
+  ],
+  "properties": {
+    "schema": {
+      "const": "agents-workflows/v2"
+    }
+  }
+}

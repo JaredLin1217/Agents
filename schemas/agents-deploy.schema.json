@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "agents-deploy.schema.json",
+  "title": "Agents deployment policy",
+  "type": "object",
+  "required": [
+    "schema",
+    "purpose",
+    "owns",
+    "boundary",
+    "target_layout",
+    "dirty_target",
+    "deployment_modes",
+    "mode_composition",
+    "deployable_by_mode",
+    "do_not_deploy",
+    "case_by_case",
+    "steps",
+    "hard_fail_gates",
+    "validation_levels"
+  ],
+  "properties": {
+    "schema": {
+      "const": "agents-deploy/v2"
+    }
+  }
+}

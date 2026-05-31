@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "agents-verify.schema.json",
+  "title": "Agents verification policy",
+  "type": "object",
+  "required": [
+    "schema",
+    "purpose",
+    "owns",
+    "principle",
+    "scope_rule",
+    "profile_selection",
+    "file_classes",
+    "gate_matrix",
+    "commands",
+    "profiles",
+    "size_gates",
+    "claim_scopes",
+    "minimum_evidence",
+    "drift_checks"
+  ],
+  "properties": {
+    "schema": {
+      "const": "agents-verify/v2"
+    }
+  }
+}

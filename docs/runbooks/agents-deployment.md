@@ -9,11 +9,13 @@ Use when copying this workflow into an explicitly authorized target repo.
 3. Detect the target layout from `AGENTS.md` and existing Agents dirs; preserve either root `docs/agents` or `.agents/docs`, not both.
 4. Classify dirty target files as deploy scope, protected dirty, or target-owned legacy Agents docs.
 5. Choose `core_bootstrap`, `full_workflow`, or `template_provider_mode`; default to `core_bootstrap` unless the user asks for more.
-6. Build `deployed_file_set`, then copy/adapt only the `deployable_by_mode` groups listed by `mode_composition`.
+6. Build `deployed_file_set`, rewrite internal references for the selected layout, then copy/adapt only the `deployable_by_mode` groups listed by `mode_composition`.
 7. Append/adapt `gitignore.fragment`; do not replace target `.gitignore` wholesale.
 8. Validate only `deployed_file_set` for diff hygiene and source literals; report target legacy docs separately.
 
 ## Modes
+
+Mode bullets are summaries only; exact groups, file sets, and target-layout rewrites come from `docs/agents/deploy.yaml`.
 
 - `core_bootstrap`: `AGENTS.md`, policy pack, project skill, gitignore fragment, deployment and closeout runbooks.
 - `full_workflow`: `core_bootstrap` plus memory starters, runtime/evidence templates, and remaining runbooks.
@@ -25,4 +27,4 @@ Keep target state target-owned. Do not copy source status, employee history, mem
 
 PowerShell note: with `rg`, put options before `--`, then pattern and paths, for example `rg -n --fixed-strings --glob '!legacy/**' -- <pattern> <paths>`.
 
-References: `docs/agents/deploy.yaml`, `docs/agents/verify.yaml`.
+Runbook references use provider canonical paths; deployed target paths are layout-adjusted by `docs/agents/deploy.yaml`.

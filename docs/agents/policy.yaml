@@ -15,7 +15,7 @@ project_state:
 task_classification:
   order:
     - "answer_only: no repo state, file, git, deploy, runtime, or hard-isolation claim."
-    - "current_state: user asks what is true now, latest, clean, dirty, online, completed, committed, pushed, tagged, or deployed."
+    - "current_state: user asks what is true about repo/deploy/git/runtime state now, such as latest, clean, dirty, online, committed, pushed, tagged, deployed, active, or completed."
     - "scoped_edit: bounded file/content change without release/deploy/broad-audit claim."
     - "policy_pack_edit: Agents rules, templates, memory docs, skills, or runbooks changed."
     - "multi_agent_runtime: user explicitly hires/spawns/delegates/asks for parallel employees or runtime status."
@@ -34,7 +34,7 @@ isolation:
       - "User-authorized exact path/action."
       - "Approved temp handoff cache: %TEMP%/codex-agent-status/<project-id>/."
       - "Official Codex runtime/app-server status, close, archive, or unsubscribe controls for exact current-project thread ids when available."
-      - "Codex App sidebar/history cleanup for exact subagent runtime ids closed by a user close request, or by standalone exact cleanup authorization."
+      - "Codex App sidebar/history cleanup for exact subagent runtime ids after explicit cleanup wording, or by standalone exact cleanup authorization."
       - "Offline Codex Desktop UI-cache cleanup only after explicit shutdown/cleanup authorization and only for exact current-project runtime ids."
     report: "Report intentional external reads as XR and writes as XW; temp roster and Codex App state/history/cache access must be listed exactly once in closeout. Project-local ledger access is repo-local and not XR/XW."
   codex_app:
@@ -109,7 +109,7 @@ hard_fail_gates:
   - "No source-specific state in deployable templates."
   - "No overlapping active worker write scopes."
   - "No compact-risk/concurrent/editing employee without project-local ledger or temp roster evidence."
-  - "No Codex App sidebar/history/cache cleanup without runtime close first, exact current-project runtime ids, schema/source check, and user close request or standalone exact authorization."
+  - "No Codex App sidebar/history/cache cleanup without runtime close first, exact current-project runtime ids, schema/source check, and explicit cleanup wording or standalone exact cleanup authorization."
   - "No Desktop UI-cache cleanup before reload/restart is tried or explicitly bypassed with shutdown/cache-cleanup authorization."
   - "No hard-isolation claim without verified evidence."
   - "Keep AGENTS.md and project SKILL.md compact."
