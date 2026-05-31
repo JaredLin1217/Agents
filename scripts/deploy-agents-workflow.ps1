@@ -536,10 +536,10 @@ function Append-GitignoreFragment {
     )
 
     $targetGitignore = Join-Path $Root ".gitignore"
-    $fragment = Get-Content -LiteralPath $GitignoreFragmentPath
+    $fragment = @(Get-Content -LiteralPath $GitignoreFragmentPath)
     $existing = @()
     if (Test-Path -LiteralPath $targetGitignore -PathType Leaf) {
-        $existing = Get-Content -LiteralPath $targetGitignore
+        $existing = @(Get-Content -LiteralPath $targetGitignore)
     }
 
     $missing = @($fragment | Where-Object { $_.Trim().Length -gt 0 -and ($existing -notcontains $_) })
@@ -560,8 +560,14 @@ function Append-GitignoreFragment {
         return
     }
 
-    Add-Content -LiteralPath $targetGitignore -Value ""
-    Add-Content -LiteralPath $targetGitignore -Value $fragment
+    $appendLines = New-Object System.Collections.Generic.List[string]
+    if ($existing.Count -gt 0 -and $existing[$existing.Count - 1].Trim().Length -gt 0) {
+        $appendLines.Add("") | Out-Null
+    }
+    foreach ($line in $missing) {
+        $appendLines.Add($line) | Out-Null
+    }
+    Add-Content -LiteralPath $targetGitignore -Value $appendLines
 }
 
 function Copy-DeployEntry {
@@ -635,6 +641,16 @@ function Write-DeploymentReport {
     $deployedValidationState = if ($PlanOnly) { "planned" } else { "checked" }
     $reportPath = Join-TargetPath -Root $Root -RelativePath $reportRelative
     $DeployedFiles.Add($reportRelative) | Out-Null
+    if ($PlanOnly) {
+        if (Test-Path -LiteralPath $reportPath -PathType Leaf) {
+            $UnchangedExisting.Add($reportRelative) | Out-Null
+        }
+        else {
+            $PlannedWrites.Add($reportRelative) | Out-Null
+        }
+        return
+    }
+
     $reportLines = @(
         "# Agents Workflow Deployment",
         "",
@@ -649,6 +665,71 @@ function Write-DeploymentReport {
     foreach ($file in ($DeployedFiles | Sort-Object -Unique)) {
         $reportLines += ("- {0}" -f $file)
     }
+    $feedbackRelative = if ($Layout -eq "dot_agents_docs") {
+        ".agents/docs/deployment-feedback.template.md"
+    }
+    else {
+        "docs/deployment-feedback.template.md"
+    }
+    $feedbackAction = if ($Mode -eq "core_bootstrap") {
+        "Use a target-owned tracker for deployment feedback, or upgrade to full_workflow before filling the feedback template."
+    }
+    else {
+        "Record target-specific feedback in $feedbackRelative or a target-owned tracker; do not store target deployment history in the provider repo."
+    }
+    $reportLines += @(
+        "",
+        "## What Changed",
+        "",
+        "Planned or completed create/update:"
+    )
+    if ($PlannedWrites.Count -gt 0) {
+        foreach ($file in ($PlannedWrites | Sort-Object -Unique)) {
+            $reportLines += ("- {0}" -f $file)
+        }
+    }
+    else {
+        $reportLines += "- none observed"
+    }
+    $reportLines += @(
+        "",
+        "Already current in target:"
+    )
+    if ($UnchangedExisting.Count -gt 0) {
+        foreach ($file in ($UnchangedExisting | Sort-Object -Unique)) {
+            $reportLines += ("- {0}" -f $file)
+        }
+    }
+    else {
+        $reportLines += "- none observed"
+    }
+    $reportLines += @(
+        "",
+        "Requires -Upgrade before write:"
+    )
+    if ($ProtectedExisting.Count -gt 0) {
+        foreach ($file in ($ProtectedExisting | Sort-Object -Unique)) {
+            $reportLines += ("- {0}" -f $file)
+        }
+    }
+    else {
+        $reportLines += "- none observed"
+    }
+    $reportLines += @(
+        "",
+        "## What Was Intentionally Not Touched",
+        "",
+        "- Target app/source files outside deployed_file_set.",
+        "- Runtime/local Codex config, agent status, ledger, evidence records, and Git metadata.",
+        "- Target-owned legacy Agents files outside deployed_file_set.",
+        "",
+        "## Target Owner Next Actions",
+        "",
+        "- Review this deployment report and target git status.",
+        "- Decide whether to commit or revert the deployed_file_set in the target repo according to target policy.",
+        "- Run a target handoff check: AGENTS route, selected project skill path, runbook links, protected runtime/local paths, and target git status summary.",
+        ("- {0}" -f $feedbackAction)
+    )
     $reportLines += @(
         "",
         "## Target State Classification",
@@ -691,7 +772,7 @@ function Write-DeploymentReport {
     $reportContent = ($reportLines -join [System.Environment]::NewLine) + [System.Environment]::NewLine
 
     $state = Get-DeployWriteState -Path $reportPath -Content $reportContent
-    if ($state -eq "create" -or ($state -eq "upgrade_required" -and $Upgrade)) {
+    if ($state -eq "create" -or $state -eq "upgrade_required") {
         $PlannedWrites.Add($reportRelative) | Out-Null
     }
     elseif ($state -eq "current") {
@@ -701,12 +782,7 @@ function Write-DeploymentReport {
         $ProtectedExisting.Add($reportRelative) | Out-Null
     }
 
-    if ($PlanOnly) {
-        return
-    }
-
-    $shouldWrite = Assert-DeployWriteAllowed -Path $reportPath -RelativePath $reportRelative -Content $reportContent
-    if (-not $shouldWrite) {
+    if ($state -eq "current") {
         return
     }
 
@@ -715,6 +791,46 @@ function Write-DeploymentReport {
         New-Item -ItemType Directory -Path $reportDir | Out-Null
     }
     Set-Content -LiteralPath $reportPath -Value $reportContent -NoNewline -Encoding utf8
+}
+
+function Write-DeploymentCloseoutSummary {
+    param(
+        [string] $Layout
+    )
+
+    $feedbackRelative = if ($Layout -eq "dot_agents_docs") {
+        ".agents/docs/deployment-feedback.template.md"
+    }
+    else {
+        "docs/deployment-feedback.template.md"
+    }
+    $feedbackAction = if ($Mode -eq "core_bootstrap") {
+        "Use a target-owned tracker for feedback, or deploy full_workflow before filling the feedback template."
+    }
+    else {
+        "Record feedback in $feedbackRelative or a target-owned tracker."
+    }
+
+    Write-Step "INFO" "Deployment closeout summary:"
+    Write-Step "INFO" "What changed:"
+    if ($PlannedWrites.Count -gt 0) {
+        foreach ($file in ($PlannedWrites | Sort-Object -Unique)) {
+            Write-Step "WRITE" $file
+        }
+    }
+    else {
+        Write-Step "WRITE" "none observed"
+    }
+
+    Write-Step "INFO" "What was intentionally not touched:"
+    Write-Step "SKIP" "Target app/source files outside deployed_file_set."
+    Write-Step "SKIP" "Runtime/local Codex config, agent status, ledger, evidence records, and Git metadata."
+    Write-Step "SKIP" "Target-owned legacy Agents files outside deployed_file_set."
+
+    Write-Step "INFO" "Target owner next actions:"
+    Write-Step "NEXT" "Review deployment report and target git status."
+    Write-Step "NEXT" "Run target handoff check: AGENTS route, project skill path, runbook links, protected runtime/local paths, and git status summary."
+    Write-Step "NEXT" $feedbackAction
 }
 
 function Reset-Directory {
@@ -775,6 +891,19 @@ function Assert-SelfTestContains {
     $content = Get-Content -LiteralPath $Path -Raw
     if (-not $content.Contains($Expected)) {
         throw "Deployment self-test expected content is missing from: $Path"
+    }
+}
+
+function Assert-SelfTestLineCount {
+    param(
+        [string] $Path,
+        [string] $Expected,
+        [int] $Count
+    )
+
+    $matches = @(Get-Content -LiteralPath $Path | Where-Object { $_ -eq $Expected })
+    if ($matches.Count -ne $Count) {
+        throw "Deployment self-test expected line count $Count for '$Expected' in: $Path"
     }
 }
 
@@ -909,8 +1038,13 @@ function Invoke-DeploymentSelfTest {
     Invoke-ChildDeployment -CommandArgs @{ TargetPath = $rootTarget; Mode = "full_workflow"; CreateTarget = $true; Quiet = $true }
     Assert-SelfTestFile -Root $rootTarget -RelativePath "AGENTS.md"
     Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents/workflows.yaml"
+    Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/deployment-feedback.template.md"
     Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents-workflow-deployment.md"
     Assert-SelfTestContains -Path (Join-Path $rootTarget "docs/agents-workflow-deployment.md") -Expected "- docs/agents/workflows.yaml"
+    Assert-SelfTestContains -Path (Join-Path $rootTarget "docs/agents-workflow-deployment.md") -Expected "## What Changed"
+    Assert-SelfTestContains -Path (Join-Path $rootTarget "docs/agents-workflow-deployment.md") -Expected "## What Was Intentionally Not Touched"
+    Assert-SelfTestContains -Path (Join-Path $rootTarget "docs/agents-workflow-deployment.md") -Expected "## Target Owner Next Actions"
+    Assert-SelfTestContains -Path (Join-Path $rootTarget "docs/agents-workflow-deployment.md") -Expected "target handoff check"
     Assert-SelfTestContains -Path (Join-Path $rootTarget "docs/agents-workflow-deployment.md") -Expected "## Validation Summary"
     Assert-SelfTestContains -Path (Join-Path $rootTarget "docs/agents-workflow-deployment.md") -Expected "- Deployment path blocklist: enforced."
     Assert-NoSourceLiteral -Root $rootTarget
@@ -923,6 +1057,7 @@ function Invoke-DeploymentSelfTest {
     Invoke-ChildDeployment -CommandArgs @{ TargetPath = $templateProviderTarget; Mode = "template_provider_mode"; CreateTarget = $true; Quiet = $true }
     Assert-SelfTestFile -Root $templateProviderTarget -RelativePath "docs/templates/agents/AGENTS.md"
     Assert-SelfTestFile -Root $templateProviderTarget -RelativePath "docs/templates/agents/agents/deploy.yaml"
+    Assert-SelfTestFile -Root $templateProviderTarget -RelativePath "docs/templates/agents/deployment-feedback.template.md"
     Assert-NoSourceLiteral -Root $templateProviderTarget
 
     $dotTarget = Join-Path $selfTestRoot "dot-agents-docs"
@@ -939,6 +1074,7 @@ function Invoke-DeploymentSelfTest {
     Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/project-structure.md"
     Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/runbooks/session-handoff.md"
     Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/agent-status.template.md"
+    Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/deployment-feedback.template.md"
     Invoke-ChildDeployment -CommandArgs @{ TargetPath = $dotTarget; Mode = "template_provider_mode"; Upgrade = $true; Quiet = $true }
     Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/templates/agents/AGENTS.md"
     Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/templates/agents/agents/deploy.yaml"
@@ -1003,6 +1139,20 @@ function Invoke-DeploymentSelfTest {
             throw "Deployment self-test expected target git rollback scope to exclude app file: $appPath"
         }
     }
+
+    $partialGitignoreTarget = Join-Path $selfTestRoot "partial-gitignore"
+    New-Item -ItemType Directory -Path $partialGitignoreTarget | Out-Null
+    Set-Content -LiteralPath (Join-Path $partialGitignoreTarget ".gitignore") -Value ".agents/runtime/" -Encoding utf8
+    Invoke-ChildDeployment -CommandArgs @{ TargetPath = $partialGitignoreTarget; Mode = "core_bootstrap"; Quiet = $true }
+    Assert-SelfTestContains -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".agents/runtime/"
+    Assert-SelfTestContains -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".codex/config.toml"
+    Assert-SelfTestContains -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".codex/environments/environment.toml"
+    Assert-SelfTestLineCount -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".agents/runtime/" -Count 1
+    Assert-SelfTestLineCount -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".codex/config.toml" -Count 1
+    Invoke-ChildDeployment -CommandArgs @{ TargetPath = $partialGitignoreTarget; Mode = "core_bootstrap"; Quiet = $true }
+    Assert-SelfTestLineCount -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".agents/runtime/" -Count 1
+    Assert-SelfTestLineCount -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".codex/config.toml" -Count 1
+    Assert-SelfTestLineCount -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".codex/environments/environment.toml" -Count 1
 
     $missingTarget = Join-Path $selfTestRoot "missing-target"
     foreach ($args in @(
@@ -1177,6 +1327,8 @@ if ($TargetLegacyAgents.Count -gt 0) {
         Write-Step "LEGACY" $file
     }
 }
+
+Write-DeploymentCloseoutSummary -Layout $layout
 
 if ($DryRun) {
     Write-Step "PASS" "Dry-run deployment plan completed without writing target files."

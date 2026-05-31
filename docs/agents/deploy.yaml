@@ -53,7 +53,7 @@ dirty_target:
 
 deployment_modes:
   core_bootstrap: "Install AGENTS.md, governance rules, project skill, gitignore fragment, deployment and closeout runbooks."
-  full_workflow: "Install core_bootstrap plus memory starters, runtime/evidence templates, and maintenance runbooks."
+  full_workflow: "Install core_bootstrap plus memory starters, runtime/evidence/feedback templates, and maintenance runbooks; this mode does not copy the recursive template provider bundle."
   template_provider_mode: "Install full_workflow plus docs/templates/agents/** so the target can redeploy this workflow."
 
 upgrade:
@@ -120,6 +120,8 @@ deployable_by_mode:
       to: "docs/hard-isolation-evidence.template.md"
     - from: "docs/templates/agents/runtime-multi-agent-validation.template.md"
       to: "docs/runtime-multi-agent-validation.template.md"
+    - from: "docs/templates/agents/deployment-feedback.template.md"
+      to: "docs/deployment-feedback.template.md"
     - from: "docs/templates/agents/project-memory.md"
       to: "docs/project-memory.md"
     - from: "docs/templates/agents/memory-index.md"
@@ -184,6 +186,8 @@ steps:
   - "Append/adapt gitignore.fragment; do not replace .gitignore wholesale."
   - "Remove source-specific state and adapt target assumptions to target evidence."
   - "Validate deployed_file_set; keep legacy target docs separate."
+  - "Report what changed, what was intentionally not touched, and target owner next actions."
+  - "Run the target handoff check for AGENTS routing, project skill availability, runbook links, feedback template presence when deployed, protected runtime state, and target git status summary."
   - "Report exact target paths read/written."
 
 hard_fail_gates:
@@ -200,6 +204,7 @@ hard_fail_gates:
 
 validation_levels:
   repo_local_dry_run: "source/template/blocklist checks only"
-  disposable_selftest: "write root_docs, template-provider, dot_agents_docs, dry-run, protected-existing, git-backed foreign project, missing-target, target-owned-state, routed-legacy, and ambiguous-layout targets under per-process approved temp status space; verify blocked deployed path rejection, app-file preservation, dry-run write-state classification, deployed report file set, explicit target creation gate, provider self-write refusal, target-owned state preserved, and target git rollback scope"
+  disposable_selftest: "write root_docs, template-provider, dot_agents_docs, dry-run, protected-existing, git-backed foreign project, partial-gitignore, missing-target, target-owned-state, routed-legacy, and ambiguous-layout targets under per-process approved temp status space; verify blocked deployed path rejection, app-file preservation, gitignore duplicate avoidance, dry-run write-state classification, deployed report file set, explicit target creation gate, provider self-write refusal, target-owned state preserved, target handoff check markers, and target git rollback scope"
   authorized_target_dry_run: "read target and report plan"
-  authorized_target_deployment_test: "write allowlisted/approved files and validate target"
+  authorized_target_handoff_check: "read target AGENTS route, selected project skill path, deployment report, runbook links, deployed feedback template when mode includes it, protected runtime/local paths, and target git status summary without requiring whole-target cleanliness"
+  authorized_target_deployment_test: "write allowlisted/approved files, validate deployed_file_set, and complete the target handoff check"

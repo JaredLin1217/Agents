@@ -12,6 +12,7 @@ Use when copying this workflow into an explicitly authorized target repo.
 6. Build `deployed_file_set`, rewrite internal references for the selected layout, then copy/adapt only the `deployable_by_mode` groups listed by `mode_composition`.
 7. Append/adapt `gitignore.fragment`; do not replace target `.gitignore` wholesale.
 8. Validate only `deployed_file_set` for diff hygiene and source literals; report target legacy docs separately.
+9. Close out with what changed, what was intentionally not touched, target owner next actions, and a target handoff check.
 
 ## Safety Gates
 
@@ -53,8 +54,22 @@ The worker runs dry-run first unless the assignment explicitly authorizes immedi
 Mode bullets are summaries only; exact groups, file sets, and target-layout rewrites come from `docs/agents/deploy.yaml`.
 
 - `core_bootstrap`: `AGENTS.md`, Agents governance rules, project skill, gitignore fragment, deployment and closeout runbooks.
-- `full_workflow`: `core_bootstrap` plus memory starters, runtime/evidence templates, and remaining runbooks.
+- `full_workflow`: `core_bootstrap` plus memory starters, runtime/evidence/feedback templates, and remaining runbooks. It is the operational workflow, not the recursive template-provider bundle.
 - `template_provider_mode`: `full_workflow` plus recursive `docs/templates/agents/**` so the target can redeploy this workflow.
+
+## Target Handoff
+
+Every write deployment report must make these items easy to review:
+
+- What changed: deployed file set and files created or updated by this run.
+- What was intentionally not touched: app/source files, runtime/local Codex config, agent status, ledger, evidence records, Git metadata, and target-owned legacy Agents files.
+- Target owner next actions: review target git status, decide whether to commit or revert the deployed file set, run a target handoff check, and record follow-up feedback in the target repo or target-owned tracker.
+
+The target handoff check is read-only unless the user separately authorizes follow-up writes. Check `AGENTS.md` routing, selected project skill path, runbook links, deployed feedback template when the mode includes it, protected runtime/local paths, and target git status summary.
+
+## Feedback Loop
+
+For `full_workflow` and `template_provider_mode`, the deployment includes `docs/deployment-feedback.template.md` or its layout-adjusted `.agents/docs` equivalent. Fill it only in the target repo, or use a target-owned issue tracker. The provider repo must not store target-specific deployment history, validation results, commits, remotes, or user feedback.
 
 Hard fail on missing exact authorization, blocklisted copy, uninspected target-specific claim, or provider state in deployable templates.
 

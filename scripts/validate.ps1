@@ -618,6 +618,7 @@ function Test-ExactPairs {
         @("docs/controller-lease.template.md", "docs/templates/agents/controller-lease.template.md"),
         @("docs/hard-isolation-evidence.template.md", "docs/templates/agents/hard-isolation-evidence.template.md"),
         @("docs/runtime-multi-agent-validation.template.md", "docs/templates/agents/runtime-multi-agent-validation.template.md"),
+        @("docs/deployment-feedback.template.md", "docs/templates/agents/deployment-feedback.template.md"),
         @("docs/memory-entry.template.md", "docs/templates/agents/memory-entry.template.md"),
         @("docs/memory/entries/README.md", "docs/templates/agents/memory-entries-README.md"),
         @(".agents/skills/project-isolation-workflow/agents/openai.yaml", "docs/templates/agents/skills/project-isolation-workflow/agents/openai.yaml"),
@@ -672,6 +673,7 @@ function Test-TemplateCoverage {
         "docs/templates/agents/controller-lease.template.md",
         "docs/templates/agents/hard-isolation-evidence.template.md",
         "docs/templates/agents/runtime-multi-agent-validation.template.md",
+        "docs/templates/agents/deployment-feedback.template.md",
         "docs/templates/agents/memory-entry.template.md",
         "docs/templates/agents/memory-entries-README.md",
         "docs/templates/agents/skills/project-isolation-workflow/agents/openai.yaml",
@@ -910,10 +912,14 @@ function Test-DeploymentScriptSafety {
         "Assert-SelfTestContent",
         "Assert-SelfTestContains",
         "Assert-SelfTestTextContains",
+        "Assert-SelfTestLineCount",
         "Assert-SelfTestBlockedDeployPath",
         "CreateTarget",
         "SelfTest",
         "Validation Summary",
+        "Deployment closeout summary",
+        "What Was Intentionally Not Touched",
+        "Target Owner Next Actions",
         "Target files planned for create/update",
         "Existing target files already current",
         "Refusing to write into the provider/source repo"
@@ -938,6 +944,7 @@ function Test-DeploymentScriptSafety {
         "dry-run",
         "protected-existing",
         "git-backed-foreign-project",
+        "partial-gitignore",
         "missing-target",
         "target-owned-state",
         "routed-legacy",
@@ -966,6 +973,9 @@ function Test-DeploymentScriptSafety {
         "routed-legacy",
         "ambiguous-layout",
         "app-file preservation",
+        "partial-gitignore",
+        "gitignore duplicate avoidance",
+        "target handoff check",
         "target git rollback scope"
     )
     foreach ($docPath in $documentationPaths) {

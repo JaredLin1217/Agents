@@ -2,6 +2,10 @@
 
 Repo-local Codex rules for an isolated, deployable Agents workflow. Durable rules, docs, skills, and templates are English-only. Canonical detail lives in `docs/agents/*.yaml`.
 
+## Response Prefix
+
+- Every visible assistant response must begin with `$$`, unless a higher-priority system/developer instruction or tool protocol requires a different format.
+
 ## Route
 
 - Classify first with `docs/agents/workflows.yaml` common task matrix.
