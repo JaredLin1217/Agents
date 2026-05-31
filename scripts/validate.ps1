@@ -944,6 +944,8 @@ function Test-MultiAgentWorkflowIntegrity {
         "agent_status_snapshot:",
         "agent_event:",
         "agent_ledger_event:",
+        "canonical_fields:",
+        "compatibility_aliases:",
         "controller_lease:",
         "runtime_multi_agent_validation:",
         "Roster snapshot version",
