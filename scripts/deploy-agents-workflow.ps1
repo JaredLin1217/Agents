@@ -743,6 +743,7 @@ function Invoke-DeploymentSelfTest {
         throw "Deployment self-test expected ambiguous target layout to require an AGENTS.md route."
     }
 
+    Invoke-ChildDeployment -CommandArgs @{ TargetPath = $RepoRoot.Path; Mode = "core_bootstrap"; DryRun = $true; Quiet = $true }
     $sourceWriteBlocked = $false
     try {
         Invoke-ChildDeployment -CommandArgs @{ TargetPath = $RepoRoot.Path; Mode = "core_bootstrap"; Quiet = $true }
