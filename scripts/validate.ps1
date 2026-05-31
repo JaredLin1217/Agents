@@ -594,6 +594,30 @@ function Test-TemplateCoverage {
     }
 }
 
+function Test-TemplateSourceNeutrality {
+    $startFailureCount = $Failures.Count
+    $literals = @(
+        $RepoRoot.Path,
+        "JaredLin",
+        "Jared's AI Team",
+        "Agents.git"
+    )
+    $templateFiles = @(Get-TextFiles -Roots @("docs/templates/agents"))
+
+    foreach ($literal in $literals) {
+        foreach ($file in $templateFiles) {
+            $match = Select-String -LiteralPath $file.FullName -Pattern $literal -SimpleMatch -Quiet -ErrorAction SilentlyContinue
+            if ($match) {
+                Add-Failure ("Template source-neutrality check found provider literal in {0}: {1}" -f $file.FullName, $literal)
+            }
+        }
+    }
+
+    if ($Failures.Count -eq $startFailureCount) {
+        Add-Pass "Template source-neutrality checks passed."
+    }
+}
+
 function Test-DeployManifestIntegrity {
     $deployPaths = @("docs/agents/deploy.yaml", "docs/templates/agents/agents/deploy.yaml")
     foreach ($path in $deployPaths) {
@@ -772,6 +796,7 @@ function Test-FullAuditGates {
     Test-ExactPairs
     Test-DeployManifestIntegrity
     Test-TemplateCoverage
+    Test-TemplateSourceNeutrality
     Test-SkillMetadata
     Test-DeploymentScriptSafety
     Test-DeploymentSelfTest
