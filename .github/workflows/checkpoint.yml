@@ -13,7 +13,7 @@ permissions:
 jobs:
   agents-workflow:
     name: agents workflow
-    runs-on: windows-2025
+    runs-on: windows-2025-vs2026
 
     steps:
       - name: Check out repository
