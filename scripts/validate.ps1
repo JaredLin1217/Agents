@@ -1045,6 +1045,52 @@ function Test-EvidenceTemplateSchemaCoverage {
             ForEach-Object { $_.Groups[1].Value }
     }
 
+    function Get-TemplateEvidenceFields {
+        param([string] $Path)
+
+        $groupPrefixes = @(
+            "Scope",
+            "Runtime",
+            "Live evidence",
+            "Ledger/roster/lease",
+            "Assignment proof",
+            "Ownership",
+            "Final report",
+            "Boundary",
+            "Work result",
+            "Events",
+            "Close/cleanup",
+            "Result"
+        )
+        $fields = New-Object 'System.Collections.Generic.HashSet[string]'
+        $content = Get-Content -LiteralPath (Get-RepoPath $Path)
+        foreach ($line in $content) {
+            if ($line -notmatch "^\s*-\s+(.+)$") {
+                continue
+            }
+
+            foreach ($part in ($Matches[1] -split "\|")) {
+                $field = $part.Trim()
+                if ([string]::IsNullOrWhiteSpace($field)) {
+                    continue
+                }
+
+                if ($field -match "^([^:]+):\s*(.+)$") {
+                    if ($groupPrefixes -contains $Matches[1].Trim()) {
+                        $field = $Matches[2].Trim()
+                    }
+                    else {
+                        $field = $Matches[1].Trim()
+                    }
+                }
+                $field = $field.TrimEnd(":")
+                [void] $fields.Add($field)
+            }
+        }
+
+        return @($fields)
+    }
+
     $checks = @(
         @{
             Name = "hard-isolation evidence"
@@ -1064,6 +1110,12 @@ function Test-EvidenceTemplateSchemaCoverage {
             foreach ($marker in $check.Markers) {
                 if (-not $content.Contains($marker)) {
                     Add-Failure ("{0} template is missing schema marker in {1}: {2}" -f $check.Name, $path, $marker)
+                }
+            }
+
+            foreach ($field in Get-TemplateEvidenceFields -Path $path) {
+                if ($check.Markers -notcontains $field) {
+                    Add-Failure ("{0} schema is missing template field from {1}: {2}" -f $check.Name, $path, $field)
                 }
             }
         }
