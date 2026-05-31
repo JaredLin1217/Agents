@@ -12,6 +12,7 @@
     "progress_updates",
     "memory",
     "multi_agent_runtime",
+    "scoring_batches",
     "handoff",
     "deployment",
     "skill_authoring",
