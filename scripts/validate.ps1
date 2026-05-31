@@ -781,6 +781,96 @@ function Test-DeploymentSelfTest {
     }
 }
 
+function Test-ReadinessLadderEvidence {
+    $startFailureCount = $Failures.Count
+    $checks = @(
+        @{
+            Level = "P0"
+            Evidence = @(
+                @("docs/agents/version.yaml", "P0:"),
+                @("scripts/validate.ps1", "Test-SchemaContracts"),
+                @("scripts/validate.ps1", "Test-RuntimeBoundaries"),
+                @("scripts/validate.ps1", "forbidden local repair")
+            )
+        },
+        @{
+            Level = "P1"
+            Evidence = @(
+                @("docs/agents/version.yaml", "P1:"),
+                @("scripts/deploy-agents-workflow.ps1", "DryRun"),
+                @("scripts/deploy-agents-workflow.ps1", "Get-TargetLayout"),
+                @("scripts/deploy-agents-workflow.ps1", "Refusing to write into the provider/source repo"),
+                @("scripts/deploy-agents-workflow.ps1", "requires -Upgrade")
+            )
+        },
+        @{
+            Level = "P2"
+            Evidence = @(
+                @("docs/agents/version.yaml", "P2:"),
+                @("docs/agents/version.yaml", "v1_preservation"),
+                @("scripts/validate.ps1", "Test-TemplateSourceNeutrality"),
+                @("scripts/validate.ps1", "Test-ExactPairs"),
+                @("scripts/validate.ps1", "Test-TemplateCoverage")
+            )
+        },
+        @{
+            Level = "P3"
+            Evidence = @(
+                @("docs/agents/version.yaml", "P3:"),
+                @("docs/agents/deploy.yaml", "deployment_worker"),
+                @("docs/agents/workflows.yaml", "ownership:"),
+                @("docs/agents/workflows.yaml", "ledger_missing_or_cleared"),
+                @("docs/agents/workflows.yaml", "before:"),
+                @("docs/agents/workflows.yaml", "during:"),
+                @("docs/agents/workflows.yaml", "after:")
+            )
+        },
+        @{
+            Level = "P4"
+            Evidence = @(
+                @("docs/agents/version.yaml", "P4:"),
+                @("docs/agents/verify.yaml", "release_deploy_push_audit"),
+                @("docs/agents/verify.yaml", "runtime_multi_agent"),
+                @("docs/agents/verify.yaml", "hard_isolation"),
+                @("scripts/validate.ps1", "Test-SizeGates"),
+                @("scripts/validate.ps1", "Full release audit gates passed")
+            )
+        },
+        @{
+            Level = "P5"
+            Evidence = @(
+                @("docs/agents/version.yaml", "P5:"),
+                @("docs/agents/version.yaml", "compatibility_rule"),
+                @("docs/agents/version.yaml", "rollback"),
+                @("docs/agents/deploy.yaml", "target-owned state preserved"),
+                @("docs/agents/workflows.yaml", "compact_output"),
+                @("scripts/validate.ps1", "Test-SizeGates")
+            )
+        }
+    )
+
+    foreach ($check in $checks) {
+        foreach ($item in $check.Evidence) {
+            $path = $item[0]
+            $marker = $item[1]
+            $fullPath = Get-RepoPath $path
+            if (-not (Test-Path -LiteralPath $fullPath -PathType Leaf)) {
+                Add-Failure ("{0} readiness evidence file is missing: {1}" -f $check.Level, $path)
+                continue
+            }
+
+            $content = Get-Content -LiteralPath $fullPath -Raw
+            if (-not $content.Contains($marker)) {
+                Add-Failure ("{0} readiness evidence marker is missing in {1}: {2}" -f $check.Level, $path, $marker)
+            }
+        }
+    }
+
+    if ($Failures.Count -eq $startFailureCount) {
+        Add-Pass "P0-P5 readiness evidence checks passed."
+    }
+}
+
 function Test-SkillMetadata {
     $startFailureCount = $Failures.Count
     $skillFiles = @(
@@ -852,6 +942,7 @@ function Test-FullAuditGates {
     Test-SkillMetadata
     Test-DeploymentScriptSafety
     Test-DeploymentSelfTest
+    Test-ReadinessLadderEvidence
     Test-SizeGates
 }
 
