@@ -8,6 +8,14 @@ workflow:
   compatibility: "Targets may upgrade within v2 by replacing only the deployed file set."
   v1_preservation: "Preserve the original unified AI Agents intent: one repo-local operating standard, source-neutral deployment, project-owned knowledge, and repeatable task flow across growing projects."
 
+readiness_ladder:
+  P0: "Validation entry point, canonical contracts, English-only durable rules, ignored runtime and local state, and no local permission repair."
+  P1: "Deployment dry-run, target layout detection, provider self-write refusal, deployed file boundary, and upgrade gate."
+  P2: "Source-neutral template bundle, exact-pair drift checks, template coverage, and V1 intent preservation."
+  P3: "Delegated deployment worker rules, ownership boundaries, roster and ledger recovery, and before/during/after lifecycle checks."
+  P4: "Release audit profile, runtime and hard-isolation claim boundaries, full verification, and size gates."
+  P5: "Long-term upgrade compatibility, target-owned state preservation, target rollback by version control, and compact workflow growth controls."
+
 upgrade_policy:
   default: "dry-run first"
   compatibility_rule: "Minor v2 upgrades must preserve AGENTS.md routing, project-local skill invocation, deploy modes, ignored runtime boundaries, and target-owned state."

@@ -691,6 +691,7 @@ function Test-SkillMetadata {
 }
 
 function Test-SizeGates {
+    $startFailureCount = $Failures.Count
     $agentsSize = (Get-Item -LiteralPath (Get-RepoPath "AGENTS.md")).Length
     if ($agentsSize -gt 10240) {
         Add-Failure ("AGENTS.md exceeds 10240 bytes: {0}" -f $agentsSize)
@@ -711,6 +712,10 @@ function Test-SizeGates {
     $limit = 384 * 1024
     if ($total -gt $limit) {
         Add-Failure ("Tracked/intended repo size exceeds 384 KiB: {0} bytes" -f $total)
+    }
+
+    if ($Failures.Count -eq $startFailureCount) {
+        Add-Pass ("Size gates passed: AGENTS.md {0} bytes; project skill {1} bytes; tracked repo {2} bytes." -f $agentsSize, $skillSize, $total)
     }
 }
 

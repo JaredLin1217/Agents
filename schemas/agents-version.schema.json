@@ -8,6 +8,7 @@
     "purpose",
     "owns",
     "workflow",
+    "readiness_ladder",
     "upgrade_policy",
     "delegation"
   ],
@@ -20,6 +21,12 @@
     "workflow.version",
     "workflow.compatibility",
     "workflow.v1_preservation",
+    "readiness_ladder.P0",
+    "readiness_ladder.P1",
+    "readiness_ladder.P2",
+    "readiness_ladder.P3",
+    "readiness_ladder.P4",
+    "readiness_ladder.P5",
     "upgrade_policy.compatibility_rule",
     "upgrade_policy.breaking_change_rule",
     "delegation.large_batch_rule"
