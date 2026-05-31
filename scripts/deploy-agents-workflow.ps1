@@ -446,6 +446,30 @@ function Assert-SelfTestFile {
     }
 }
 
+function Assert-SelfTestMissing {
+    param(
+        [string] $Root,
+        [string] $RelativePath
+    )
+
+    $path = Join-TargetPath -Root $Root -RelativePath $RelativePath
+    if (Test-Path -LiteralPath $path) {
+        throw "Deployment self-test expected path to be absent: $RelativePath"
+    }
+}
+
+function Assert-SelfTestContent {
+    param(
+        [string] $Path,
+        [string] $Expected
+    )
+
+    $content = Get-Content -LiteralPath $Path -Raw
+    if ($content.TrimEnd() -ne $Expected) {
+        throw "Deployment self-test target-owned file changed: $Path"
+    }
+}
+
 function Assert-NoSourceLiteral {
     param([string] $Root)
 
@@ -511,6 +535,24 @@ function Invoke-DeploymentSelfTest {
     Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/agents/workflows.yaml"
     Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/agents-workflow-deployment.md"
     Assert-NoSourceLiteral -Root $dotTarget
+
+    $dryRunTarget = Join-Path $selfTestRoot "dry-run"
+    New-Item -ItemType Directory -Path $dryRunTarget | Out-Null
+    Invoke-ChildDeployment -CommandArgs @{ TargetPath = $dryRunTarget; Mode = "core_bootstrap"; DryRun = $true; Quiet = $true }
+    Assert-SelfTestMissing -Root $dryRunTarget -RelativePath "AGENTS.md"
+    Assert-SelfTestMissing -Root $dryRunTarget -RelativePath "docs/agents/workflows.yaml"
+
+    $ownedTarget = Join-Path $selfTestRoot "target-owned-state"
+    New-Item -ItemType Directory -Path (Join-Path $ownedTarget ".codex") -Force | Out-Null
+    New-Item -ItemType Directory -Path (Join-Path $ownedTarget ".agents/runtime") -Force | Out-Null
+    New-Item -ItemType Directory -Path (Join-Path $ownedTarget ".git") -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $ownedTarget ".codex/config.toml") -Value "local = true" -Encoding utf8
+    Set-Content -LiteralPath (Join-Path $ownedTarget ".agents/runtime/agent-ledger.jsonl") -Value '{"local":true}' -Encoding utf8
+    Set-Content -LiteralPath (Join-Path $ownedTarget ".git/HEAD") -Value "ref: refs/heads/main" -Encoding utf8
+    Invoke-ChildDeployment -CommandArgs @{ TargetPath = $ownedTarget; Mode = "core_bootstrap"; Quiet = $true }
+    Assert-SelfTestContent -Path (Join-Path $ownedTarget ".codex/config.toml") -Expected "local = true"
+    Assert-SelfTestContent -Path (Join-Path $ownedTarget ".agents/runtime/agent-ledger.jsonl") -Expected '{"local":true}'
+    Assert-SelfTestContent -Path (Join-Path $ownedTarget ".git/HEAD") -Expected "ref: refs/heads/main"
 
     $sourceWriteBlocked = $false
     try {

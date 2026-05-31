@@ -610,6 +610,8 @@ function Test-DeploymentScriptSafety {
         "Test-PathInsideRoot",
         "Confirm-SourceAllowed",
         "Assert-NoSourceLiteral",
+        "Assert-SelfTestMissing",
+        "Assert-SelfTestContent",
         "CreateTarget",
         "SelfTest",
         "Refusing to write into the provider/source repo"
