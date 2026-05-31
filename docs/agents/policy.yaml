@@ -38,7 +38,7 @@ isolation:
       - "Offline Codex Desktop UI-cache cleanup only after explicit shutdown/cleanup authorization and only for exact current-project runtime ids."
     report: "Report intentional external reads as XR and writes as XW; temp roster and Codex App state/history/cache access must be listed exactly once in closeout. Project-local ledger access is repo-local and not XR/XW."
   codex_app:
-    local_policy: ".codex/config.toml is repo-local."
+    local_policy: ".codex/config.toml is ignored repo-local state."
     live_environment: ".codex/environments/environment.toml is ignored runtime state."
     template_environment: ".codex/environments/environment.template.toml is reference-only."
     official_thread_controls: "Prefer runtime close plus app-server thread/list, thread/loaded/list, thread/archive, and thread/unsubscribe when available; no official hard-delete thread API is assumed."
@@ -59,6 +59,7 @@ editing:
     - "Keep changes small, scoped, and reversible."
     - "Follow existing names, layout, docs, and tests."
     - "Do not hand-edit generated output, caches, build output, vendored files, runtime copies, or .git unless targeted."
+    - "Do not attempt local OS permission, ownership, ACL, or .git metadata repairs. If Git cannot write its index or lock files, stop, report the blocker, and resume only after the user provides a writable repo state."
 
 knowledge_layers:
   AGENTS.md: "Small every-session router."

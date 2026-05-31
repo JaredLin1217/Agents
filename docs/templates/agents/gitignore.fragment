@@ -5,6 +5,7 @@ docs/agent-events/
 docs/tmp-approval-*/
 docs/hard-isolation-evidence/
 docs/runtime-multi-agent-validation/
+.codex/config.toml
 .codex/environments/environment.toml
 
 # Optional local OS/editor noise

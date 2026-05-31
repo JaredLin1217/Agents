@@ -315,6 +315,7 @@ function Test-PatternScan {
 function Test-RuntimeBoundaries {
     $ignoredRuntimePaths = @(
         ".agents/runtime/agent-ledger.jsonl",
+        ".codex/config.toml",
         ".codex/environments/environment.toml",
         "docs/agent-status.md",
         "docs/agent-events/example.jsonl",
@@ -324,7 +325,7 @@ function Test-RuntimeBoundaries {
     )
 
     foreach ($path in $ignoredRuntimePaths) {
-        & git -C $RepoRoot check-ignore -q -- $path
+        & git -C $RepoRoot check-ignore -q --no-index -- $path
         if ($LASTEXITCODE -ne 0) {
             Add-Failure ("Runtime/local path is not ignored: {0}" -f $path)
         }
@@ -332,6 +333,7 @@ function Test-RuntimeBoundaries {
 
     $trackedRuntime = & git -C $RepoRoot ls-files -- `
         ".agents/runtime" `
+        ".codex/config.toml" `
         ".codex/environments/environment.toml" `
         "docs/agent-status.md" `
         "docs/agent-events" `

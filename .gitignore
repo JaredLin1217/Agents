@@ -3,6 +3,7 @@ docs/agent-status.md
 docs/agent-events/
 
 # Local Codex App runtime state
+.codex/config.toml
 .codex/environments/environment.toml
 
 # Project-local agent ledger and runtime coordination state

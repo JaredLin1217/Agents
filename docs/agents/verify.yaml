@@ -29,7 +29,7 @@ file_classes:
   runbooks: ["docs/runbooks/*.md"]
   deploy_templates: ["docs/templates/agents/**"]
   memory_docs: ["docs/project-memory.md", "docs/memory/**", "docs/memory-entry.template.md"]
-  runtime_local: [".agents/runtime/**", ".codex/environments/environment.toml", "docs/agent-status.md", "docs/agent-events/**", "docs/runtime-multi-agent-validation/**", "docs/hard-isolation-evidence/**"]
+  runtime_local: [".agents/runtime/**", ".codex/config.toml", ".codex/environments/environment.toml", "docs/agent-status.md", "docs/agent-events/**", "docs/runtime-multi-agent-validation/**", "docs/hard-isolation-evidence/**"]
   generated_or_cache: ["generated output", "cache", "build output", "vendor"]
 
 gate_matrix:
@@ -53,7 +53,7 @@ commands:
   changed_english: 'rg -n "[\p{Han}]" <changed durable rule/template files>'
   changed_placeholders: 'rg -n "TO[D]O|\[TO[D]O\]|T[B]D|FI[X]ME" <changed durable rule/template files>'
   line_endings: "git ls-files --eol <changed files>"
-  ignored_runtime: "git check-ignore -v .agents/runtime/agent-ledger.jsonl docs/agent-status.md docs/agent-events/ docs/tmp-approval-example/report.md docs/hard-isolation-evidence/example.md docs/runtime-multi-agent-validation/example.md .codex/environments/environment.toml"
+  ignored_runtime: "git check-ignore -v --no-index .agents/runtime/agent-ledger.jsonl docs/agent-status.md docs/agent-events/ docs/tmp-approval-example/report.md docs/hard-isolation-evidence/example.md docs/runtime-multi-agent-validation/example.md .codex/config.toml .codex/environments/environment.toml"
   deploy_steps_top_level: 'rg -n "^steps:" docs/agents/deploy.yaml docs/templates/agents/agents/deploy.yaml'
   deploy_steps_not_nested: 'rg -n "^  steps:" docs/agents/deploy.yaml docs/templates/agents/agents/deploy.yaml'
   deploy_sources_exist: "Every deployable_by_mode from path exists; mode_composition names existing groups."

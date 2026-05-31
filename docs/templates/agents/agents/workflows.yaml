@@ -171,6 +171,10 @@ skill_authoring:
     - "requires matching folder/frontmatter name, $skill default_prompt, 25-64 char short_description, and allow_implicit_invocation"
 
 maintenance:
+  local_permission_boundary:
+    - "Do not run OS permission, ownership, ACL, or .git metadata repair commands as an automated project flow."
+    - "If Git cannot create index.lock, update the index, or write .git metadata, report it as a local workspace blocker instead of attempting repair."
+    - "Resume Git actions only after the user confirms the repo is writable or provides a clean writable clone."
   verification_profiles:
     fast_turn: "answer-only/scoped ordinary work; no command for answer-only without current-state claim"
     policy_pack_edit: "check changed files and changed mirror pairs only unless broader claim"
@@ -180,6 +184,7 @@ maintenance:
     hard_isolation: "only with verified enforcement evidence"
   local_only:
     - ".agents/runtime/"
+    - ".codex/config.toml"
     - ".codex/environments/environment.toml"
     - "docs/agent-status.md"
     - "docs/agent-events/"
