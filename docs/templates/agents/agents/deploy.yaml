@@ -196,6 +196,6 @@ hard_fail_gates:
 
 validation_levels:
   repo_local_dry_run: "source/template/blocklist checks only"
-  disposable_selftest: "write root_docs, dot_agents_docs, dry-run, protected-existing, target-owned-state, routed-legacy, and ambiguous-layout targets under approved temp status space and verify provider self-write refusal"
+  disposable_selftest: "write root_docs, template-provider, dot_agents_docs, dry-run, protected-existing, target-owned-state, routed-legacy, and ambiguous-layout targets under per-process approved temp status space and verify provider self-write refusal"
   authorized_target_dry_run: "read target and report plan"
   authorized_target_deployment_test: "write allowlisted/approved files and validate target"

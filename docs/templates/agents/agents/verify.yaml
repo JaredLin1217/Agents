@@ -61,7 +61,7 @@ commands:
   deploy_manifest_unique: "deployable_by_mode from paths unique per group; non-append to paths unique."
   deploy_blocklist_required_paths: "do_not_deploy includes local runtime, scratch, Codex runtime, and .git paths."
   deployment_script_safety: "scripts/deploy-agents-workflow.ps1 contains path-containment gates and no OS permission, ACL, ownership, .git repair, or destructive Git fallback."
-  deployment_script_selftest: ".\\scripts\\deploy-agents-workflow.ps1 -SelfTest writes disposable root_docs, dot_agents_docs, dry-run, protected-existing, target-owned-state, routed-legacy, and ambiguous-layout targets under %TEMP%/codex-agent-status/<project-id>/ and verifies provider self-write refusal."
+  deployment_script_selftest: ".\\scripts\\deploy-agents-workflow.ps1 -SelfTest writes disposable root_docs, template-provider, dot_agents_docs, dry-run, protected-existing, target-owned-state, routed-legacy, and ambiguous-layout targets under a per-process %TEMP%/codex-agent-status/<project-id>/deploy-selftest-* path and verifies provider self-write refusal."
   template_pollution_rule: "Search deployable templates for concrete source/target literals relevant to the task."
   deployed_file_set_status: "git status -sb -- <deployed_file_set>"
   deployed_file_set_diff_check: "git diff --check -- <deployed_file_set>"

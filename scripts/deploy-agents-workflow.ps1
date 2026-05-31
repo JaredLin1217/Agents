@@ -554,7 +554,7 @@ function Invoke-DeploymentSelfTest {
     $projectId = "jared-ai-team"
     $statusRoot = Join-Path ([System.IO.Path]::GetTempPath()) "codex-agent-status"
     $projectRoot = Join-Path $statusRoot $projectId
-    $selfTestRoot = Join-Path $projectRoot "deploy-selftest"
+    $selfTestRoot = Join-Path $projectRoot ("deploy-selftest-{0}" -f $PID)
 
     if (-not (Test-Path -LiteralPath $statusRoot -PathType Container)) {
         New-Item -ItemType Directory -Path $statusRoot | Out-Null
@@ -572,6 +572,12 @@ function Invoke-DeploymentSelfTest {
     Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents-workflow-deployment.md"
     Assert-NoSourceLiteral -Root $rootTarget
     Invoke-ChildDeployment -CommandArgs @{ TargetPath = $rootTarget; Mode = "full_workflow"; Quiet = $true }
+
+    $templateProviderTarget = Join-Path $selfTestRoot "template-provider"
+    Invoke-ChildDeployment -CommandArgs @{ TargetPath = $templateProviderTarget; Mode = "template_provider_mode"; CreateTarget = $true; Quiet = $true }
+    Assert-SelfTestFile -Root $templateProviderTarget -RelativePath "docs/templates/agents/AGENTS.md"
+    Assert-SelfTestFile -Root $templateProviderTarget -RelativePath "docs/templates/agents/agents/deploy.yaml"
+    Assert-NoSourceLiteral -Root $templateProviderTarget
 
     $dotTarget = Join-Path $selfTestRoot "dot-agents-docs"
     New-Item -ItemType Directory -Path $dotTarget | Out-Null
