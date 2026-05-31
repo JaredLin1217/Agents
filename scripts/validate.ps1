@@ -478,6 +478,42 @@ function Test-RuntimeBoundaries {
         }
     }
 
+    $gitignoreFragmentPath = Get-RepoPath "docs/templates/agents/gitignore.fragment"
+    if (Test-Path -LiteralPath $gitignoreFragmentPath -PathType Leaf) {
+        $fragmentEntries = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::Ordinal)
+        foreach ($line in Get-Content -LiteralPath $gitignoreFragmentPath) {
+            $entry = $line.Trim()
+            if ($entry.Length -gt 0 -and -not $entry.StartsWith("#")) {
+                [void] $fragmentEntries.Add($entry)
+            }
+        }
+
+        $requiredFragmentEntries = @(
+            ".agents/runtime/",
+            ".codex/config.toml",
+            ".codex/environments/environment.toml",
+            "docs/agent-status.md",
+            "docs/agent-events/",
+            ".agents/docs/agent-status.md",
+            ".agents/docs/agent-events/",
+            "docs/tmp-approval-*/",
+            ".agents/docs/tmp-approval-*/",
+            "docs/hard-isolation-evidence/",
+            ".agents/docs/hard-isolation-evidence/",
+            "docs/runtime-multi-agent-validation/",
+            ".agents/docs/runtime-multi-agent-validation/"
+        )
+
+        foreach ($entry in $requiredFragmentEntries) {
+            if (-not $fragmentEntries.Contains($entry)) {
+                Add-Failure ("Gitignore fragment is missing runtime/local entry: {0}" -f $entry)
+            }
+        }
+    }
+    else {
+        Add-Failure "Gitignore fragment is missing: docs/templates/agents/gitignore.fragment"
+    }
+
     $trackedRuntime = & git -C $RepoRoot ls-files -- `
         ".agents/runtime" `
         ".codex/config.toml" `

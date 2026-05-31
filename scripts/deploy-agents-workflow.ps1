@@ -989,6 +989,8 @@ function Invoke-DeploymentSelfTest {
     }
     Assert-SelfTestContains -Path (Join-Path $foreignTarget ".gitignore") -Expected "bin/"
     Assert-SelfTestContains -Path (Join-Path $foreignTarget ".gitignore") -Expected ".agents/runtime/"
+    Assert-SelfTestContains -Path (Join-Path $foreignTarget ".gitignore") -Expected ".codex/config.toml"
+    Assert-SelfTestContains -Path (Join-Path $foreignTarget ".gitignore") -Expected ".codex/environments/environment.toml"
 
     $missingTarget = Join-Path $selfTestRoot "missing-target"
     foreach ($args in @(
@@ -1024,6 +1026,8 @@ function Invoke-DeploymentSelfTest {
     Assert-SelfTestContent -Path (Join-Path $ownedTarget ".git/HEAD") -Expected "ref: refs/heads/main"
     Assert-SelfTestContains -Path (Join-Path $ownedTarget ".gitignore") -Expected "target-local/"
     Assert-SelfTestContains -Path (Join-Path $ownedTarget ".gitignore") -Expected ".agents/runtime/"
+    Assert-SelfTestContains -Path (Join-Path $ownedTarget ".gitignore") -Expected ".codex/config.toml"
+    Assert-SelfTestContains -Path (Join-Path $ownedTarget ".gitignore") -Expected ".codex/environments/environment.toml"
     Assert-SelfTestContains -Path (Join-Path $ownedTarget "docs/agents-workflow-deployment.md") -Expected "Protected dirty/local state:"
     $ownedPlan = Invoke-ChildDeploymentOutput -CommandArgs @{ TargetPath = $ownedTarget; Mode = "core_bootstrap"; DryRun = $true }
     Assert-SelfTestTextContains -Text $ownedPlan -Expected "Protected dirty/local target state observed:"
