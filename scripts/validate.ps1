@@ -896,6 +896,23 @@ function Test-EvidenceTemplateSchemaCoverage {
     }
 }
 
+function Test-CIWorkflowStability {
+    $startFailureCount = $Failures.Count
+    $path = ".github/workflows/checkpoint.yml"
+    $content = Get-Content -LiteralPath (Get-RepoPath $path) -Raw
+
+    if ($content -match "runs-on:\s*windows-latest") {
+        Add-Failure "Checkpoint workflow must pin a Windows runner instead of using windows-latest."
+    }
+    if ($content -notmatch "runs-on:\s*windows-2025") {
+        Add-Failure "Checkpoint workflow is missing the pinned windows-2025 runner."
+    }
+
+    if ($Failures.Count -eq $startFailureCount) {
+        Add-Pass "CI workflow stability checks passed."
+    }
+}
+
 function Test-ReadinessLadderEvidence {
     $startFailureCount = $Failures.Count
     $checks = @(
@@ -950,6 +967,7 @@ function Test-ReadinessLadderEvidence {
                 @("docs/agents/verify.yaml", "hard_isolation"),
                 @("scripts/validate.ps1", "Test-SizeGates"),
                 @("scripts/validate.ps1", "Test-EvidenceTemplateSchemaCoverage"),
+                @("scripts/validate.ps1", "Test-CIWorkflowStability"),
                 @("scripts/validate.ps1", "Full release audit gates passed")
             )
         },
@@ -1061,6 +1079,7 @@ function Test-FullAuditGates {
     Test-DeploymentSelfTest
     Test-MultiAgentWorkflowIntegrity
     Test-EvidenceTemplateSchemaCoverage
+    Test-CIWorkflowStability
     Test-ReadinessLadderEvidence
     Test-SizeGates
 }
