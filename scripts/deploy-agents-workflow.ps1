@@ -647,6 +647,7 @@ function Invoke-DeploymentSelfTest {
     Assert-SelfTestFile -Root $rootTarget -RelativePath "AGENTS.md"
     Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents/workflows.yaml"
     Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents-workflow-deployment.md"
+    Assert-SelfTestContains -Path (Join-Path $rootTarget "docs/agents-workflow-deployment.md") -Expected "- docs/agents/workflows.yaml"
     Assert-NoSourceLiteral -Root $rootTarget
     Invoke-ChildDeployment -CommandArgs @{ TargetPath = $rootTarget; Mode = "full_workflow"; Quiet = $true }
     $currentPlan = Invoke-ChildDeploymentOutput -CommandArgs @{ TargetPath = $rootTarget; Mode = "full_workflow"; DryRun = $true }
@@ -676,6 +677,7 @@ function Invoke-DeploymentSelfTest {
     Invoke-ChildDeployment -CommandArgs @{ TargetPath = $dotTarget; Mode = "template_provider_mode"; Upgrade = $true; Quiet = $true }
     Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/templates/agents/AGENTS.md"
     Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/templates/agents/agents/deploy.yaml"
+    Assert-SelfTestContains -Path (Join-Path $dotTarget ".agents/docs/agents-workflow-deployment.md") -Expected "- .agents/docs/templates/agents/agents/deploy.yaml"
     Assert-NoSourceLiteral -Root $dotTarget
 
     $protectedTarget = Join-Path $selfTestRoot "protected-existing"
