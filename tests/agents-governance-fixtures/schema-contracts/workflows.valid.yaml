@@ -5,12 +5,15 @@ read_first: []
 startup:
   common_task_matrix: {}
   fast_classification: {}
-progress_updates: {}
+progress_updates:
+  cap: "Fixture update cap."
 memory: {}
 multi_agent_runtime:
+  do_not_trigger_for: []
   fast_spawn:
     queue_rule: "Fixture queue rule."
     close_rule: "Fixture close rule."
+    ledger_rule: "Fixture ledger rule."
   lifecycle_checks:
     before: []
     during: []
@@ -19,12 +22,23 @@ multi_agent_runtime:
     hard_fail: []
   roster:
     project_local_ledger: ".agents/runtime/agent-ledger.jsonl"
-scoring_batches: {}
+    temp_cache: "%TEMP%/codex-agent-status/<project-id>/"
+    required_when: []
+  report_dedupe:
+    dedupe_key: "Fixture dedupe key."
+scoring_batches:
+  validity_outcomes: "Fixture validity outcomes."
+  aggregation:
+    cap_rule: "Fixture cap rule."
 handoff:
   project_id: "fixture-project"
 deployment:
-  delegated_worker: "Fixture worker rule."
+  delegated_worker: "For requests such as deploy this project to an exact target, the controller may assign a deployment_worker with one target path, one mode, dry-run/write scope, and no app-code or OS-permission repair authority."
+  upgrade: "Fixture dry-run first deployed_file_set rule."
 skill_authoring: {}
 maintenance:
   local_permission_boundary: []
+  verification_profiles:
+    release_deploy_push_audit: "Fixture release profile."
+  local_only: []
 closeout: {}

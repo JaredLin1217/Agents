@@ -26,22 +26,42 @@
   "x-required-paths": [
     "startup.common_task_matrix",
     "startup.fast_classification",
+    "progress_updates.cap",
     "multi_agent_runtime.fast_spawn.queue_rule",
     "multi_agent_runtime.fast_spawn.close_rule",
+    "multi_agent_runtime.fast_spawn.ledger_rule",
     "multi_agent_runtime.lifecycle_checks.before",
     "multi_agent_runtime.lifecycle_checks.during",
     "multi_agent_runtime.lifecycle_checks.after",
     "multi_agent_runtime.ownership.hard_fail",
     "multi_agent_runtime.roster.project_local_ledger",
+    "multi_agent_runtime.roster.temp_cache",
+    "multi_agent_runtime.roster.required_when",
+    "multi_agent_runtime.report_dedupe.dedupe_key",
     "scoring_batches",
+    "scoring_batches.validity_outcomes",
+    "scoring_batches.aggregation.cap_rule",
     "handoff.project_id",
     "deployment.delegated_worker",
-    "maintenance.local_permission_boundary"
+    "deployment.upgrade",
+    "maintenance.local_permission_boundary",
+    "maintenance.verification_profiles.release_deploy_push_audit",
+    "maintenance.local_only"
   ],
   "x-required-values": [
     {
       "path": "multi_agent_runtime.roster.project_local_ledger",
       "value": ".agents/runtime/agent-ledger.jsonl"
+    },
+    {
+      "path": "deployment.delegated_worker",
+      "value": "For requests such as deploy this project to an exact target, the controller may assign a deployment_worker with one target path, one mode, dry-run/write scope, and no app-code or OS-permission repair authority."
+    }
+  ],
+  "x-required-contains": [
+    {
+      "path": "deployment.upgrade",
+      "contains": ["dry-run first", "deployed_file_set"]
     }
   ]
 }
