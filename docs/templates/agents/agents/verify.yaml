@@ -60,8 +60,8 @@ commands:
   deploy_sources_exist: "Every deployable_by_mode from path exists; mode_composition names existing groups."
   deploy_manifest_unique: "deployable_by_mode from paths unique per group; non-append to paths unique."
   deploy_blocklist_required_paths: "do_not_deploy includes local runtime, scratch, Codex runtime, and .git paths."
-  deployment_script_safety: "scripts/deploy-agents-workflow.ps1 contains path-containment gates and no OS permission, ACL, ownership, .git repair, or destructive Git fallback."
-  deployment_script_selftest: ".\\scripts\\deploy-agents-workflow.ps1 -SelfTest writes disposable root_docs, template-provider, dot_agents_docs, dry-run, protected-existing, target-owned-state, routed-legacy, and ambiguous-layout targets under a per-process %TEMP%/codex-agent-status/<project-id>/deploy-selftest-* path and verifies dry-run write-state classification plus provider self-write refusal."
+  deployment_script_safety: "scripts/deploy-agents-workflow.ps1 contains path-containment gates and no admin elevation, OS permission, ACL, ownership, .git repair, or destructive Git fallback."
+  deployment_script_selftest: ".\\scripts\\deploy-agents-workflow.ps1 -SelfTest writes disposable root_docs, template-provider, dot_agents_docs, dry-run, protected-existing, missing-target, target-owned-state, routed-legacy, and ambiguous-layout targets under a per-process %TEMP%/codex-agent-status/<project-id>/deploy-selftest-* path and verifies dry-run write-state classification, deployed report file set, explicit target creation gate, and provider self-write refusal."
   template_pollution_rule: "Search deployable templates for concrete source/target literals relevant to the task."
   deployed_file_set_status: "git status -sb -- <deployed_file_set>"
   deployed_file_set_diff_check: "git diff --check -- <deployed_file_set>"
@@ -125,7 +125,7 @@ profiles:
     do:
       baseline: ["status_full", "diff_check", "English-only/placeholder gates on applicable paths", "line-ending readiness", "ignored_runtime"]
       deployment_integrity: ["deploy steps/source/uniqueness/blocklist gates", "task-specific template pollution checks"]
-      deployment_script: ["path containment", "provider self-write refusal", "explicit target creation switch", "no local permission repair", "disposable deployment self-test"]
+      deployment_script: ["path containment", "provider self-write refusal", "explicit target creation switch", "no local permission repair or admin elevation", "disposable deployment self-test"]
       template_integrity: ["exact-pair drift checks", "template bundle coverage"]
       schema_skill_integrity: ["schema field coverage", "skill metadata checks"]
       size: ["size gates including prospective tracked size"]

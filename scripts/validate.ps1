@@ -738,6 +738,13 @@ function Test-DeploymentScriptSafety {
     }
 
     $forbiddenPatterns = @(
+        "#requires",
+        "RunAsAdministrator",
+        "Start-Process",
+        "Verb RunAs",
+        "sudo ",
+        "chmod ",
+        "chown ",
         "icacls",
         "takeown",
         "Set-Acl",
