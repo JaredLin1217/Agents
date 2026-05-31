@@ -43,6 +43,27 @@ function Get-RepoPath {
     return Join-Path $RepoRoot $Path
 }
 
+function Get-SourceSpecificLiterals {
+    $literals = New-Object 'System.Collections.Generic.HashSet[string]'
+    foreach ($literal in @($RepoRoot.Path, (Split-Path -Leaf $RepoRoot.Path))) {
+        if (-not [string]::IsNullOrWhiteSpace($literal) -and $literal -ne "Agents") {
+            [void] $literals.Add($literal)
+        }
+    }
+
+    $remoteUrl = (& git -C $RepoRoot remote get-url origin 2>$null)
+    if (-not [string]::IsNullOrWhiteSpace($remoteUrl)) {
+        [void] $literals.Add($remoteUrl)
+        if ($remoteUrl -match "[:/]([^/]+)/([^/]+?)(\.git)?$") {
+            [void] $literals.Add($Matches[1])
+            [void] $literals.Add(("{0}/{1}" -f $Matches[1], $Matches[2]))
+            [void] $literals.Add(("{0}.git" -f $Matches[2]))
+        }
+    }
+
+    return @($literals)
+}
+
 function Get-TextFiles {
     param([string[]] $Roots)
 
@@ -611,12 +632,7 @@ function Test-TemplateCoverage {
 
 function Test-TemplateSourceNeutrality {
     $startFailureCount = $Failures.Count
-    $literals = @(
-        $RepoRoot.Path,
-        "JaredLin",
-        "Jared's AI Team",
-        "Agents.git"
-    )
+    $literals = Get-SourceSpecificLiterals
     $templateFiles = @(Get-TextFiles -Roots @("docs/templates/agents"))
 
     foreach ($literal in $literals) {
@@ -703,6 +719,7 @@ function Test-DeploymentScriptSafety {
         "Confirm-SourceAllowed",
         "Assert-DeployWriteAllowed",
         "requires -Upgrade",
+        "Get-SourceSpecificLiterals",
         "Assert-NoSourceLiteral",
         "Assert-SelfTestMissing",
         "Assert-SelfTestContent",

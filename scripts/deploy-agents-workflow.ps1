@@ -80,6 +80,27 @@ function Write-Step {
     }
 }
 
+function Get-SourceSpecificLiterals {
+    $literals = New-Object 'System.Collections.Generic.HashSet[string]'
+    foreach ($literal in @($RepoRoot.Path, (Split-Path -Leaf $RepoRoot.Path))) {
+        if (-not [string]::IsNullOrWhiteSpace($literal) -and $literal -ne "Agents") {
+            [void] $literals.Add($literal)
+        }
+    }
+
+    $remoteUrl = (& git -C $RepoRoot remote get-url origin 2>$null)
+    if (-not [string]::IsNullOrWhiteSpace($remoteUrl)) {
+        [void] $literals.Add($remoteUrl)
+        if ($remoteUrl -match "[:/]([^/]+)/([^/]+?)(\.git)?$") {
+            [void] $literals.Add($Matches[1])
+            [void] $literals.Add(("{0}/{1}" -f $Matches[1], $Matches[2]))
+            [void] $literals.Add(("{0}.git" -f $Matches[2]))
+        }
+    }
+
+    return @($literals)
+}
+
 function Assert-DeployWriteAllowed {
     param(
         [string] $Path,
@@ -566,10 +587,7 @@ function Assert-SelfTestTextContains {
 function Assert-NoSourceLiteral {
     param([string] $Root)
 
-    $sourceLiterals = @(
-        $RepoRoot.Path,
-        "JaredLin"
-    )
+    $sourceLiterals = Get-SourceSpecificLiterals
     $files = Get-ChildItem -LiteralPath $Root -Recurse -File |
         Where-Object { $_.Extension.ToLowerInvariant() -in @(".md", ".yaml", ".yml", ".json", ".toml", ".ps1") }
 
