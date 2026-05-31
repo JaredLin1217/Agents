@@ -26,13 +26,24 @@
   },
   "x-required-paths": [
     "boundary.requires",
+    "boundary.target_owns",
+    "boundary.source_must_not_store",
     "target_layout.detect_first",
     "target_layout.layout_destination_map.root_docs",
     "target_layout.layout_destination_map.dot_agents_docs",
     "dirty_target.deployed_file_set",
+    "dirty_target.validation_scope",
+    "upgrade.rule",
+    "upgrade.overwrite_gate",
+    "upgrade.dry_run_plan",
+    "upgrade.version_source",
     "upgrade.no_permission_repair",
     "upgrade.same_repo_guard",
     "upgrade.target_creation",
+    "delegated_deployment.worker_role",
+    "delegated_deployment.assignment_scope",
+    "delegated_deployment.controller_duties",
+    "delegated_deployment.worker_duties",
     "delegated_deployment.forbidden",
     "mode_composition.core_bootstrap",
     "mode_composition.full_workflow",
@@ -43,5 +54,37 @@
     "do_not_deploy.paths",
     "validation_levels.disposable_selftest",
     "validation_levels.authorized_target_deployment_test"
+  ],
+  "x-required-values": [
+    {
+      "path": "upgrade.version_source",
+      "value": "docs/agents/version.yaml"
+    },
+    {
+      "path": "delegated_deployment.worker_role",
+      "value": "deployment_worker"
+    }
+  ],
+  "x-required-contains": [
+    {
+      "path": "boundary.source_must_not_store",
+      "contains": ["target status", "commits", "remotes", "deployment results"]
+    },
+    {
+      "path": "dirty_target.validation_scope",
+      "contains": ["Validate deployed_file_set", "not the whole dirty target"]
+    },
+    {
+      "path": "upgrade.no_permission_repair",
+      "contains": ["OS permission", "ACL", ".git metadata"]
+    },
+    {
+      "path": "upgrade.same_repo_guard",
+      "contains": ["must not write into the provider/source repo"]
+    },
+    {
+      "path": "upgrade.target_creation",
+      "contains": ["explicit non-dry run", "target-creation switch"]
+    }
   ]
 }
