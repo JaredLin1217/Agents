@@ -19,6 +19,7 @@
   },
   "x-required-paths": [
     "workflow.version",
+    "workflow.channel",
     "workflow.compatibility",
     "workflow.v1_preservation",
     "readiness_ladder.P0",
@@ -27,9 +28,30 @@
     "readiness_ladder.P3",
     "readiness_ladder.P4",
     "readiness_ladder.P5",
+    "upgrade_policy.default",
     "upgrade_policy.compatibility_rule",
     "upgrade_policy.breaking_change_rule",
-    "delegation.large_batch_rule"
+    "upgrade_policy.overwrite_scope",
+    "upgrade_policy.preserve_target_owned",
+    "upgrade_policy.rollback",
+    "delegation.worker_role",
+    "delegation.large_batch_rule",
+    "delegation.controller_rule",
+    "delegation.worker_rule"
+  ],
+  "x-required-values": [
+    {
+      "path": "workflow.channel",
+      "value": "v2"
+    },
+    {
+      "path": "upgrade_policy.default",
+      "value": "dry-run first"
+    },
+    {
+      "path": "delegation.worker_role",
+      "value": "deployment_worker"
+    }
   ],
   "x-required-contains": [
     {
@@ -55,6 +77,10 @@
     {
       "path": "readiness_ladder.P5",
       "contains": ["Long-term upgrade compatibility", "target-owned state preservation", "compact workflow growth controls"]
+    },
+    {
+      "path": "upgrade_policy.preserve_target_owned",
+      "contains": ["runtime state", "local Codex config", "memory entries", "status files", "events", "commits", "remotes", "deployment history"]
     }
   ]
 }
