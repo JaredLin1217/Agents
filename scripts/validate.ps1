@@ -788,6 +788,64 @@ function Test-DeploymentSelfTest {
     }
 }
 
+function Test-MultiAgentWorkflowIntegrity {
+    $startFailureCount = $Failures.Count
+    $workflowPaths = @("docs/agents/workflows.yaml", "docs/templates/agents/agents/workflows.yaml")
+    $workflowMarkers = @(
+        "multi_agent_runtime:",
+        "do_not_trigger_for:",
+        "lifecycle_checks:",
+        "before:",
+        "during:",
+        "after:",
+        "ownership:",
+        "hard_fail:",
+        "ledger_missing_or_cleared",
+        "report_dedupe:",
+        "scoring_batches:",
+        "convergence:",
+        "delegated_deployment:",
+        "deployment_worker",
+        "deployed_file_set"
+    )
+    foreach ($path in $workflowPaths) {
+        $content = Get-Content -LiteralPath (Get-RepoPath $path) -Raw
+        foreach ($marker in $workflowMarkers) {
+            if (-not $content.Contains($marker)) {
+                Add-Failure ("Multi-agent workflow marker is missing in {0}: {1}" -f $path, $marker)
+            }
+        }
+    }
+
+    $schemaPaths = @("docs/agents/schemas.yaml", "docs/templates/agents/agents/schemas.yaml")
+    $schemaMarkers = @(
+        "assignment:",
+        "ownership_matrix:",
+        "employee_final_report:",
+        "agent_status_snapshot:",
+        "agent_event:",
+        "agent_ledger_event:",
+        "controller_lease:",
+        "runtime_multi_agent_validation:",
+        "Roster snapshot version",
+        "Ownership matrix status",
+        "Final report matched runtime id",
+        "Git status after employee work"
+    )
+    foreach ($path in $schemaPaths) {
+        $content = Get-Content -LiteralPath (Get-RepoPath $path) -Raw
+        foreach ($marker in $schemaMarkers) {
+            if (-not $content.Contains($marker)) {
+                Add-Failure ("Multi-agent schema marker is missing in {0}: {1}" -f $path, $marker)
+            }
+        }
+    }
+
+    if ($Failures.Count -eq $startFailureCount) {
+        Add-Pass "Multi-agent workflow integrity checks passed."
+    }
+}
+
 function Test-ReadinessLadderEvidence {
     $startFailureCount = $Failures.Count
     $checks = @(
@@ -829,7 +887,8 @@ function Test-ReadinessLadderEvidence {
                 @("docs/agents/workflows.yaml", "ledger_missing_or_cleared"),
                 @("docs/agents/workflows.yaml", "before:"),
                 @("docs/agents/workflows.yaml", "during:"),
-                @("docs/agents/workflows.yaml", "after:")
+                @("docs/agents/workflows.yaml", "after:"),
+                @("scripts/validate.ps1", "Test-MultiAgentWorkflowIntegrity")
             )
         },
         @{
@@ -949,6 +1008,7 @@ function Test-FullAuditGates {
     Test-SkillMetadata
     Test-DeploymentScriptSafety
     Test-DeploymentSelfTest
+    Test-MultiAgentWorkflowIntegrity
     Test-ReadinessLadderEvidence
     Test-SizeGates
 }
