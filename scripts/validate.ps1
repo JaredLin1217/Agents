@@ -46,7 +46,7 @@ function Get-RepoPath {
 function Get-TextFiles {
     param([string[]] $Roots)
 
-    $extensions = @(".md", ".yaml", ".yml", ".json", ".toml", ".ps1")
+    $extensions = @(".md", ".yaml", ".yml", ".json", ".toml", ".ps1", ".txt")
     foreach ($root in $Roots) {
         $fullRoot = Get-RepoPath $root
         if (-not (Test-Path -LiteralPath $fullRoot)) {
@@ -461,6 +461,35 @@ function Test-GitDiffCheck {
     }
 }
 
+function Test-LineEndings {
+    $startFailureCount = $Failures.Count
+    $textFiles = @(Get-TextFiles -Roots @(
+        "AGENTS.md",
+        ".agents/skills",
+        "docs",
+        "schemas",
+        "scripts",
+        "tests",
+        "mcp",
+        "artifacts",
+        ".github/workflows"
+    ))
+
+    foreach ($file in $textFiles) {
+        $bytes = [System.IO.File]::ReadAllBytes($file.FullName)
+        for ($i = 0; $i -lt ($bytes.Length - 1); $i++) {
+            if ($bytes[$i] -eq 13 -and $bytes[$i + 1] -eq 10) {
+                Add-Failure ("Text file uses CRLF line endings; expected LF: {0}" -f $file.FullName)
+                break
+            }
+        }
+    }
+
+    if ($Failures.Count -eq $startFailureCount) {
+        Add-Pass "Line-ending readiness checks passed."
+    }
+}
+
 function Get-IntendedRepoFiles {
     $files = @(
         & git -C $RepoRoot ls-files
@@ -739,6 +768,7 @@ function Test-SizeGates {
 
 function Test-FullAuditGates {
     Test-GitDiffCheck
+    Test-LineEndings
     Test-ExactPairs
     Test-DeployManifestIntegrity
     Test-TemplateCoverage
