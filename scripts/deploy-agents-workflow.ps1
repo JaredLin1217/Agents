@@ -707,6 +707,23 @@ function Invoke-DeploymentSelfTest {
     Assert-SelfTestMissing -Root $dryRunTarget -RelativePath "AGENTS.md"
     Assert-SelfTestMissing -Root $dryRunTarget -RelativePath "docs/agents/workflows.yaml"
 
+    $missingTarget = Join-Path $selfTestRoot "missing-target"
+    foreach ($args in @(
+        @{ TargetPath = $missingTarget; Mode = "core_bootstrap"; DryRun = $true; Quiet = $true },
+        @{ TargetPath = $missingTarget; Mode = "core_bootstrap"; Quiet = $true }
+    )) {
+        $missingBlocked = $false
+        try {
+            Invoke-ChildDeployment -CommandArgs $args
+        }
+        catch {
+            $missingBlocked = $true
+        }
+        if (-not $missingBlocked) {
+            throw "Deployment self-test expected missing target to require explicit creation."
+        }
+    }
+
     $ownedTarget = Join-Path $selfTestRoot "target-owned-state"
     New-Item -ItemType Directory -Path (Join-Path $ownedTarget ".codex") -Force | Out-Null
     New-Item -ItemType Directory -Path (Join-Path $ownedTarget ".agents/runtime") -Force | Out-Null
