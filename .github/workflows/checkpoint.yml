@@ -13,11 +13,11 @@ permissions:
 jobs:
   agents-workflow:
     name: agents workflow
-    runs-on: windows-latest
+    runs-on: windows-2025
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Run Agents workflow validation
         shell: pwsh
