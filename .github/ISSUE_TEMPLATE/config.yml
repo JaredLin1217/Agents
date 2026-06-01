@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security report
+    url: https://github.com/JaredLin1217/Agents/security
+    about: Do not publish secrets or private target evidence in public issues.

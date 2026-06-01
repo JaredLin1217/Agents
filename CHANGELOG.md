@@ -1,0 +1,15 @@
+# Changelog
+
+All notable changes to this repository are documented here.
+
+## Unreleased
+
+- Expanded public GitHub documentation for project purpose, quick start,
+  deployment, validation, support, security, and contribution workflow.
+- Added public issue and pull request templates.
+
+## 2026-06-01
+
+- Added compact Agents runtime routing through `docs/agents/ai-runtime.yaml`.
+- Added deployable template mirror for the compact runtime route.
+- Updated validation and deployment rules to include the AI runtime file.

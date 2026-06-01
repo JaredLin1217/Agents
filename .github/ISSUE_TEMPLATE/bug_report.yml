@@ -1,0 +1,52 @@
+name: Bug report
+description: Report a reproducible workflow, validation, or deployment problem.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include secrets, private target code, `.codex/*`, or `.agents/runtime/*` content.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What failed?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction
+      description: List the smallest command sequence or file change that reproduces the issue.
+      placeholder: |
+        1. Run ...
+        2. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Paste sanitized output only.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: Windows version, PowerShell version, Git version
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation commands
+      description: Which validation commands did you run?
+      placeholder: |
+        .\scripts\validate.ps1
+        git diff --check

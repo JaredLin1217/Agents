@@ -1,0 +1,47 @@
+name: Deployment issue
+description: Report a dry-run, upgrade, or target handoff problem.
+title: "[Deployment]: "
+labels: ["deployment"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Sanitize target paths and outputs when needed. Do not include secrets, private target app code, `.codex/*`, or `.agents/runtime/*` content.
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Deployment mode
+      options:
+        - core_bootstrap
+        - full_workflow
+        - template_provider_mode
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command
+      description: Paste the sanitized command you ran.
+      placeholder: .\scripts\deploy-agents-workflow.ps1 -TargetPath "D:\target\repo" -Mode core_bootstrap -DryRun
+    validations:
+      required: true
+  - type: textarea
+    id: dry_run
+    attributes:
+      label: Dry-run output
+      description: Paste sanitized dry-run output.
+    validations:
+      required: true
+  - type: textarea
+    id: target_layout
+    attributes:
+      label: Target layout
+      description: Which layout did the script detect?
+      placeholder: root_docs or dot_agents_docs
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What looks incomplete or incorrect?
+    validations:
+      required: true
