@@ -4,11 +4,31 @@ This file is generated from git history after public branch pushes.
 Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` instead.
 
 - Source branch: `main`
-- Source commit analyzed: `f5e3dd4`
-- Source commit date: `2026-06-01T08:28:00+08:00`
+- Source commit analyzed: `2796e76`
+- Source commit date: `2026-06-01T08:35:03+08:00`
 - Commit window: latest 20 non-merge commits
 
 ## Recent Commits
+
+### 2026-06-01 - `2796e76`
+
+Align Agents workflow version reporting
+
+- Author: `JaredLin1217`
+- Shortstat: `3 files changed, 94 insertions(+)`
+- Files:
+  - `CHANGELOG.md`
+  - `README.md`
+  - `scripts/deploy-agents-workflow.ps1`
+
+### 2026-06-01 - `29dc8a4`
+
+docs: update GitHub update log [skip ci]
+
+- Author: `github-actions[bot]`
+- Shortstat: `1 file changed, 27 insertions(+), 33 deletions(-)`
+- Files:
+  - `docs/github-updates.md`
 
 ### 2026-06-01 - `f5e3dd4`
 
@@ -237,26 +257,4 @@ Validate deployment self-test scenarios
 - Files:
   - `docs/agents/deploy.yaml`
   - `docs/templates/agents/agents/deploy.yaml`
-  - `scripts/validate.ps1`
-
-### 2026-05-31 - `e968a44`
-
-Validate evidence schema parity
-
-- Author: `JaredLin1217`
-- Shortstat: `3 files changed, 60 insertions(+)`
-- Files:
-  - `docs/agents/schemas.yaml`
-  - `docs/templates/agents/agents/schemas.yaml`
-  - `scripts/validate.ps1`
-
-### 2026-05-31 - `21046d4`
-
-Validate agent ledger compatibility
-
-- Author: `JaredLin1217`
-- Shortstat: `3 files changed, 62 insertions(+), 3 deletions(-)`
-- Files:
-  - `docs/agents/verify.yaml`
-  - `docs/templates/agents/agents/verify.yaml`
   - `scripts/validate.ps1`
