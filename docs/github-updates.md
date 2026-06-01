@@ -4,11 +4,32 @@ This file is generated from git history after public branch pushes.
 Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` instead.
 
 - Source branch: `main`
-- Source commit analyzed: `2eb13c0`
-- Source commit date: `2026-06-01T10:33:39+08:00`
+- Source commit analyzed: `7c0be77`
+- Source commit date: `2026-06-01T12:58:10+08:00`
 - Commit window: latest 20 non-merge commits
 
 ## Recent Commits
+
+### 2026-06-01 - `7c0be77`
+
+docs: codify sidebar cleanup workflow
+
+- Author: `JaredLin1217`
+- Shortstat: `4 files changed, 17 insertions(+), 9 deletions(-)`
+- Files:
+  - `.agents/skills/project-isolation-workflow/SKILL.md`
+  - `docs/agents/schemas.yaml`
+  - `docs/agents/verify.yaml`
+  - `docs/agents/workflows.yaml`
+
+### 2026-06-01 - `17c2bef`
+
+docs: update GitHub update log [skip ci]
+
+- Author: `github-actions[bot]`
+- Shortstat: `1 file changed, 31 insertions(+), 23 deletions(-)`
+- Files:
+  - `docs/github-updates.md`
 
 ### 2026-06-01 - `2eb13c0`
 
@@ -244,24 +265,3 @@ Harden deploy schema layout contracts
 - Shortstat: `1 file changed, 27 insertions(+)`
 - Files:
   - `schemas/agents-deploy.schema.json`
-
-### 2026-05-31 - `3370f72`
-
-Derive deployment self-test namespace
-
-- Author: `JaredLin1217`
-- Shortstat: `4 files changed, 21 insertions(+), 3 deletions(-)`
-- Files:
-  - `docs/agents/verify.yaml`
-  - `docs/templates/agents/agents/verify.yaml`
-  - `scripts/deploy-agents-workflow.ps1`
-  - `scripts/validate.ps1`
-
-### 2026-05-31 - `bc7f3a0`
-
-Harden schema semantic contracts
-
-- Author: `JaredLin1217`
-- Shortstat: `1 file changed, 78 insertions(+), 1 deletion(-)`
-- Files:
-  - `schemas/agents-schemas.schema.json`
