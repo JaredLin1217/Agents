@@ -4,11 +4,40 @@ This file is generated from git history after public branch pushes.
 Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` instead.
 
 - Source branch: `main`
-- Source commit analyzed: `b7bc31c`
-- Source commit date: `2026-06-01T08:39:32+08:00`
+- Source commit analyzed: `2eb13c0`
+- Source commit date: `2026-06-01T10:33:39+08:00`
 - Commit window: latest 20 non-merge commits
 
 ## Recent Commits
+
+### 2026-06-01 - `2eb13c0`
+
+docs: harden multi-agent batch validation
+
+- Author: `JaredLin1217`
+- Shortstat: `16 files changed, 207 insertions(+), 87 deletions(-)`
+- Files:
+  - `docs/agents/ai-runtime.yaml`
+  - `docs/agents/schemas.yaml`
+  - `docs/agents/verify.yaml`
+  - `docs/agents/workflows.yaml`
+  - `docs/runbooks/multi-agent-workflow.md`
+  - `docs/runtime-multi-agent-validation.template.md`
+  - `docs/templates/agents/agents/ai-runtime.yaml`
+  - `docs/templates/agents/agents/schemas.yaml`
+  - `docs/templates/agents/agents/verify.yaml`
+  - `docs/templates/agents/agents/workflows.yaml`
+  - `docs/templates/agents/multi-agent-workflow.md`
+  - `docs/templates/agents/runtime-multi-agent-validation.template.md`
+
+### 2026-06-01 - `a8ad097`
+
+docs: update GitHub update log [skip ci]
+
+- Author: `github-actions[bot]`
+- Shortstat: `1 file changed, 21 insertions(+), 22 deletions(-)`
+- Files:
+  - `docs/github-updates.md`
 
 ### 2026-06-01 - `b7bc31c`
 
@@ -236,24 +265,3 @@ Harden schema semantic contracts
 - Shortstat: `1 file changed, 78 insertions(+), 1 deletion(-)`
 - Files:
   - `schemas/agents-schemas.schema.json`
-
-### 2026-05-31 - `d185d3e`
-
-Harden policy workflow schema contracts
-
-- Author: `JaredLin1217`
-- Shortstat: `3 files changed, 69 insertions(+), 4 deletions(-)`
-- Files:
-  - `schemas/agents-policy.schema.json`
-  - `schemas/agents-workflows.schema.json`
-  - `tests/agents-governance-fixtures/schema-contracts/workflows.valid.yaml`
-
-### 2026-05-31 - `0aa633d`
-
-Harden deploy and verify contracts
-
-- Author: `JaredLin1217`
-- Shortstat: `2 files changed, 73 insertions(+)`
-- Files:
-  - `schemas/agents-deploy.schema.json`
-  - `schemas/agents-verify.schema.json`
