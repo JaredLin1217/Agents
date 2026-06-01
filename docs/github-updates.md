@@ -4,11 +4,23 @@ This file is generated from git history after public branch pushes.
 Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` instead.
 
 - Source branch: `main`
-- Source commit analyzed: `b839548`
-- Source commit date: `2026-06-01T05:31:00Z`
+- Source commit analyzed: `7d8cc09`
+- Source commit date: `2026-06-01T13:35:10+08:00`
 - Commit window: latest 12 non-merge commits
 
 ## Recent Commits
+
+### 2026-06-01 - `7d8cc09`
+
+docs: compact workflow update path
+
+- Author: `JaredLin1217`
+- Shortstat: `4 files changed, 50 insertions(+), 178 deletions(-)`
+- Files:
+  - `docs/agents/workflows.yaml`
+  - `docs/github-updates.md`
+  - `docs/templates/agents/agents/workflows.yaml`
+  - `scripts/update-github-updates.ps1`
 
 ### 2026-06-01 - `b839548`
 
@@ -127,19 +139,3 @@ docs: update GitHub update log [skip ci]
 - Shortstat: `1 file changed, 27 insertions(+), 33 deletions(-)`
 - Files:
   - `docs/github-updates.md`
-
-### 2026-06-01 - `f5e3dd4`
-
-Add Apache-2.0 licensing
-
-- Author: `JaredLin1217`
-- Shortstat: `8 files changed, 228 insertions(+), 4 deletions(-)`
-- Files:
-  - `.gitattributes`
-  - `CHANGELOG.md`
-  - `LICENSE`
-  - `NOTICE`
-  - `README.md`
-  - `SECURITY.md`
-  - `docs/agents/verify.yaml`
-  - `docs/templates/agents/agents/verify.yaml`
