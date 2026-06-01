@@ -15,6 +15,8 @@ $ErrorActionPreference = "Stop"
 
 $RepoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $DeployManifestPath = Join-Path $RepoRoot "docs/agents/deploy.yaml"
+$VersionSourceRelative = "docs/agents/version.yaml"
+$VersionSourcePath = Join-Path $RepoRoot $VersionSourceRelative
 $GitignoreFragmentPath = Join-Path $RepoRoot "docs/templates/agents/gitignore.fragment"
 $DeployedFiles = New-Object System.Collections.Generic.List[string]
 $PlannedWrites = New-Object System.Collections.Generic.List[string]
@@ -80,6 +82,58 @@ function Write-Step {
     if (-not $Quiet) {
         Write-Output ("[{0}] {1}" -f $Status, $Message)
     }
+}
+
+function Get-AgentsWorkflowVersion {
+    param([string] $Path)
+
+    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
+        throw "Workflow version source is missing: $Path"
+    }
+
+    $version = $null
+    $channel = $null
+    $insideWorkflow = $false
+
+    foreach ($line in Get-Content -LiteralPath $Path) {
+        if ($line -match "^workflow:\s*$") {
+            $insideWorkflow = $true
+            continue
+        }
+        if ($insideWorkflow -and $line -match "^[A-Za-z0-9_]+:") {
+            break
+        }
+        if (-not $insideWorkflow) {
+            continue
+        }
+        if ($line -match '^\s+version:\s+"?([^"]+)"?\s*$') {
+            $version = $Matches[1]
+            continue
+        }
+        if ($line -match '^\s+channel:\s+"?([^"]+)"?\s*$') {
+            $channel = $Matches[1]
+            continue
+        }
+    }
+
+    if ([string]::IsNullOrWhiteSpace($version)) {
+        throw "Workflow version is missing in $VersionSourceRelative."
+    }
+    if ([string]::IsNullOrWhiteSpace($channel)) {
+        throw "Workflow channel is missing in $VersionSourceRelative."
+    }
+
+    return [pscustomobject]@{
+        Version = $version
+        Channel = $channel
+        Source = $VersionSourceRelative
+    }
+}
+
+function Format-AgentsWorkflowVersion {
+    param([object] $WorkflowVersion)
+
+    return ("{0} ({1})" -f $WorkflowVersion.Version, $WorkflowVersion.Channel)
 }
 
 function Get-SourceSpecificLiterals {
@@ -638,6 +692,12 @@ function Write-DeploymentReport {
     else {
         "docs/agents-workflow-deployment.md"
     }
+    $deployedVersionRelative = if ($Layout -eq "dot_agents_docs") {
+        ".agents/docs/agents/version.yaml"
+    }
+    else {
+        "docs/agents/version.yaml"
+    }
     $deployedValidationState = if ($PlanOnly) { "planned" } else { "checked" }
     $reportPath = Join-TargetPath -Root $Root -RelativePath $reportRelative
     $DeployedFiles.Add($reportRelative) | Out-Null
@@ -658,6 +718,10 @@ function Write-DeploymentReport {
         ("Upgrade: {0}" -f [bool] $Upgrade),
         ("Layout: {0}" -f $Layout),
         ("Dry run: {0}" -f [bool] $PlanOnly),
+        ("Workflow version: {0}" -f $WorkflowVersion.Version),
+        ("Workflow channel: {0}" -f $WorkflowVersion.Channel),
+        ("Version source: {0}" -f $WorkflowVersion.Source),
+        ("Deployed version file: {0}" -f $deployedVersionRelative),
         "",
         "## Deployed File Set",
         ""
@@ -678,6 +742,13 @@ function Write-DeploymentReport {
         "Record target-specific feedback in $feedbackRelative or a target-owned tracker; do not store target deployment history in the provider repo."
     }
     $reportLines += @(
+        "",
+        "## Version Alignment",
+        "",
+        ("- Provider version source: {0}" -f $WorkflowVersion.Source),
+        ("- Deployed version file: {0}" -f $deployedVersionRelative),
+        ("- Workflow version: {0}" -f $WorkflowVersion.Version),
+        ("- Workflow channel: {0}" -f $WorkflowVersion.Channel),
         "",
         "## What Changed",
         "",
@@ -1048,10 +1119,15 @@ function Invoke-DeploymentSelfTest {
     Assert-SelfTestContains -Path (Join-Path $rootTarget "docs/agents-workflow-deployment.md") -Expected "target handoff check"
     Assert-SelfTestContains -Path (Join-Path $rootTarget "docs/agents-workflow-deployment.md") -Expected "## Validation Summary"
     Assert-SelfTestContains -Path (Join-Path $rootTarget "docs/agents-workflow-deployment.md") -Expected "- Deployment path blocklist: enforced."
+    Assert-SelfTestContains -Path (Join-Path $rootTarget "docs/agents-workflow-deployment.md") -Expected ("Workflow version: {0}" -f $WorkflowVersion.Version)
+    Assert-SelfTestContains -Path (Join-Path $rootTarget "docs/agents-workflow-deployment.md") -Expected ("Workflow channel: {0}" -f $WorkflowVersion.Channel)
+    Assert-SelfTestContains -Path (Join-Path $rootTarget "docs/agents-workflow-deployment.md") -Expected "Version source: docs/agents/version.yaml"
+    Assert-SelfTestContains -Path (Join-Path $rootTarget "docs/agents-workflow-deployment.md") -Expected "- Deployed version file: docs/agents/version.yaml"
     Assert-NoSourceLiteral -Root $rootTarget
     Invoke-ChildDeployment -CommandArgs @{ TargetPath = $rootTarget; Mode = "full_workflow"; Quiet = $true }
     $currentPlan = Invoke-ChildDeploymentOutput -CommandArgs @{ TargetPath = $rootTarget; Mode = "full_workflow"; DryRun = $true }
     Assert-SelfTestTextContains -Text $currentPlan -Expected "Existing target files already current:"
+    Assert-SelfTestTextContains -Text $currentPlan -Expected ("Workflow version: {0} ({1})" -f $WorkflowVersion.Version, $WorkflowVersion.Channel)
     Assert-SelfTestTextContains -Text $currentPlan -Expected "[CURRENT] AGENTS.md"
 
     $templateProviderTarget = Join-Path $selfTestRoot "template-provider"
@@ -1081,6 +1157,7 @@ function Invoke-DeploymentSelfTest {
     Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/templates/agents/AGENTS.md"
     Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/templates/agents/agents/deploy.yaml"
     Assert-SelfTestContains -Path (Join-Path $dotTarget ".agents/docs/agents-workflow-deployment.md") -Expected "- .agents/docs/templates/agents/agents/deploy.yaml"
+    Assert-SelfTestContains -Path (Join-Path $dotTarget ".agents/docs/agents-workflow-deployment.md") -Expected "- Deployed version file: .agents/docs/agents/version.yaml"
     Assert-NoSourceLiteral -Root $dotTarget
 
     $protectedTarget = Join-Path $selfTestRoot "protected-existing"
@@ -1242,6 +1319,8 @@ function Invoke-DeploymentSelfTest {
     Write-Step "PASS" "Deployment self-test completed."
 }
 
+$WorkflowVersion = Get-AgentsWorkflowVersion -Path $VersionSourcePath
+
 if ($SelfTest) {
     Invoke-DeploymentSelfTest
     exit 0
@@ -1279,6 +1358,8 @@ $entries = Get-DeployEntries -Groups $groups
 Write-Step "INFO" ("Source repo: {0}" -f $RepoRoot)
 Write-Step "INFO" ("Target repo: {0}" -f $targetRoot)
 Write-Step "INFO" ("Mode: {0}" -f $Mode)
+Write-Step "INFO" ("Workflow version: {0}" -f (Format-AgentsWorkflowVersion -WorkflowVersion $WorkflowVersion))
+Write-Step "INFO" ("Version source: {0}" -f $WorkflowVersion.Source)
 Write-Step "INFO" ("Upgrade: {0}" -f [bool] $Upgrade)
 Write-Step "INFO" ("Layout: {0}" -f $layout)
 Write-Step "INFO" ("Dry run: {0}" -f [bool] $DryRun)

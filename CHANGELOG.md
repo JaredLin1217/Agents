@@ -4,6 +4,10 @@ All notable changes to this repository are documented here.
 
 ## Unreleased
 
+- Added deployment-time Agents workflow version extraction and deployment
+  report alignment from `docs/agents/version.yaml`.
+- Documented the current public workflow version and canonical version source
+  in the GitHub README.
 - Added Apache-2.0 licensing, project copyright attribution, and public
   warranty disclaimer.
 - Updated the tracked repository size gate for the public documentation and
