@@ -10,6 +10,12 @@ progress_updates:
 memory: {}
 multi_agent_runtime:
   do_not_trigger_for: []
+  batch_ack:
+    assignment_contract: "No side effects; stable id; compact output."
+    compact_ack_schema: '{"id":"001","ok":true,"msg":"hello"}'
+    validation: ["expected id set", "missing/duplicate/invalid-format/wrong-id", "protocol"]
+    ledger_rule: "Record batch summary plus exceptions."
+    closeout_fields: ["requested", "completed", "missing", "failed", "risk"]
   fast_spawn:
     queue_rule: "Fixture queue rule."
     close_rule: "Fixture close rule."
@@ -33,7 +39,7 @@ scoring_batches:
 handoff:
   project_id: "fixture-project"
 deployment:
-  delegated_worker: "For requests such as deploy this project to an exact target, the controller may assign a deployment_worker with one target path, one mode, dry-run/write scope, and no app-code or OS-permission repair authority."
+  delegated_worker: "For deploy-to-path requests, assign one deployment_worker with target path, mode, dry-run/write scope, and no app-code/OS-permission repair authority."
   upgrade: "Fixture dry-run first deployed_file_set rule."
 skill_authoring: {}
 maintenance:

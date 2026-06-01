@@ -957,6 +957,10 @@ function Test-AiRuntimeCompactness {
                 Add-Failure ("AI runtime compact route missing {0}: {1}" -f $needle, $path)
             }
         }
+
+        if ($content -notmatch 'multi_agent:\s*\{\s*f:\s*\[[^\]]*"docs/agents/workflows\.yaml"[^\]]*"docs/agents/schemas\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]') {
+            Add-Failure ("AI runtime multi-agent route must load workflows, schemas, and verify: {0}" -f $path)
+        }
     }
 
     foreach ($path in @("AGENTS.md", "docs/templates/agents/AGENTS.md", ".agents/skills/project-isolation-workflow/SKILL.md", "docs/templates/agents/skills/project-isolation-workflow/SKILL.md")) {
@@ -1141,6 +1145,7 @@ function Test-MultiAgentWorkflowIntegrity {
     $workflowPaths = @("docs/agents/workflows.yaml", "docs/templates/agents/agents/workflows.yaml")
     $workflowMarkers = @(
         "multi_agent_runtime:",
+        "batch_ack:",
         "do_not_trigger_for:",
         "lifecycle_checks:",
         "before:",
@@ -1177,6 +1182,8 @@ function Test-MultiAgentWorkflowIntegrity {
         "compatibility_aliases:",
         "controller_lease:",
         "runtime_multi_agent_validation:",
+        "Expected id set",
+        "Protocol result",
         "Roster snapshot version",
         "Ownership matrix status",
         "Final report matched runtime id",
@@ -1260,6 +1267,7 @@ function Test-EvidenceTemplateSchemaCoverage {
             "Assignment proof",
             "Ownership",
             "Final report",
+            "Batch proof",
             "Boundary",
             "Work result",
             "Events",

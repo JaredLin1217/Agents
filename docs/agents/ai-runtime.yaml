@@ -9,7 +9,7 @@ route:
   policy_pack_edit: { f: ["target_pair", "docs/agents/verify.yaml"], v: "policy_pack_edit" }
   git_checkpoint: { f: ["docs/agents/verify.yaml"], v: "commit_tag_checkpoint" }
   deploy_or_release: { f: ["docs/agents/deploy.yaml", "docs/agents/verify.yaml"], v: "release_deploy_push_audit" }
-  multi_agent: { f: ["docs/agents/workflows.yaml", "docs/agents/schemas.yaml"], v: "runtime_multi_agent" }
+  multi_agent: { f: ["docs/agents/workflows.yaml", "docs/agents/schemas.yaml", "docs/agents/verify.yaml"], v: "runtime_multi_agent" }
   hard_isolation: { f: ["docs/agents/policy.yaml", "docs/agents/verify.yaml"], v: "hard_isolation" }
 rules:
   - "classify->route->read f only"

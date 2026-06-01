@@ -28,6 +28,12 @@
     "startup.common_task_matrix",
     "startup.fast_classification",
     "progress_updates.cap",
+    "multi_agent_runtime.batch_ack",
+    "multi_agent_runtime.batch_ack.assignment_contract",
+    "multi_agent_runtime.batch_ack.compact_ack_schema",
+    "multi_agent_runtime.batch_ack.validation",
+    "multi_agent_runtime.batch_ack.ledger_rule",
+    "multi_agent_runtime.batch_ack.closeout_fields",
     "multi_agent_runtime.fast_spawn.queue_rule",
     "multi_agent_runtime.fast_spawn.close_rule",
     "multi_agent_runtime.fast_spawn.ledger_rule",
@@ -56,13 +62,29 @@
     },
     {
       "path": "deployment.delegated_worker",
-      "value": "For requests such as deploy this project to an exact target, the controller may assign a deployment_worker with one target path, one mode, dry-run/write scope, and no app-code or OS-permission repair authority."
+      "value": "For deploy-to-path requests, assign one deployment_worker with target path, mode, dry-run/write scope, and no app-code/OS-permission repair authority."
     }
   ],
   "x-required-contains": [
     {
       "path": "deployment.upgrade",
       "contains": ["dry-run first", "deployed_file_set"]
+    },
+    {
+      "path": "multi_agent_runtime.batch_ack.validation",
+      "contains": ["expected id set", "missing/duplicate/invalid-format/wrong-id", "protocol"]
+    },
+    {
+      "path": "multi_agent_runtime.batch_ack.compact_ack_schema",
+      "contains": ["\"id\"", "\"ok\"", "\"msg\""]
+    },
+    {
+      "path": "multi_agent_runtime.batch_ack.ledger_rule",
+      "contains": ["summary", "exceptions"]
+    },
+    {
+      "path": "multi_agent_runtime.batch_ack.closeout_fields",
+      "contains": ["requested", "completed", "missing", "failed", "risk"]
     }
   ]
 }

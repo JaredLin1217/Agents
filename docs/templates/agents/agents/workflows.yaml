@@ -2,10 +2,10 @@ schema: agents-workflows/v2
 purpose: "Compact procedures for isolation, memory, deployment, multi-agent work, handoff, skills, and maintenance."
 owns: "Task routing, progress policy, employee orchestration, handoff, scoring batches, and maintenance routing."
 
-read_first: ["AI compact route -> ai-runtime.yaml", "Task class -> common_task_matrix", "Policy/isolation/closeout -> policy.yaml", "Verification profile -> verify.yaml", "Schemas only for assignments/reports/status/templates", "mcp.yaml only when optional integrations matter", "Deployment -> deploy.yaml"]
+read_first: ["AI route -> ai-runtime.yaml", "Task class -> common_task_matrix", "Policy/isolation/closeout -> policy.yaml", "Verify -> verify.yaml", "Schemas only for forms/templates", "mcp.yaml only for optional integrations", "Deployment -> deploy.yaml"]
 
 startup:
-  controller: ["Read AGENTS.md and ai-runtime.yaml, then classify", "Answer-only with no current repo-state claim: no command", "Before edits, git/deploy actions, or worktree claims: inspect git status", "For other current-state claims: inspect only the named state", "Read only needed canonical files", "Use the smallest proof profile", "Recover/poll employees only for known active employees, explicit runtime claims, ledger entries, or edits near owned scopes"]
+  controller: ["Read AGENTS.md and ai-runtime.yaml, then classify", "Answer-only/no current-state claim: no command", "Before edits/git/deploy/worktree claims: inspect status", "Other current-state claims: inspect named state only", "Read only needed canonical files", "Use smallest proof profile", "Recover/poll only for active employees, runtime claims, ledger entries, or edits near owned scopes"]
   common_task_matrix:
     answer_only: "Reads loaded rules only; no status; no verify; compact isolation closeout."
     assigned_read_only_audit: "Assigned files only; no status unless assigned; read_only_audit."
@@ -15,12 +15,13 @@ startup:
     policy_pack_edit: "Read changed canonical/template files; changed pairs/prose gates only."
     git_checkpoint: "Changed manifest plus status_full; commit_tag_checkpoint and push result."
     deploy_or_release: "deploy.yaml plus release_deploy_push_audit."
+    multi_agent_batch_check: "High-count employee smoke/load checks; structured ack, lifecycle evidence, and runtime_multi_agent."
   fast_classification:
     answer_only: "No repo-state/git/file/runtime/deploy/memory/hard-isolation claim; answer directly."
     current_state: "Inspect only the needed state for now/current/latest/clean/dirty/online/committed/pushed/tagged/deployed/active/completed."
     scoped_edit: "Use status, read targets, patch, scoped diff, focused verification."
     policy_pack_edit: "Use policy_pack_edit profile; check changed mirror pairs only."
-    multi_agent_runtime: "Use explicit hire/delegate flow; start max available employees first."
+    multi_agent_runtime: "Use explicit hire/delegate flow; fill available slots first; batch claims require structured ack plus close proof."
     deploy_release_audit: "Use deploy.yaml plus release_deploy_push_audit."
     hard_isolation: "Do not claim beyond behavioral-only without current enforcement evidence."
     delegated_deployment: "Use deploy.yaml, one deployment_worker, exact target authorization, and deployed_file_set writes only."
@@ -51,62 +52,68 @@ multi_agent_runtime:
     explorer: "Read-only investigation."
     worker: "Bounded edits inside exclusive owned write scope."
   explorer_lightweight:
-    use_when: "session-managed read-only explorer, short-lived, no edits, no recovery need"
+    use_when: "short session-managed read-only explorer; no edits/recovery"
     assignment_schema: "explorer_brief_assignment"
     report_schema: "scoring_explorer_report for scoring/review; explorer_final_report otherwise"
-    roster: "optional unless many explorers need progress tracking or may outlive controller context"
+    roster: "optional unless many explorers need tracking or may outlive controller"
     final_cap: "8-12 lines or 150-250 words unless blocked or asked for detail"
-  controller: "Assigns, reviews, integrates, reconciles, reports."
+  controller: "Assign/review/integrate/reconcile/report."
+  batch_ack:
+    use_when: "many-employee smoke/load/protocol check or controller status validation"
+    assignment_contract: "No side effects; stable id; compact output; no file/command authority unless granted."
+    compact_ack_schema: '{"id":"001","ok":true,"msg":"hello"}'
+    validation: ["derive expected id set before spawn", "normalize received ids once", "flag missing/duplicate/invalid-format/wrong-id/failed/running/unclosed", "count requested/spawned/completed/closed", "split protocol vs deploy/edit/test success"]
+    ledger_rule: "For 2+ active employees, record one summary plus exceptions; per-agent events only for recovery/resume."
+    closeout_fields: ["requested", "spawned", "completed", "closed", "missing", "duplicate", "invalid_format", "failed", "risk"]
   fast_spawn:
-    prework: ["Run one controller git status when git/worktree state or edits matter", "Prepare one reusable short brief per role type", "Do not re-read all runbooks per employee"]
-    queue_rule: "Fill the runtime's current maximum active slots, keep remaining employees queued, and refill immediately when any employee completes or is closed."
-    wait_rule: "Wait only when the next controller step needs results; otherwise continue non-overlapping controller work."
-    close_rule: "Close completed employees as soon as their final report is recorded; launch the next queued employee in the freed slot."
-    history_cleanup_rule: "Plain close requests close runtime only; sidebar/history cleanup needs explicit cleanup wording or exact authorization."
-    dismissal_cleanup_rule: "After explicit employee dismissal/cleanup wording, treat current-project closed subagent sidebar/history cleanup and zero-hit verification as the standard finish step."
-    ledger_rule: "Append hired/report/closed/integrated events to the project-local ledger when recovery matters."
+    prework: ["Run one controller git status when git/worktree state or edits matter", "Prepare one short brief per role type", "For batch ack, precompute expected id set and schema", "Do not re-read all runbooks per employee"]
+    queue_rule: "Fill current active slots, queue the rest, and refill when an employee completes or closes."
+    wait_rule: "Wait only when the next controller step needs results."
+    close_rule: "Close after final report; launch next queued employee in the freed slot."
+    history_cleanup_rule: "Plain close closes runtime only; sidebar/history cleanup needs explicit cleanup wording or exact authorization."
+    dismissal_cleanup_rule: "With explicit cleanup wording, clean current-project closed subagent residue and verify zero hits."
+    ledger_rule: "Append hired/report/closed/integrated events when recovery matters; for batch ack record batch summary and exceptions."
   lifecycle_checks:
-    before: ["Confirm employee use is explicit", "Define role/read/write/command/report/close fields", "Verify exclusive normalized worker write scopes"]
-    during: ["Poll only when controller progress needs results", "Record reports once with report_dedupe", "Stop expansion at convergence or cap"]
-    after: ["Close completed runtimes after reports", "Run authorized dismissal cleanup before clean-roster claims", "Reconcile git status and owned scopes before integration claims", "Leave ledger/runtime state ignored and unstaged"]
+    before: ["Confirm explicit employee use", "Define role/read/write/command/report/close fields", "Verify exclusive normalized worker write scopes", "Record batch expected id set/schema when applicable"]
+    during: ["Poll only when controller progress needs results", "Record reports once with report_dedupe", "Track batch ids/formats/failures/unclosed separately", "Stop expansion at convergence or cap"]
+    after: ["Close completed runtimes after reports", "Run authorized dismissal cleanup before clean-roster claims", "Reconcile batch expected/received/completed/closed before success claims", "Reconcile git status/owned scopes before integration claims", "Leave ledger/runtime state ignored and unstaged"]
   ownership:
     required_for: "any worker, two active employees, or controller edits near employee scopes"
     normalize: "repo-relative, normalized separators, containment-aware, case-insensitive where needed"
     hard_fail: ["overlapping or contained active worker write scopes", "worker changes outside owned scope", "controller edits active worker scope before poll/release/reconcile"]
   roster:
     project_local_ledger: ".agents/runtime/agent-ledger.jsonl"
-    ledger_purpose: "Ignored repo-local JSONL employee lifecycle ledger; advisory, not Codex's official runtime DB, not deployable, and not XR/XW."
+    ledger_purpose: "Ignored repo-local JSONL lifecycle ledger; advisory, not Codex runtime DB, not deployable, not XR/XW."
     ledger_events: ["initialized", "hired", "started", "report", "completed", "blocked", "stopped", "closed", "shutdown", "integrated", "reconciled"]
-    ledger_writer: "Controller appends JSONL events; employees only when granted the exact ledger path."
+    ledger_writer: "Controller appends JSONL; employees only when assignment grants exact ledger path."
     ledger_git_rule: "Never stage, commit, deploy, or copy .agents/runtime/**."
-    ledger_missing_or_cleared: "Recover from runtime notifications, git status, final reports, and temp cache; missing ledger does not invalidate current evidence."
+    ledger_missing_or_cleared: "Recover from runtime notices, status, reports, and temp cache; missing ledger does not void current evidence."
     temp_cache: "%TEMP%/codex-agent-status/<project-id>/"
     temp_cache_purpose: "External fallback for app restarts, multiple controllers, or insufficient ledger."
-    required_when: ["two or more employees are active", "employee may outlive controller/session", "manual-detached/cloud mode", "worker writes", "ownership changes", "later resume likely"]
+    required_when: ["2+ active employees", "batch status validation or many-employee smoke checks", "employee may outlive controller/session", "manual-detached/cloud mode", "worker writes", "ownership changes", "later resume likely"]
     employee_access: "Only exact path/action granted by assignment."
     controller_access: "Allowed for coordination when required; report XR/XW once with exact temp path."
-    missing_or_cleared: "Recover from runtime notifications, git status, and final reports; temp cache is advisory."
     git_rule: "Never stage/commit volatile roster, events, leases, or filled validation records."
     micro_batch_exception: "Short session-managed read-only scoring may skip roster if no recovery/status claim is needed."
   runtime:
     completion: "Final report is completion notification."
     close: "Close by exact runtime id before history cleanup."
-    official_controls_first: "Prefer close_agent/runtime close, then official app-server status/archive/unsubscribe checks when available."
+    official_controls_first: "Prefer runtime close, then official status/archive/unsubscribe checks when available."
     official_status_checks: ["thread/list with cwd and subAgent sourceKinds", "thread/loaded/list", "runtime close tool result"]
     official_delete_limit: "No official hard-delete thread API is assumed."
-    refresh_limit: "If official lists/persisted state are clean but sidebar still shows residue, reload/restart UI before more cleanup."
-    dismissal_cleanup_standard: "For employee dismissal cleanup, back up the active state DB, match only closed subagent ids under the current repo cwd, clean exact sidebar/history residue, run DB integrity verification, then verify zero remaining matches."
-    quiet_cleanup: "Close target ids, verify exact current-project subagent matches, delete matching state/history rows/files, verify zero hits, append one ledger summary, report compact result."
+    refresh_limit: "If official lists/state are clean but sidebar still shows residue, reload/restart UI before more cleanup."
+    dismissal_cleanup_standard: "For employee cleanup, back up state DB, match closed subagent ids under current repo cwd, clean exact residue, check DB, verify zero matches."
+    quiet_cleanup: "Close target ids, verify current-project subagent matches, delete matching state/history rows/files, verify zero hits, append one summary."
     history_cleanup: "External cleanup after runtime close; needs explicit cleanup wording or exact authorization."
-    history_cleanup_scope: "Delete active DB rows and matching subagent rollout history only for closed subagent ids under current repo cwd."
+    history_cleanup_scope: "Delete active DB rows and matching rollout history only for closed subagent ids under current repo cwd."
     orphan_cleanup_scope: "Delete orphan thread_spawn_edges only when both endpoints are missing and cleanup was requested."
     post_cleanup_ui_rule: "When restart clears cleaned sidebar residue, record UI refresh result and stop."
-    offline_cache_cleanup: "Only after exact residue survives reload/restart and user gives explicit shutdown/cache-cleanup authorization."
-    history_cleanup_never: ["do not delete parent/controller/user threads", "do not clean unrelated project cwd", "do not delete non-subagent rollout files", "do not use ledger-only ids", "do not claim UI refresh while Codex Desktop may hold live memory"]
+    offline_cache_cleanup: "Only after exact residue survives reload/restart and explicit shutdown/cache-cleanup authorization."
+    history_cleanup_never: ["do not delete parent/controller/user threads", "do not clean unrelated cwd", "do not delete non-subagent rollout files", "do not use ledger-only ids", "do not claim UI refresh while desktop memory may be live"]
   report_dedupe:
-    report_hash: "Hash normalized agent, runtime id, task, status, score/findings, and changed files."
+    report_hash: "Hash normalized agent, runtime id, task, status, score/findings, changed files."
     dedupe_key: "agent + runtime id + event + roster snapshot version + report hash"
-    duplicate_rule: "After recording a matching final report once, do not re-read or reprocess identical reports."
+    duplicate_rule: "After recording a matching final report once, do not re-read/reprocess identical reports."
     loop_guard: "Stop polling after 3 unchanged polls or 5 minutes for session-managed explorers; retry close at most 2 times."
 
 scoring_batches:
@@ -129,7 +136,7 @@ scoring_batches:
     dedupe_by: "scope + root cause + proposed fix"
     top_limits: "top 5 issues, top 5 fixes, up to 3 dissent notes"
     duplicate_rule: "Count repeated findings as confidence, not separate issues."
-    final_cap: "600-900 words for large batches unless user asks for full detail."
+    final_cap: "600-900 words unless user asks for full detail."
 
 handoff:
   project_id: "lowercase repo root, normalize separators, replace non a-z/0-9 with hyphen, collapse/trim hyphens"
@@ -141,7 +148,7 @@ handoff:
 
 deployment:
   rule: "Use docs/agents/deploy.yaml for authorized targets; source repo must not store target status/history/commits/remotes/results."
-  delegated_worker: "For requests such as deploy this project to an exact target, the controller may assign a deployment_worker with one target path, one mode, dry-run/write scope, and no app-code or OS-permission repair authority."
+  delegated_worker: "For deploy-to-path requests, assign one deployment_worker with target path, mode, dry-run/write scope, and no app-code/OS-permission repair authority."
   upgrade: "Treat upgrades as allowlisted redeployments: dry-run first, preserve target-owned state, and update only deployed_file_set."
 
 skill_authoring:
@@ -150,7 +157,7 @@ skill_authoring:
   rules: ["requires matching folder/frontmatter name, $skill default_prompt, 25-64 char short_description, and allow_implicit_invocation"]
 
 maintenance:
-  local_permission_boundary: ["Do not run OS permission, ownership, ACL, or .git metadata repair commands as an automated project flow", "If Git cannot write .git metadata, report a local workspace blocker", "Resume Git actions only after user confirms writable repo or clean writable clone"]
+  local_permission_boundary: ["Do not run OS permission, ownership, ACL, or .git repair flows", "If Git cannot write metadata, report local workspace blocker", "Resume Git only after user confirms writable repo or clean clone"]
   verification_profiles:
     fast_turn: "answer-only/scoped ordinary work; no command for answer-only without current-state claim"
     policy_pack_edit: "changed files and mirror pairs only unless broader claim"
@@ -158,7 +165,7 @@ maintenance:
     release_deploy_push_audit: "release/deploy/protected-main-push/broad audit/no-deduction only"
     runtime_multi_agent: "only with real employee runtime evidence"
     hard_isolation: "only with verified enforcement evidence"
-  local_only: [".agents/runtime/", ".codex/config.toml", ".codex/environments/environment.toml", "docs/agent-status.md", "docs/agent-events/", "docs/tmp-approval-*/", "docs/hard-isolation-evidence/", "docs/runtime-multi-agent-validation/", ".agents/docs/agent-status.md", ".agents/docs/agent-events/", ".agents/docs/tmp-approval-*/", ".agents/docs/hard-isolation-evidence/", ".agents/docs/runtime-multi-agent-validation/"]
+  local_only: "Use verify.file_classes.runtime_local as the single source; never stage/deploy/copy."
 
 closeout:
   compact_when: "answer-only with no files/current-state/external/git/deploy/runtime/hard-isolation/durable-knowledge claim"

@@ -29,6 +29,15 @@ sidebar/history cleanup and zero-hit verification before claiming the roster is
 clean. Reconcile git status and owned scopes, and keep `.agents/runtime/**`,
 temp roster, status, and filled validation records unstaged and undeployed.
 
+## Batch Validation
+
+For smoke/load batches, precompute the expected id set and compact ack schema
+before launch. Capture requested, spawned, completed, and closed counts; then
+normalize received ids once and separate missing, duplicate, invalid-format,
+wrong-id, failed, running, and unclosed results. Report protocol success
+separately from deploy, edit, or test success, and do not claim closed employees
+without close results or official runtime status.
+
 ## Close And Cleanup
 
 Runtime close comes first; DB deletion is never a substitute. Sidebar/history

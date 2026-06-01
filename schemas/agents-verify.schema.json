@@ -22,6 +22,7 @@
     "no_deduction_audit",
     "coverage_gates",
     "live_employee_validation",
+    "batch_employee_validation",
     "release_appendix",
     "drift_checks"
   ],
@@ -53,6 +54,7 @@
     "coverage_gates.slim_policy_pack",
     "minimum_evidence.deploy_clean",
     "live_employee_validation.required",
+    "batch_employee_validation.required",
     "drift_checks.exact_pairs",
     "release_appendix.provider_repo_checks"
   ],
@@ -81,7 +83,11 @@
     },
     {
       "path": "minimum_evidence.runtime_multi_agent",
-      "contains": ["real runtime id", "assignment/report match", "git status"]
+      "contains": ["real runtime id", "assignment/report match", "git status", "expected/received/closed reconciliation"]
+    },
+    {
+      "path": "batch_employee_validation.required",
+      "contains": ["expected id set created before dispatch", "missing/duplicate/invalid-format checks", "protocol smoke success"]
     },
     {
       "path": "minimum_evidence.hard_isolation",
