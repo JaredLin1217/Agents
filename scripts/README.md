@@ -20,6 +20,12 @@ Release-audit command:
 .\scripts\validate.ps1 -Full
 ```
 
+Release-package export command:
+
+```powershell
+.\scripts\export-release-package.ps1
+```
+
 Deployment dry-run command:
 
 ```powershell
@@ -58,6 +64,13 @@ branch.
 The `-Full` mode adds release-audit gates for diff hygiene, deployment
 safety/self-test, template/schema/skill/CI integrity, P0-P5 evidence, and size
 budgets.
+
+The release-package exporter writes a versioned package outside the repo and
+creates `release-manifest.json` with the workflow version, source commit,
+included file list, file hashes, and package hash. It excludes `.git`,
+`.agents/runtime`, local Codex configuration, local environment configuration,
+status records, evidence records, approval scratch files, and runtime validation
+records.
 
 Schema files define compact repo-local contracts. The validator enforces the
 required top-level keys, nested paths, required values, and fixture cases needed

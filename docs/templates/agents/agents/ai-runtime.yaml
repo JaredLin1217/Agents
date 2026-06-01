@@ -10,12 +10,11 @@ route:
   git_checkpoint: { f: ["docs/agents/verify.yaml"], v: "commit_tag_checkpoint" }
   deploy_or_release: { f: ["docs/agents/deploy.yaml", "docs/agents/verify.yaml"], v: "release_deploy_push_audit" }
   multi_agent: { f: ["docs/agents/workflows.yaml", "docs/agents/schemas.yaml", "docs/agents/verify.yaml"], v: "runtime_multi_agent" }
+  enterprise_dispatch: { f: ["docs/agents/org.yaml", "docs/agents/model-policy.yaml", "docs/agents/dispatch.yaml", "docs/agents/workflows.yaml", "docs/agents/schemas.yaml", "docs/agents/verify.yaml"], v: "enterprise_dispatch" }
   hard_isolation: { f: ["docs/agents/policy.yaml", "docs/agents/verify.yaml"], v: "hard_isolation" }
 rules:
   - "classify->route->read f only"
   - "canonical YAML wins"
   - "Do not load docs/templates/agents/**"
-  - "runbooks only if unclear"
   - "Never stage, deploy, or copy runtime_local"
 closeout: "Isolation: GM <used/not used> | GS <used/not used> | XR <none/paths> | XW <none/paths>"
-expand: { w: "docs/agents/workflows.yaml", p: "docs/agents/policy.yaml", v: "docs/agents/verify.yaml", d: "docs/agents/deploy.yaml", s: "docs/agents/schemas.yaml", m: "docs/agents/mcp.yaml", ver: "docs/agents/version.yaml" }

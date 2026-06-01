@@ -1,0 +1,79 @@
+schema: agents-dispatch/v2
+purpose: "Enterprise two-layer dispatch protocol for controller, leaders, and workers."
+owns: "Controller assignment, internal dispatch, worker reporting, department report, and escalation records."
+
+protocol:
+  name: enterprise_dispatch
+  overlay: "optional"
+  controller_target_rule: "Controller assigns only to department leaders."
+  leader_internal_rule: "Department leaders choose internal workers and scopes."
+  simple_task_rule: "Do not trigger this overlay for answer-only, ordinary scoped edits, or plain deploy flow."
+
+controller_assignment:
+  target: "department leader"
+  required_fields:
+    assignment_id: ""
+    department: ""
+    leader_role: ""
+    objective: ""
+    authority: "read-only | write-scope | deploy-scope | review-only"
+    owned_scope: ""
+    verification_profile: ""
+    model_tier: ""
+    report_back: "department_report"
+  forbidden: "Controller does not assign worker tasks directly when enterprise_dispatch is active."
+
+department_internal_dispatch:
+  owner: "department leader"
+  allowed_targets: "allowed_worker_roles from docs/agents/org.yaml"
+  required_fields:
+    parent_assignment_id: ""
+    worker_role: ""
+    task: ""
+    scope: ""
+    authority: ""
+    model_tier: ""
+    expected_output: ""
+  rule: "Leader must keep worker scopes non-overlapping and compatible with the controller assignment."
+
+worker_report_policy:
+  normal_target: "department leader"
+  direct_to_controller: "forbidden unless an escalation_record is included."
+  completion: "Worker reports completed, blocked, or stopped to the leader."
+  evidence: "Worker reports files inspected, files changed, verification, risks, and isolation."
+
+department_report:
+  target: "controller"
+  required_fields:
+    assignment_id: ""
+    department: ""
+    leader_role: ""
+    worker_count: ""
+    objective_result: "completed | partial | blocked | stopped"
+    integrated_summary: ""
+    files_changed: ""
+    verification: ""
+    risks: ""
+    escalations: ""
+    isolation: ""
+  rule: "Controller integrates only department reports, not raw worker chatter, unless escalation requires it."
+
+escalation_record:
+  trigger_when: "Worker exception, authority conflict, unverifiable result, model mismatch, security issue, or blocked leader decision."
+  target: "department leader first; controller only when leader path is blocked or direct escalation is required."
+  required_fields:
+    escalation_id: ""
+    assignment_id: ""
+    department: ""
+    reporter_role: ""
+    reason: ""
+    requested_decision: ""
+    evidence: ""
+    risk_level: "low | medium | high"
+    model_tier_used: ""
+    minimum_required_tier: ""
+
+validation:
+  leader_reference_rule: "controller_assignment.department and leader_role must match docs/agents/org.yaml."
+  model_tier_rule: "controller_assignment.model_tier and internal dispatch model_tier must exist in docs/agents/model-policy.yaml."
+  worker_bypass_rule: "A worker direct report to controller is invalid without escalation_record."

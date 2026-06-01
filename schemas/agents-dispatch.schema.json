@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "agents-dispatch.schema.json",
+  "title": "Agents enterprise dispatch protocol",
+  "type": "object",
+  "required": [
+    "schema",
+    "purpose",
+    "owns",
+    "protocol",
+    "controller_assignment",
+    "department_internal_dispatch",
+    "worker_report_policy",
+    "department_report",
+    "escalation_record",
+    "validation"
+  ],
+  "properties": {
+    "schema": {
+      "const": "agents-dispatch/v2"
+    }
+  },
+  "x-required-paths": [
+    "protocol.name",
+    "protocol.controller_target_rule",
+    "protocol.leader_internal_rule",
+    "protocol.simple_task_rule",
+    "controller_assignment.target",
+    "controller_assignment.required_fields.department",
+    "controller_assignment.required_fields.leader_role",
+    "controller_assignment.required_fields.model_tier",
+    "controller_assignment.required_fields.report_back",
+    "department_internal_dispatch.required_fields.worker_role",
+    "department_internal_dispatch.required_fields.model_tier",
+    "worker_report_policy.direct_to_controller",
+    "department_report.required_fields.department",
+    "department_report.required_fields.leader_role",
+    "department_report.required_fields.worker_count",
+    "department_report.required_fields.verification",
+    "department_report.required_fields.risks",
+    "department_report.required_fields.escalations",
+    "department_report.required_fields.isolation",
+    "escalation_record.required_fields.reason",
+    "escalation_record.required_fields.model_tier_used",
+    "escalation_record.required_fields.minimum_required_tier",
+    "validation.leader_reference_rule",
+    "validation.model_tier_rule",
+    "validation.worker_bypass_rule"
+  ],
+  "x-required-values": [
+    {
+      "path": "protocol.name",
+      "value": "enterprise_dispatch"
+    },
+    {
+      "path": "controller_assignment.target",
+      "value": "department leader"
+    }
+  ],
+  "x-required-contains": [
+    {
+      "path": "protocol.controller_target_rule",
+      "contains": ["department leaders"]
+    },
+    {
+      "path": "worker_report_policy.direct_to_controller",
+      "contains": ["forbidden", "escalation_record"]
+    },
+    {
+      "path": "validation.worker_bypass_rule",
+      "contains": ["escalation_record"]
+    }
+  ]
+}

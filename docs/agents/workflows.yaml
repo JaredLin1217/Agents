@@ -16,12 +16,14 @@ startup:
     git_checkpoint: "Changed manifest, status_full, commit_tag_checkpoint, push result."
     deploy_or_release: "deploy.yaml plus release_deploy_push_audit."
     multi_agent_batch_check: "Structured ack, lifecycle evidence, runtime_multi_agent."
+    enterprise_dispatch: "Organization dispatch uses department leaders only; expand org/model-policy/dispatch."
   fast_classification:
     answer_only: "No repo/git/file/runtime/deploy/memory/hard-isolation claim."
     current_state: "Inspect named now/current/latest/clean/dirty/online/committed/pushed/tagged/deployed/active/completed."
     scoped_edit: "Status, target read, patch, scoped diff, focused verify."
     policy_pack_edit: "Use policy_pack_edit; changed mirror pairs only."
     multi_agent_runtime: "Explicit hire/delegate; fill slots; success needs ack + close proof."
+    enterprise_dispatch: "Use only for organization-style dispatch, department commands, staff delegation, or model tier binding."
     deploy_release_audit: "Use deploy.yaml + release_deploy_push_audit."
     hard_isolation: "Claim behavioral-only unless enforcement is verified."
     delegated_deployment: "Use deploy.yaml; one deployment_worker; exact target auth; deployed_file_set writes only."
@@ -107,6 +109,17 @@ multi_agent_runtime:
     dedupe_key: "agent + runtime id + event + roster snapshot version + report hash"
     duplicate_rule: "Record matching final report once; do not reprocess duplicates."
     loop_guard: "Stop after 3 unchanged polls or 5 minutes; close retry max 2."
+
+enterprise_dispatch_runtime:
+  trigger_when: "Organization-style dispatch, department command, employee delegation, or model tier binding."
+  do_not_trigger_for: ["answer-only", "ordinary scoped edit", "plain deploy without department command"]
+  controller_assignment: "Controller assigns only department leaders with department, leader_role, objective, authority, owned_scope, verification_profile, model_tier, and report_back."
+  department_leader_dispatch: "Leader may split internal work only to allowed worker roles and owns merge before controller report."
+  internal_workers: "Workers report to their department leader unless escalation_record is required."
+  department_report: "Leader returns one integrated department report with assignment_id, department, leader_role, worker_count, result, verification, risks, escalations, and isolation."
+  model_policy: "Use tier names from model-policy; concrete model mapping is replaceable."
+  escalation: "Create escalation_record for worker bypass, scope violation, unverifiable result, missing tier, model mismatch, or blocked authority."
+  validation: "Verify department exists, leader matches org, tier exists, worker role is allowed, and direct worker-to-controller report has escalation_record."
 
 scoring_batches:
   use_when: "explicit employee/review scoring or many-agent eval"

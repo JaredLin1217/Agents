@@ -35,6 +35,7 @@
     "upgrade_policy.preserve_target_owned",
     "upgrade_policy.rollback",
     "delegation.worker_role",
+    "delegation.enterprise_dispatch_rule",
     "delegation.large_batch_rule",
     "delegation.controller_rule",
     "delegation.worker_rule"
@@ -72,7 +73,11 @@
     },
     {
       "path": "readiness_ladder.P4",
-      "contains": ["Release audit profile", "hard-isolation claim boundaries", "size gates"]
+      "contains": ["Release audit profile", "release package export", "hard-isolation claim boundaries", "size gates"]
+    },
+    {
+      "path": "delegation.enterprise_dispatch_rule",
+      "contains": ["department leaders", "department reports"]
     },
     {
       "path": "readiness_ladder.P5",

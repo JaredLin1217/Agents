@@ -3,8 +3,10 @@ purpose: "Fixture for a valid workflow document."
 owns: "Fixture ownership text."
 read_first: []
 startup:
-  common_task_matrix: {}
-  fast_classification: {}
+  common_task_matrix:
+    enterprise_dispatch: "Use only for organization, department, employee dispatch, or model binding work."
+  fast_classification:
+    enterprise_dispatch: "Read enterprise files only when the task names department dispatch."
 progress_updates:
   cap: "Fixture update cap."
 memory: {}
@@ -36,6 +38,16 @@ scoring_batches:
   validity_outcomes: "Fixture validity outcomes."
   aggregation:
     cap_rule: "Fixture cap rule."
+enterprise_dispatch_runtime:
+  trigger_when: ["department dispatch", "model binding"]
+  do_not_trigger_for: ["answer-only", "single scoped edit"]
+  controller_assignment: "Controller sends assignments only to department leaders."
+  department_leader_dispatch: "Department leaders own worker split, checks, and summary."
+  internal_workers: "Workers report to the department leader."
+  department_report: "Leader reports summary, result, risks, and evidence to controller."
+  model_policy: "Use tier names before replaceable concrete model IDs."
+  escalation: "Create escalation_record for direct controller reports or unverified work."
+  validation: "Require department, leader, model tier, report target, and escalation_record rules."
 handoff:
   project_id: "fixture-project"
 deployment:

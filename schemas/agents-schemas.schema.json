@@ -8,6 +8,11 @@
     "purpose",
     "owns",
     "assignment",
+    "enterprise_assignment",
+    "department_internal_dispatch",
+    "department_report",
+    "model_tier",
+    "escalation_record",
     "explorer_brief_assignment",
     "explorer_final_report",
     "scoring_explorer_report",
@@ -36,6 +41,16 @@
     "assignment.required_fields.Role",
     "assignment.required_fields.Ownership",
     "assignment.required_fields.Ledger path",
+    "enterprise_assignment.required_fields",
+    "enterprise_assignment.target_rule",
+    "department_internal_dispatch.owner",
+    "department_internal_dispatch.required_fields",
+    "department_report.required_fields",
+    "department_report.target_rule",
+    "model_tier.required_fields",
+    "model_tier.rule",
+    "escalation_record.required_fields",
+    "escalation_record.rule",
     "explorer_brief_assignment.preset_rule",
     "scoring_rollup_report.aggregation_rule",
     "report_validation.score_rule",
@@ -89,39 +104,51 @@
   "x-required-contains": [
     {
       "path": "explorer_brief_assignment.preset_rule",
-      "values": [
+      "contains": [
         "read-only/scoring explorers",
         "Do not include ownership matrix"
       ]
     },
     {
       "path": "report_validation.score_rule",
-      "values": [
+      "contains": [
         "numeric 0-100"
       ]
     },
     {
       "path": "report_validation.isolation_rule",
-      "values": [
+      "contains": [
         "GM, GS, XR, and XW"
       ]
     },
     {
+      "path": "enterprise_assignment.target_rule",
+      "contains": [
+        "department leader"
+      ]
+    },
+    {
+      "path": "escalation_record.rule",
+      "contains": [
+        "escalation_record"
+      ]
+    },
+    {
       "path": "agent_ledger_event.status",
-      "values": [
+      "contains": [
         "repo-local ignored runtime state",
         "not Codex official runtime DB"
       ]
     },
     {
       "path": "agent_ledger_event.storage_rule",
-      "values": [
+      "contains": [
         "Never stage, commit, deploy, or copy .agents/runtime/**"
       ]
     },
     {
       "path": "runtime_multi_agent_validation.storage_rule",
-      "values": [
+      "contains": [
         "local scratch"
       ]
     }

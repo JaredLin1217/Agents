@@ -167,9 +167,16 @@ function Test-RequiredFiles {
         "docs/agents/deploy.yaml",
         "docs/agents/mcp.yaml",
         "docs/agents/version.yaml",
+        "docs/agents/org.yaml",
+        "docs/agents/model-policy.yaml",
+        "docs/agents/dispatch.yaml",
+        "schemas/agents-org.schema.json",
+        "schemas/agents-model-policy.schema.json",
+        "schemas/agents-dispatch.schema.json",
         ".agents/skills/project-isolation-workflow/SKILL.md",
         "docs/project-structure.md",
-        "scripts/deploy-agents-workflow.ps1"
+        "scripts/deploy-agents-workflow.ps1",
+        "scripts/export-release-package.ps1"
     )
 
     foreach ($path in $required) {
@@ -375,7 +382,10 @@ function Test-SchemaContracts {
         @{ Yaml = "docs/agents/schemas.yaml"; Schema = "schemas/agents-schemas.schema.json" },
         @{ Yaml = "docs/agents/deploy.yaml"; Schema = "schemas/agents-deploy.schema.json" },
         @{ Yaml = "docs/agents/mcp.yaml"; Schema = "schemas/agents-mcp.schema.json" },
-        @{ Yaml = "docs/agents/version.yaml"; Schema = "schemas/agents-version.schema.json" }
+        @{ Yaml = "docs/agents/version.yaml"; Schema = "schemas/agents-version.schema.json" },
+        @{ Yaml = "docs/agents/org.yaml"; Schema = "schemas/agents-org.schema.json" },
+        @{ Yaml = "docs/agents/model-policy.yaml"; Schema = "schemas/agents-model-policy.schema.json" },
+        @{ Yaml = "docs/agents/dispatch.yaml"; Schema = "schemas/agents-dispatch.schema.json" }
     )
 
     foreach ($contract in $contracts) {
@@ -661,6 +671,9 @@ function Test-ExactPairs {
         @("docs/agents/mcp.yaml", "docs/templates/agents/agents/mcp.yaml"),
         @("docs/agents/version.yaml", "docs/templates/agents/agents/version.yaml"),
         @("docs/agents/verify.yaml", "docs/templates/agents/agents/verify.yaml"),
+        @("docs/agents/org.yaml", "docs/templates/agents/agents/org.yaml"),
+        @("docs/agents/model-policy.yaml", "docs/templates/agents/agents/model-policy.yaml"),
+        @("docs/agents/dispatch.yaml", "docs/templates/agents/agents/dispatch.yaml"),
         @("docs/runbooks/agents-deployment.md", "docs/templates/agents/agents-deployment.md"),
         @("docs/runbooks/isolation-audit.md", "docs/templates/agents/isolation-audit.md"),
         @("docs/runbooks/multi-agent-workflow.md", "docs/templates/agents/multi-agent-workflow.md"),
@@ -717,6 +730,9 @@ function Test-TemplateCoverage {
         "docs/templates/agents/agents/mcp.yaml",
         "docs/templates/agents/agents/version.yaml",
         "docs/templates/agents/agents/verify.yaml",
+        "docs/templates/agents/agents/org.yaml",
+        "docs/templates/agents/agents/model-policy.yaml",
+        "docs/templates/agents/agents/dispatch.yaml",
         "docs/templates/agents/agents-deployment.md",
         "docs/templates/agents/isolation-audit.md",
         "docs/templates/agents/multi-agent-workflow.md",
@@ -934,6 +950,10 @@ function Test-AiRuntimeCompactness {
         "git_checkpoint",
         "deploy_or_release",
         "multi_agent",
+        "enterprise_dispatch",
+        "docs/agents/org.yaml",
+        "docs/agents/model-policy.yaml",
+        "docs/agents/dispatch.yaml",
         "hard_isolation",
         "Do not load docs/templates/agents/**",
         "Never stage, deploy, or copy runtime_local"
@@ -961,6 +981,9 @@ function Test-AiRuntimeCompactness {
         if ($content -notmatch 'multi_agent:\s*\{\s*f:\s*\[[^\]]*"docs/agents/workflows\.yaml"[^\]]*"docs/agents/schemas\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]') {
             Add-Failure ("AI runtime multi-agent route must load workflows, schemas, and verify: {0}" -f $path)
         }
+        if ($content -notmatch 'enterprise_dispatch:\s*\{\s*f:\s*\[[^\]]*"docs/agents/org\.yaml"[^\]]*"docs/agents/model-policy\.yaml"[^\]]*"docs/agents/dispatch\.yaml"[^\]]*"docs/agents/workflows\.yaml"[^\]]*"docs/agents/schemas\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]') {
+            Add-Failure ("AI runtime enterprise dispatch route must load org, model-policy, dispatch, workflows, schemas, and verify: {0}" -f $path)
+        }
     }
 
     foreach ($path in @("AGENTS.md", "docs/templates/agents/AGENTS.md", ".agents/skills/project-isolation-workflow/SKILL.md", "docs/templates/agents/skills/project-isolation-workflow/SKILL.md")) {
@@ -977,6 +1000,139 @@ function Test-AiRuntimeCompactness {
 
     if ($Failures.Count -eq $startFailureCount) {
         Add-Pass "AI runtime compact route checks passed."
+    }
+}
+
+function Test-EnterpriseDispatchIntegrity {
+    $startFailureCount = $Failures.Count
+    $orgPath = Get-RepoPath "docs/agents/org.yaml"
+    $modelPath = Get-RepoPath "docs/agents/model-policy.yaml"
+    $dispatchPath = Get-RepoPath "docs/agents/dispatch.yaml"
+
+    if (-not ((Test-Path -LiteralPath $orgPath -PathType Leaf) -and (Test-Path -LiteralPath $modelPath -PathType Leaf) -and (Test-Path -LiteralPath $dispatchPath -PathType Leaf))) {
+        Add-Failure "Enterprise dispatch canonical files are incomplete."
+        return
+    }
+
+    $org = Get-LightweightYamlPathValues -File (Get-Item -LiteralPath $orgPath)
+    $model = Get-LightweightYamlPathValues -File (Get-Item -LiteralPath $modelPath)
+    $dispatch = Get-LightweightYamlPathValues -File (Get-Item -LiteralPath $dispatchPath)
+    $tiers = @("low_fast", "quick_code", "code_standard", "senior_review", "principal")
+    $departments = [ordered]@{
+        executive_office = "executive_lead"
+        pmo = "pmo_lead"
+        architecture = "architecture_lead"
+        engineering = "engineering_lead"
+        devops = "devops_lead"
+        qa = "qa_lead"
+        security = "security_lead"
+        documentation = "documentation_lead"
+        provider_management = "provider_management_lead"
+    }
+
+    foreach ($department in $departments.Keys) {
+        $leader = $departments[$department]
+        foreach ($suffix in @("leader_role", "allowed_worker_roles", "report_target", "default_responsibility")) {
+            $path = "departments.{0}.{1}" -f $department, $suffix
+            if (-not $org.ContainsKey($path)) {
+                Add-Failure ("Enterprise org missing department field: {0}" -f $path)
+            }
+        }
+        if ($org.ContainsKey("departments.$department.leader_role") -and $org["departments.$department.leader_role"] -ne $leader) {
+            Add-Failure ("Enterprise org leader mismatch for {0}." -f $department)
+        }
+        if ($org.ContainsKey("departments.$department.report_target") -and $org["departments.$department.report_target"] -ne "controller") {
+            Add-Failure ("Enterprise org report target must be controller: {0}" -f $department)
+        }
+        if (-not $org.ContainsKey("leader_registry.$leader.department")) {
+            Add-Failure ("Enterprise org missing leader registry entry: {0}" -f $leader)
+        }
+        elseif ($org["leader_registry.$leader.department"] -ne $department) {
+            Add-Failure ("Enterprise org leader registry department mismatch: {0}" -f $leader)
+        }
+        $leaderTierPath = "leader_registry.$leader.default_model_tier"
+        if (-not $org.ContainsKey($leaderTierPath)) {
+            Add-Failure ("Enterprise org missing leader default tier: {0}" -f $leader)
+        }
+        elseif ($tiers -notcontains $org[$leaderTierPath]) {
+            Add-Failure ("Enterprise org references unknown leader default tier: {0}" -f $org[$leaderTierPath])
+        }
+        $bindingPath = "department_bindings.$department"
+        if (-not $model.ContainsKey($bindingPath)) {
+            Add-Failure ("Model policy missing department binding: {0}" -f $department)
+        }
+        elseif ($tiers -notcontains $model[$bindingPath]) {
+            Add-Failure ("Model policy department binding references unknown tier: {0}" -f $department)
+        }
+    }
+
+    foreach ($tier in $tiers) {
+        foreach ($suffix in @("capability", "risk_limit")) {
+            $path = "tiers.{0}.{1}" -f $tier, $suffix
+            if (-not $model.ContainsKey($path)) {
+                Add-Failure ("Model policy missing tier field: {0}" -f $path)
+            }
+        }
+        if (-not $model.ContainsKey("model_mapping.$tier")) {
+            Add-Failure ("Model policy missing replaceable model mapping for tier: {0}" -f $tier)
+        }
+    }
+
+    if (-not $model.ContainsKey("model_mapping.replaceable") -or $model["model_mapping.replaceable"] -ne "true") {
+        Add-Failure "Model policy must mark model_mapping.replaceable as true."
+    }
+    foreach ($path in @("risk_rules.high_risk_min_tier", "risk_rules.release_min_tier", "risk_rules.deploy_write_min_tier", "risk_rules.code_write_min_tier", "risk_rules.read_only_batch_default")) {
+        if (-not $model.ContainsKey($path)) {
+            Add-Failure ("Model policy missing risk tier path: {0}" -f $path)
+        }
+        elseif ($tiers -notcontains $model[$path]) {
+            Add-Failure ("Model policy risk rule references unknown tier at {0}: {1}" -f $path, $model[$path])
+        }
+    }
+
+    if (-not $dispatch.ContainsKey("protocol.name") -or $dispatch["protocol.name"] -ne "enterprise_dispatch") {
+        Add-Failure "Dispatch protocol name must be enterprise_dispatch."
+    }
+    if (-not $dispatch.ContainsKey("controller_assignment.target") -or $dispatch["controller_assignment.target"] -ne "department leader") {
+        Add-Failure "Controller assignment target must be department leader."
+    }
+    foreach ($field in @("department", "leader_role", "model_tier", "report_back")) {
+        $path = "controller_assignment.required_fields.$field"
+        if (-not $dispatch.ContainsKey($path)) {
+            Add-Failure ("Dispatch controller assignment missing required field: {0}" -f $field)
+        }
+    }
+    if ($dispatch.ContainsKey("controller_assignment.required_fields.report_back") -and $dispatch["controller_assignment.required_fields.report_back"] -ne "department_report") {
+        Add-Failure "Dispatch controller assignment must report back with department_report."
+    }
+    if (-not $dispatch.ContainsKey("worker_report_policy.direct_to_controller") -or -not $dispatch["worker_report_policy.direct_to_controller"].Contains("forbidden") -or -not $dispatch["worker_report_policy.direct_to_controller"].Contains("escalation_record")) {
+        Add-Failure "Dispatch worker direct-to-controller policy must require escalation_record."
+    }
+    if (-not $dispatch.ContainsKey("validation.worker_bypass_rule") -or -not $dispatch["validation.worker_bypass_rule"].Contains("escalation_record")) {
+        Add-Failure "Dispatch validation worker bypass rule must require escalation_record."
+    }
+
+    $routeChecks = @(
+        @("docs/agents/workflows.yaml", "enterprise_dispatch_runtime"),
+        @("docs/agents/schemas.yaml", "enterprise_assignment"),
+        @("docs/agents/schemas.yaml", "department_report"),
+        @("docs/agents/schemas.yaml", "model_tier"),
+        @("docs/agents/schemas.yaml", "escalation_record"),
+        @("docs/agents/verify.yaml", "enterprise_dispatch"),
+        @("docs/agents/deploy.yaml", "docs/templates/agents/agents/org.yaml"),
+        @("docs/agents/deploy.yaml", "docs/templates/agents/agents/model-policy.yaml"),
+        @("docs/agents/deploy.yaml", "docs/templates/agents/agents/dispatch.yaml"),
+        @("docs/agents/ai-runtime.yaml", "enterprise_dispatch")
+    )
+    foreach ($check in $routeChecks) {
+        $content = Get-Content -LiteralPath (Get-RepoPath $check[0]) -Raw
+        if (-not $content.Contains($check[1])) {
+            Add-Failure ("Enterprise dispatch marker is missing in {0}: {1}" -f $check[0], $check[1])
+        }
+    }
+
+    if ($Failures.Count -eq $startFailureCount) {
+        Add-Pass "Enterprise dispatch integrity checks passed."
     }
 }
 
@@ -1403,11 +1559,14 @@ function Test-ReadinessLadderEvidence {
             Evidence = @(
                 @("docs/agents/version.yaml", "P3:"),
                 @("docs/agents/deploy.yaml", "deployment_worker"),
+                @("docs/agents/workflows.yaml", "enterprise_dispatch_runtime"),
+                @("docs/agents/dispatch.yaml", "department_report"),
                 @("docs/agents/workflows.yaml", "ownership:"),
                 @("docs/agents/workflows.yaml", "ledger_missing_or_cleared"),
                 @("docs/agents/workflows.yaml", "before:"),
                 @("docs/agents/workflows.yaml", "during:"),
                 @("docs/agents/workflows.yaml", "after:"),
+                @("scripts/validate.ps1", "Test-EnterpriseDispatchIntegrity"),
                 @("scripts/validate.ps1", "Test-MultiAgentWorkflowIntegrity"),
                 @("scripts/validate.ps1", "Test-AgentLedgerCompatibility")
             )
@@ -1419,6 +1578,8 @@ function Test-ReadinessLadderEvidence {
                 @("docs/agents/verify.yaml", "release_deploy_push_audit"),
                 @("docs/agents/verify.yaml", "runtime_multi_agent"),
                 @("docs/agents/verify.yaml", "hard_isolation"),
+                @("scripts/export-release-package.ps1", "release-manifest.json"),
+                @("scripts/validate.ps1", "Test-ReleasePackageExport"),
                 @("scripts/validate.ps1", "Test-SizeGates"),
                 @("scripts/validate.ps1", "Test-EvidenceTemplateSchemaCoverage"),
                 @("scripts/validate.ps1", "Test-CIWorkflowStability"),
@@ -1569,6 +1730,129 @@ function Test-SizeGates {
     }
 }
 
+function Test-ReleasePackageExport {
+    $startFailureCount = $Failures.Count
+    $leaf = Split-Path -Leaf $RepoRoot.Path
+    $projectId = ($leaf.ToLowerInvariant() -replace "[^a-z0-9]+", "-").Trim("-")
+    if ([string]::IsNullOrWhiteSpace($projectId)) {
+        $projectId = "agents"
+    }
+    $validationRoot = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), "codex-agent-status", $projectId, "release-export-validation")
+
+    $previousErrorActionPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        $output = & (Get-RepoPath "scripts/export-release-package.ps1") -OutputPath $validationRoot -Quiet 2>&1
+        $exitCode = if ($null -eq $LASTEXITCODE) { 0 } else { $LASTEXITCODE }
+    }
+    finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+
+    if ($exitCode -ne 0) {
+        Add-Failure "Release package export failed."
+        foreach ($line in $output) {
+            Add-Failure ("Release package export detail: {0}" -f $line)
+        }
+        return
+    }
+    if (@($output).Count -gt 0) {
+        Add-Failure "Release package export quiet mode produced output."
+        foreach ($line in $output) {
+            Add-Failure ("Release package export quiet output: {0}" -f $line)
+        }
+    }
+
+    $versionValues = Get-LightweightYamlPathValues -File (Get-Item -LiteralPath (Get-RepoPath "docs/agents/version.yaml"))
+    $version = [string] $versionValues["workflow.version"]
+    $packageRoot = Join-Path $validationRoot ("jared-ai-team-v{0}" -f $version)
+    $manifestPath = Join-Path $packageRoot "release-manifest.json"
+    if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
+        Add-Failure "Release package manifest is missing."
+        return
+    }
+
+    try {
+        $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+    }
+    catch {
+        Add-Failure "Release package manifest is not valid JSON."
+        return
+    }
+
+    if ([string] $manifest.version -ne $version) {
+        Add-Failure ("Release package manifest version mismatch. Expected {0}; found {1}." -f $version, $manifest.version)
+    }
+    if ([string]::IsNullOrWhiteSpace([string] $manifest.package_hash)) {
+        Add-Failure "Release package manifest package_hash is empty."
+    }
+    if ([int] $manifest.file_count -le 0) {
+        Add-Failure "Release package manifest file_count must be positive."
+    }
+
+    $requiredFiles = @(
+        "docs/agents/org.yaml",
+        "docs/agents/model-policy.yaml",
+        "docs/agents/dispatch.yaml"
+    )
+    $manifestPaths = @($manifest.files | ForEach-Object { [string] $_.path })
+    foreach ($requiredFile in $requiredFiles) {
+        if ($manifestPaths -notcontains $requiredFile) {
+            Add-Failure ("Release package is missing required file: {0}" -f $requiredFile)
+        }
+        if (-not (Test-Path -LiteralPath (Join-Path $packageRoot ($requiredFile -replace "/", [System.IO.Path]::DirectorySeparatorChar)) -PathType Leaf)) {
+            Add-Failure ("Release package physical file is missing: {0}" -f $requiredFile)
+        }
+    }
+
+    $blockedExact = @(
+        ".codex/config.toml",
+        ".codex/environments/environment.toml",
+        "docs/agent-status.md",
+        ".agents/docs/agent-status.md"
+    )
+    $blockedPrefix = @(
+        ".git/",
+        ".agents/runtime/",
+        "docs/agent-events/",
+        ".agents/docs/agent-events/",
+        "docs/tmp-approval-",
+        ".agents/docs/tmp-approval-",
+        "docs/hard-isolation-evidence/",
+        ".agents/docs/hard-isolation-evidence/",
+        "docs/runtime-multi-agent-validation/",
+        ".agents/docs/runtime-multi-agent-validation/"
+    )
+    foreach ($path in $manifestPaths) {
+        $rel = $path.ToLowerInvariant()
+        if ($blockedExact -contains $rel) {
+            Add-Failure ("Release package manifest includes blocked local path: {0}" -f $path)
+        }
+        foreach ($prefix in $blockedPrefix) {
+            if ($rel.StartsWith($prefix)) {
+                Add-Failure ("Release package manifest includes blocked local path: {0}" -f $path)
+            }
+        }
+    }
+
+    $blockedPhysical = @(
+        ".git",
+        ".agents/runtime",
+        ".codex/config.toml",
+        ".codex/environments/environment.toml"
+    )
+    foreach ($blocked in $blockedPhysical) {
+        $fullPath = Join-Path $packageRoot ($blocked -replace "/", [System.IO.Path]::DirectorySeparatorChar)
+        if (Test-Path -LiteralPath $fullPath) {
+            Add-Failure ("Release package contains blocked local path: {0}" -f $blocked)
+        }
+    }
+
+    if ($Failures.Count -eq $startFailureCount) {
+        Add-Pass "Release package export checks passed."
+    }
+}
+
 function Test-FullAuditGates {
     Test-GitDiffCheck
     Test-LineEndings
@@ -1585,6 +1869,7 @@ function Test-FullAuditGates {
     Test-CIWorkflowStability
     Test-ReadinessLadderEvidence
     Test-SizeGates
+    Test-ReleasePackageExport
 }
 
 Push-Location $RepoRoot
@@ -1622,6 +1907,8 @@ try {
     if ($Failures.Count -eq 0) {
         Add-Pass "Canonical YAML files match initial schema contracts."
     }
+
+    Test-EnterpriseDispatchIntegrity
 
     Test-ValidationFixtures
     if ($Failures.Count -eq 0) {

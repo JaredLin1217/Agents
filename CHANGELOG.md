@@ -4,6 +4,23 @@ All notable changes to this repository are documented here.
 
 ## Unreleased
 
+## 2.1.0 - 2026-06-01
+
+- Added the Enterprise Dispatch Layer with canonical organization, model policy,
+  and dispatch YAML files.
+- Added controller-to-department-leader assignment, leader-owned internal
+  dispatch, department reports, and escalation record rules.
+- Added tier-first model policy so departments bind to capability tiers before
+  replaceable concrete model IDs.
+- Added enterprise dispatch schema contracts, template mirrors, deployment file
+  coverage, and validation checks.
+- Added clean release package export with manifest version, commit, file list,
+  file hashes, package hash, and local-state exclusions.
+- Updated public version documentation to `2.1.0` while preserving V2
+  compatibility.
+
+## 2.0.0 - 2026-06-01
+
 - Added deployment-time Agents workflow version extraction and deployment
   report alignment from `docs/agents/version.yaml`.
 - Documented the current public workflow version and canonical version source

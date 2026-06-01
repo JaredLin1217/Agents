@@ -12,6 +12,7 @@
     "progress_updates",
     "memory",
     "multi_agent_runtime",
+    "enterprise_dispatch_runtime",
     "scoring_batches",
     "handoff",
     "deployment",
@@ -26,7 +27,9 @@
   },
   "x-required-paths": [
     "startup.common_task_matrix",
+    "startup.common_task_matrix.enterprise_dispatch",
     "startup.fast_classification",
+    "startup.fast_classification.enterprise_dispatch",
     "progress_updates.cap",
     "multi_agent_runtime.batch_ack",
     "multi_agent_runtime.batch_ack.assignment_contract",
@@ -45,6 +48,15 @@
     "multi_agent_runtime.roster.temp_cache",
     "multi_agent_runtime.roster.required_when",
     "multi_agent_runtime.report_dedupe.dedupe_key",
+    "enterprise_dispatch_runtime.trigger_when",
+    "enterprise_dispatch_runtime.do_not_trigger_for",
+    "enterprise_dispatch_runtime.controller_assignment",
+    "enterprise_dispatch_runtime.department_leader_dispatch",
+    "enterprise_dispatch_runtime.internal_workers",
+    "enterprise_dispatch_runtime.department_report",
+    "enterprise_dispatch_runtime.model_policy",
+    "enterprise_dispatch_runtime.escalation",
+    "enterprise_dispatch_runtime.validation",
     "scoring_batches",
     "scoring_batches.validity_outcomes",
     "scoring_batches.aggregation.cap_rule",
@@ -85,6 +97,14 @@
     {
       "path": "multi_agent_runtime.batch_ack.closeout_fields",
       "contains": ["requested", "completed", "missing", "failed", "risk"]
+    },
+    {
+      "path": "enterprise_dispatch_runtime.controller_assignment",
+      "contains": ["department leaders"]
+    },
+    {
+      "path": "enterprise_dispatch_runtime.validation",
+      "contains": ["escalation_record"]
     }
   ]
 }

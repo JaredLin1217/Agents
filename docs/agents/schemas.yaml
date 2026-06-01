@@ -33,6 +33,28 @@ assignment:
     Status event rule: "not allowed | controller records | employee append-only event at exact path"
     Boundary note: ""
 
+enterprise_assignment:
+  use_when: "enterprise_dispatch route"
+  required_fields: ["assignment_id", "department", "leader_role", "objective", "authority", "owned_scope", "verification_profile", "model_tier", "report_back"]
+  target_rule: "Controller assignment targets department leader only."
+
+department_internal_dispatch:
+  owner: "department leader"
+  required_fields: ["parent_assignment_id", "worker_role", "task", "scope", "authority", "model_tier", "expected_output"]
+  rule: "Worker role must be allowed by org.yaml for the department."
+
+department_report:
+  required_fields: ["assignment_id", "department", "leader_role", "worker_count", "objective_result", "integrated_summary", "files_changed", "verification", "risks", "escalations", "isolation"]
+  target_rule: "Department leader reports one integrated result to controller."
+
+model_tier:
+  required_fields: ["tier", "capability", "risk_limit", "replaceable_model_mapping"]
+  rule: "Use tier references from model-policy.yaml; model ids are replaceable."
+
+escalation_record:
+  required_fields: ["escalation_id", "assignment_id", "department", "reporter_role", "reason", "requested_decision", "evidence", "risk_level", "model_tier_used", "minimum_required_tier"]
+  rule: "Direct worker-to-controller report requires escalation_record."
+
 explorer_brief_assignment:
   use_when: "session-managed read-only explorer with no edits and no recovery requirement"
   fields: ["Agent", "Mode", "Role=explorer", "Runtime enforcement=behavioral-only unless verified", "Goal", "Read scope", "Forbidden scope", "Required project-local skills", "Edit permission=none", "Allowed tool/resource use", "Verification", "Final report requirements", "Isolation requirements"]
