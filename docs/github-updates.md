@@ -4,11 +4,36 @@ This file is generated from git history after public branch pushes.
 Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` instead.
 
 - Source branch: `main`
-- Source commit analyzed: `45d8fd1`
-- Source commit date: `2026-06-01T20:05:54+08:00`
+- Source commit analyzed: `eab91a4`
+- Source commit date: `2026-06-01T21:47:17+08:00`
 - Commit window: latest 12 non-merge commits
 
 ## Recent Commits
+
+### 2026-06-01 - `eab91a4`
+
+feat: strengthen enterprise dispatch workflow
+
+- Author: `JaredLin1217`
+- Shortstat: `19 files changed, 835 insertions(+), 197 deletions(-)`
+- Files:
+  - `README.md`
+  - `docs/agents/ai-runtime.yaml`
+  - `docs/agents/dispatch.yaml`
+  - `docs/agents/model-policy.yaml`
+  - `docs/agents/schemas.yaml`
+  - `docs/agents/verify.yaml`
+  - `docs/agents/workflows.yaml`
+  - `docs/templates/agents/agents/ai-runtime.yaml`
+
+### 2026-06-01 - `aec4671`
+
+docs: update GitHub update log [skip ci]
+
+- Author: `github-actions[bot]`
+- Shortstat: `1 file changed, 27 insertions(+), 21 deletions(-)`
+- Files:
+  - `docs/github-updates.md`
 
 ### 2026-06-01 - `45d8fd1`
 
@@ -123,30 +148,5 @@ docs: update GitHub update log [skip ci]
 
 - Author: `github-actions[bot]`
 - Shortstat: `1 file changed, 31 insertions(+), 23 deletions(-)`
-- Files:
-  - `docs/github-updates.md`
-
-### 2026-06-01 - `2eb13c0`
-
-docs: harden multi-agent batch validation
-
-- Author: `JaredLin1217`
-- Shortstat: `16 files changed, 207 insertions(+), 87 deletions(-)`
-- Files:
-  - `docs/agents/ai-runtime.yaml`
-  - `docs/agents/schemas.yaml`
-  - `docs/agents/verify.yaml`
-  - `docs/agents/workflows.yaml`
-  - `docs/runbooks/multi-agent-workflow.md`
-  - `docs/runtime-multi-agent-validation.template.md`
-  - `docs/templates/agents/agents/ai-runtime.yaml`
-  - `docs/templates/agents/agents/schemas.yaml`
-
-### 2026-06-01 - `a8ad097`
-
-docs: update GitHub update log [skip ci]
-
-- Author: `github-actions[bot]`
-- Shortstat: `1 file changed, 21 insertions(+), 22 deletions(-)`
 - Files:
   - `docs/github-updates.md`
