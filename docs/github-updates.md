@@ -4,11 +4,30 @@ This file is generated from git history after public branch pushes.
 Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` instead.
 
 - Source branch: `main`
-- Source commit analyzed: `2796e76`
-- Source commit date: `2026-06-01T08:35:03+08:00`
+- Source commit analyzed: `b7bc31c`
+- Source commit date: `2026-06-01T08:39:32+08:00`
 - Commit window: latest 20 non-merge commits
 
 ## Recent Commits
+
+### 2026-06-01 - `b7bc31c`
+
+Validate public version alignment
+
+- Author: `JaredLin1217`
+- Shortstat: `2 files changed, 36 insertions(+)`
+- Files:
+  - `CHANGELOG.md`
+  - `scripts/validate.ps1`
+
+### 2026-06-01 - `a2c56be`
+
+docs: update GitHub update log [skip ci]
+
+- Author: `github-actions[bot]`
+- Shortstat: `1 file changed, 22 insertions(+), 24 deletions(-)`
+- Files:
+  - `docs/github-updates.md`
 
 ### 2026-06-01 - `2796e76`
 
@@ -238,23 +257,3 @@ Harden deploy and verify contracts
 - Files:
   - `schemas/agents-deploy.schema.json`
   - `schemas/agents-verify.schema.json`
-
-### 2026-05-31 - `21a242f`
-
-Tighten v2 version contract
-
-- Author: `JaredLin1217`
-- Shortstat: `1 file changed, 27 insertions(+), 1 deletion(-)`
-- Files:
-  - `schemas/agents-version.schema.json`
-
-### 2026-05-31 - `0024f87`
-
-Validate deployment self-test scenarios
-
-- Author: `JaredLin1217`
-- Shortstat: `3 files changed, 52 insertions(+), 2 deletions(-)`
-- Files:
-  - `docs/agents/deploy.yaml`
-  - `docs/templates/agents/agents/deploy.yaml`
-  - `scripts/validate.ps1`
