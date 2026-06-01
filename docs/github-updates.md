@@ -4,11 +4,36 @@ This file is generated from git history after public branch pushes.
 Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` instead.
 
 - Source branch: `main`
-- Source commit analyzed: `7d8cc09`
-- Source commit date: `2026-06-01T13:35:10+08:00`
+- Source commit analyzed: `cdef6fc`
+- Source commit date: `2026-06-01T18:49:19+08:00`
 - Commit window: latest 12 non-merge commits
 
 ## Recent Commits
+
+### 2026-06-01 - `cdef6fc`
+
+Tighten no-backup subagent cleanup rules
+
+- Author: `JaredLin1217`
+- Shortstat: `10 files changed, 44 insertions(+), 36 deletions(-)`
+- Files:
+  - `.agents/skills/project-isolation-workflow/SKILL.md`
+  - `docs/agents/policy.yaml`
+  - `docs/agents/schemas.yaml`
+  - `docs/agents/workflows.yaml`
+  - `docs/runbooks/multi-agent-workflow.md`
+  - `docs/templates/agents/agents/policy.yaml`
+  - `docs/templates/agents/agents/schemas.yaml`
+  - `docs/templates/agents/agents/workflows.yaml`
+
+### 2026-06-01 - `2f6659b`
+
+docs: update GitHub update log [skip ci]
+
+- Author: `github-actions[bot]`
+- Shortstat: `1 file changed, 14 insertions(+), 18 deletions(-)`
+- Files:
+  - `docs/github-updates.md`
 
 ### 2026-06-01 - `7d8cc09`
 
@@ -117,25 +142,5 @@ docs: update GitHub update log [skip ci]
 
 - Author: `github-actions[bot]`
 - Shortstat: `1 file changed, 22 insertions(+), 24 deletions(-)`
-- Files:
-  - `docs/github-updates.md`
-
-### 2026-06-01 - `2796e76`
-
-Align Agents workflow version reporting
-
-- Author: `JaredLin1217`
-- Shortstat: `3 files changed, 94 insertions(+)`
-- Files:
-  - `CHANGELOG.md`
-  - `README.md`
-  - `scripts/deploy-agents-workflow.ps1`
-
-### 2026-06-01 - `29dc8a4`
-
-docs: update GitHub update log [skip ci]
-
-- Author: `github-actions[bot]`
-- Shortstat: `1 file changed, 27 insertions(+), 33 deletions(-)`
 - Files:
   - `docs/github-updates.md`
