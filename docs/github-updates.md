@@ -4,11 +4,27 @@ This file is generated from git history after public branch pushes.
 Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` instead.
 
 - Source branch: `main`
-- Source commit analyzed: `c6693aa`
-- Source commit date: `2026-06-01T08:09:43+08:00`
+- Source commit analyzed: `e972d01`
+- Source commit date: `2026-06-01T08:17:41+08:00`
 - Commit window: latest 20 non-merge commits
 
 ## Recent Commits
+
+### 2026-06-01 - `e972d01`
+
+Add automatic GitHub update documentation
+
+- Author: `JaredLin1217`
+- Shortstat: `8 files changed, 571 insertions(+)`
+- Files:
+  - `.github/workflows/README.md`
+  - `.github/workflows/public-updates.yml`
+  - `CHANGELOG.md`
+  - `README.md`
+  - `docs/github-updates.md`
+  - `scripts/README.md`
+  - `scripts/commit-github-updates.ps1`
+  - `scripts/update-github-updates.ps1`
 
 ### 2026-06-01 - `c6693aa`
 
@@ -250,13 +266,3 @@ Harden v2 deployment validation
   - `docs/agents/verify.yaml`
   - `docs/agents/workflows.yaml`
   - `docs/runbooks/multi-agent-workflow.md`
-
-### 2026-05-31 - `9d1f00f`
-
-Use redirected checkpoint runner
-
-- Author: `JaredLin1217`
-- Shortstat: `2 files changed, 3 insertions(+), 3 deletions(-)`
-- Files:
-  - `.github/workflows/checkpoint.yml`
-  - `scripts/validate.ps1`
