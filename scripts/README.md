@@ -8,6 +8,12 @@ Current command:
 .\scripts\validate.ps1
 ```
 
+Public update document command:
+
+```powershell
+.\scripts\update-github-updates.ps1
+```
+
 Release-audit command:
 
 ```powershell
@@ -39,6 +45,15 @@ package dependencies and runs focused checks for lightweight YAML syntax,
 workflow YAML syntax, required file references, schema contracts, validation
 fixtures, placeholder scans, durable English-only rules, and
 runtime/source-state boundaries.
+
+The public update entry point writes `docs/github-updates.md` from recent git
+history. It is used by `.github/workflows/public-updates.yml` after branch
+pushes and escapes non-ASCII commit text as ASCII codepoint markers so durable
+documentation remains compatible with the English-only gate.
+
+The GitHub Actions commit helper stages only `docs/github-updates.md`, commits
+when that generated document changed, and pushes the update back to the same
+branch.
 
 The `-Full` mode adds release-audit gates for diff hygiene, deployment
 safety/self-test, template/schema/skill/CI integrity, P0-P5 evidence, and size

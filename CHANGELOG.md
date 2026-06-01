@@ -4,6 +4,8 @@ All notable changes to this repository are documented here.
 
 ## Unreleased
 
+- Added push automation that regenerates the public GitHub update log from git
+  history and commits it back after validation.
 - Expanded public GitHub documentation for project purpose, quick start,
   deployment, validation, support, security, and contribution workflow.
 - Added public issue and pull request templates.
