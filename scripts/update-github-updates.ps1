@@ -1,8 +1,8 @@
 [CmdletBinding()]
 param(
     [string]$OutputPath = "docs/github-updates.md",
-    [int]$MaxCommits = 20,
-    [int]$MaxFilesPerCommit = 12,
+    [int]$MaxCommits = 12,
+    [int]$MaxFilesPerCommit = 8,
     [string]$SourceRef = "HEAD",
     [string]$BranchName = ""
 )
