@@ -4,11 +4,35 @@ This file is generated from git history after public branch pushes.
 Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` instead.
 
 - Source branch: `main`
-- Source commit analyzed: `7c0be77`
-- Source commit date: `2026-06-01T12:58:10+08:00`
+- Source commit analyzed: `cbc0172`
+- Source commit date: `2026-06-01T13:30:25+08:00`
 - Commit window: latest 20 non-merge commits
 
 ## Recent Commits
+
+### 2026-06-01 - `cbc0172`
+
+docs: harden multi-agent cleanup workflow
+
+- Author: `JaredLin1217`
+- Shortstat: `7 files changed, 194 insertions(+), 216 deletions(-)`
+- Files:
+  - `docs/agents/workflows.yaml`
+  - `docs/runtime-multi-agent-validation.template.md`
+  - `docs/templates/agents/agents/schemas.yaml`
+  - `docs/templates/agents/agents/verify.yaml`
+  - `docs/templates/agents/agents/workflows.yaml`
+  - `docs/templates/agents/runtime-multi-agent-validation.template.md`
+  - `docs/templates/agents/skills/project-isolation-workflow/SKILL.md`
+
+### 2026-06-01 - `174fa7a`
+
+docs: update GitHub update log [skip ci]
+
+- Author: `github-actions[bot]`
+- Shortstat: `1 file changed, 23 insertions(+), 23 deletions(-)`
+- Files:
+  - `docs/github-updates.md`
 
 ### 2026-06-01 - `7c0be77`
 
@@ -247,21 +271,3 @@ Verify deployed gitignore runtime coverage
 - Files:
   - `scripts/deploy-agents-workflow.ps1`
   - `scripts/validate.ps1`
-
-### 2026-05-31 - `1c1956a`
-
-Harden verification evidence contracts
-
-- Author: `JaredLin1217`
-- Shortstat: `1 file changed, 12 insertions(+)`
-- Files:
-  - `schemas/agents-verify.schema.json`
-
-### 2026-05-31 - `cde76c7`
-
-Harden deploy schema layout contracts
-
-- Author: `JaredLin1217`
-- Shortstat: `1 file changed, 27 insertions(+)`
-- Files:
-  - `schemas/agents-deploy.schema.json`
