@@ -4,11 +4,36 @@ This file is generated from git history after public branch pushes.
 Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` instead.
 
 - Source branch: `main`
-- Source commit analyzed: `cdef6fc`
-- Source commit date: `2026-06-01T18:49:19+08:00`
+- Source commit analyzed: `45d8fd1`
+- Source commit date: `2026-06-01T20:05:54+08:00`
 - Commit window: latest 12 non-merge commits
 
 ## Recent Commits
+
+### 2026-06-01 - `45d8fd1`
+
+feat: add enterprise dispatch layer
+
+- Author: `JaredLin1217`
+- Shortstat: `33 files changed, 1458 insertions(+), 50 deletions(-)`
+- Files:
+  - `CHANGELOG.md`
+  - `README.md`
+  - `docs/agents/ai-runtime.yaml`
+  - `docs/agents/deploy.yaml`
+  - `docs/agents/dispatch.yaml`
+  - `docs/agents/model-policy.yaml`
+  - `docs/agents/org.yaml`
+  - `docs/agents/schemas.yaml`
+
+### 2026-06-01 - `e7431ba`
+
+docs: update GitHub update log [skip ci]
+
+- Author: `github-actions[bot]`
+- Shortstat: `1 file changed, 27 insertions(+), 22 deletions(-)`
+- Files:
+  - `docs/github-updates.md`
 
 ### 2026-06-01 - `cdef6fc`
 
@@ -123,24 +148,5 @@ docs: update GitHub update log [skip ci]
 
 - Author: `github-actions[bot]`
 - Shortstat: `1 file changed, 21 insertions(+), 22 deletions(-)`
-- Files:
-  - `docs/github-updates.md`
-
-### 2026-06-01 - `b7bc31c`
-
-Validate public version alignment
-
-- Author: `JaredLin1217`
-- Shortstat: `2 files changed, 36 insertions(+)`
-- Files:
-  - `CHANGELOG.md`
-  - `scripts/validate.ps1`
-
-### 2026-06-01 - `a2c56be`
-
-docs: update GitHub update log [skip ci]
-
-- Author: `github-actions[bot]`
-- Shortstat: `1 file changed, 22 insertions(+), 24 deletions(-)`
 - Files:
   - `docs/github-updates.md`
