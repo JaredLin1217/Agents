@@ -1037,6 +1037,7 @@ function Invoke-DeploymentSelfTest {
     $rootTarget = Join-Path $selfTestRoot "root-docs"
     Invoke-ChildDeployment -CommandArgs @{ TargetPath = $rootTarget; Mode = "full_workflow"; CreateTarget = $true; Quiet = $true }
     Assert-SelfTestFile -Root $rootTarget -RelativePath "AGENTS.md"
+    Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents/ai-runtime.yaml"
     Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents/workflows.yaml"
     Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/deployment-feedback.template.md"
     Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents-workflow-deployment.md"
@@ -1066,6 +1067,7 @@ function Invoke-DeploymentSelfTest {
     Set-Content -LiteralPath (Join-Path $dotTarget "AGENTS.md") -Value "Route to .agents/docs/agents." -Encoding utf8
     Invoke-ChildDeployment -CommandArgs @{ TargetPath = $dotTarget; Mode = "core_bootstrap"; Upgrade = $true; Quiet = $true }
     Assert-SelfTestFile -Root $dotTarget -RelativePath "AGENTS.md"
+    Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/agents/ai-runtime.yaml"
     Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/agents/workflows.yaml"
     Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/agents-workflow-deployment.md"
     Invoke-ChildDeployment -CommandArgs @{ TargetPath = $dotTarget; Mode = "full_workflow"; Upgrade = $true; Quiet = $true }

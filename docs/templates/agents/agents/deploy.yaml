@@ -87,6 +87,8 @@ deployable_by_mode:
       to: ".gitignore append/adapt"
     - from: "docs/templates/agents/agents/policy.yaml"
       to: "docs/agents/policy.yaml"
+    - from: "docs/templates/agents/agents/ai-runtime.yaml"
+      to: "docs/agents/ai-runtime.yaml"
     - from: "docs/templates/agents/agents/workflows.yaml"
       to: "docs/agents/workflows.yaml"
     - from: "docs/templates/agents/agents/schemas.yaml"

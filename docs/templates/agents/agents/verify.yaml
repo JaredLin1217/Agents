@@ -42,6 +42,7 @@ commands:
   changed_manifest: "git diff --name-only plus git diff --cached --name-only, de-duplicated"
   checkpoint_bundle: "status, diff_check, changed_manifest, changed-file prose/line-ending/pair gates, optional size gates, and no staged runtime/local files"
   full_audit_bundle: ".\\scripts\\validate.ps1 -Full"
+  ai_runtime_compact: "docs/agents/ai-runtime.yaml and template mirror stay under 1536 bytes, declare expand_only, route core task classes, and are referenced by AGENTS.md and project skill."
   changed_english: 'rg -n "[\p{Han}]" <changed durable rule/template files>'
   changed_placeholders: 'rg -n "TO[D]O|\[TO[D]O\]|T[B]D|FI[X]ME" <changed durable rule/template files>'
   line_endings: "git ls-files --eol <changed files>"
@@ -100,11 +101,11 @@ profiles:
 size_gates:
   unit: "bytes; 1 KiB = 1024 bytes"
   targets:
-    AGENTS.md: 10240
-    project_skill: 10240
-    canonical_agents_yaml: 20480
-    script_ps1: 65536
-    tracked_repo_kib: 384
+    AGENTS.md: 2048
+    project_skill: 1792
+    canonical_agents_yaml: 16384
+    script_ps1: 64512
+    tracked_repo_kib: 350
   tracked_rule: "Ignored/untracked files do not count; intended new files count before commit."
 
 claim_scopes:
@@ -133,7 +134,7 @@ live_employee_validation:
   required: ["explicit user hire/spawn/delegation/parallel-agent request", "runtime id/nickname/mode/role/task", "ledger or roster path/version/permissions when required", "assignment includes ledger/roster, status-event, final-report, and ownership fields", "final report matches runtime id and required fields", "ledger or poll/report/close/reconciled evidence has matching snapshot version", "git status proves no out-of-scope changes", "history cleanup authorization recorded as none/not requested unless explicitly authorized"]
 
 drift_checks:
-  exact_pairs: ["docs and docs/templates mirror: assignment/status/event/lease/evidence/memory/deployment feedback templates, AGENTS.md, project skill files, agents yaml, runbooks"]
+  exact_pairs: ["docs and docs/templates mirror: assignment/status/event/lease/evidence/memory/deployment feedback templates, AGENTS.md, project skill files, ai-runtime, agents yaml, runbooks"]
   template_specific_cleanliness_files: ["docs/templates/agents/README.md", "docs/templates/agents/gitignore.fragment", "docs/templates/agents/project-memory.md", "docs/templates/agents/project-structure.md", "docs/templates/agents/memory-index.md"]
 
 release_appendix:

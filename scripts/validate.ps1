@@ -159,6 +159,7 @@ function Test-LightweightYaml {
 function Test-RequiredFiles {
     $required = @(
         "AGENTS.md",
+        "docs/agents/ai-runtime.yaml",
         "docs/agents/workflows.yaml",
         "docs/agents/policy.yaml",
         "docs/agents/verify.yaml",
@@ -624,6 +625,7 @@ function Test-ExactPairs {
         @(".agents/skills/project-isolation-workflow/agents/openai.yaml", "docs/templates/agents/skills/project-isolation-workflow/agents/openai.yaml"),
         @("AGENTS.md", "docs/templates/agents/AGENTS.md"),
         @(".agents/skills/project-isolation-workflow/SKILL.md", "docs/templates/agents/skills/project-isolation-workflow/SKILL.md"),
+        @("docs/agents/ai-runtime.yaml", "docs/templates/agents/agents/ai-runtime.yaml"),
         @("docs/agents/policy.yaml", "docs/templates/agents/agents/policy.yaml"),
         @("docs/agents/workflows.yaml", "docs/templates/agents/agents/workflows.yaml"),
         @("docs/agents/schemas.yaml", "docs/templates/agents/agents/schemas.yaml"),
@@ -679,6 +681,7 @@ function Test-TemplateCoverage {
         "docs/templates/agents/skills/project-isolation-workflow/agents/openai.yaml",
         "docs/templates/agents/AGENTS.md",
         "docs/templates/agents/skills/project-isolation-workflow/SKILL.md",
+        "docs/templates/agents/agents/ai-runtime.yaml",
         "docs/templates/agents/agents/policy.yaml",
         "docs/templates/agents/agents/workflows.yaml",
         "docs/templates/agents/agents/schemas.yaml",
@@ -886,6 +889,62 @@ function Test-DeployManifestIntegrity {
 
     if ($Failures.Count -eq $startFailureCount) {
         Add-Pass "Deploy manifest integrity checks passed."
+    }
+}
+
+function Test-AiRuntimeCompactness {
+    $startFailureCount = $Failures.Count
+    $paths = @(
+        "docs/agents/ai-runtime.yaml",
+        "docs/templates/agents/agents/ai-runtime.yaml"
+    )
+    $requiredNeedles = @(
+        "expand_only: true",
+        "answer_only",
+        "scoped_edit",
+        "policy_pack_edit",
+        "git_checkpoint",
+        "deploy_or_release",
+        "multi_agent",
+        "hard_isolation",
+        "Do not load docs/templates/agents/**",
+        "Never stage, deploy, or copy runtime_local"
+    )
+
+    foreach ($path in $paths) {
+        $fullPath = Get-RepoPath $path
+        if (-not (Test-Path -LiteralPath $fullPath -PathType Leaf)) {
+            Add-Failure ("AI runtime compact route is missing: {0}" -f $path)
+            continue
+        }
+
+        $item = Get-Item -LiteralPath $fullPath
+        if ($item.Length -gt 1536) {
+            Add-Failure ("AI runtime compact route exceeds 1536 bytes: {0} ({1} bytes)" -f $path, $item.Length)
+        }
+
+        $content = Get-Content -LiteralPath $fullPath -Raw
+        foreach ($needle in $requiredNeedles) {
+            if (-not $content.Contains($needle)) {
+                Add-Failure ("AI runtime compact route missing {0}: {1}" -f $needle, $path)
+            }
+        }
+    }
+
+    foreach ($path in @("AGENTS.md", "docs/templates/agents/AGENTS.md", ".agents/skills/project-isolation-workflow/SKILL.md", "docs/templates/agents/skills/project-isolation-workflow/SKILL.md")) {
+        $fullPath = Get-RepoPath $path
+        if (-not (Test-Path -LiteralPath $fullPath -PathType Leaf)) {
+            Add-Failure ("AI runtime reference file is missing: {0}" -f $path)
+            continue
+        }
+        $content = Get-Content -LiteralPath $fullPath -Raw
+        if (-not $content.Contains("docs/agents/ai-runtime.yaml")) {
+            Add-Failure ("AI runtime compact route is not referenced by {0}" -f $path)
+        }
+    }
+
+    if ($Failures.Count -eq $startFailureCount) {
+        Add-Pass "AI runtime compact route checks passed."
     }
 }
 
@@ -1520,6 +1579,8 @@ try {
     if ($Failures.Count -eq 0) {
         Add-Pass "Required canonical files exist."
     }
+
+    Test-AiRuntimeCompactness
 
     Test-SchemaContracts
     if ($Failures.Count -eq 0) {

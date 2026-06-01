@@ -2,10 +2,10 @@ schema: agents-workflows/v2
 purpose: "Compact procedures for isolation, memory, deployment, multi-agent work, handoff, skills, and maintenance."
 owns: "Task routing, progress policy, employee orchestration, handoff, scoring batches, and maintenance routing."
 
-read_first: ["Task class -> common_task_matrix", "Policy/isolation/closeout -> policy.yaml", "Verification profile -> verify.yaml", "Schemas only for assignments/reports/status/templates", "mcp.yaml only when optional integrations matter", "Deployment -> deploy.yaml"]
+read_first: ["AI compact route -> ai-runtime.yaml", "Task class -> common_task_matrix", "Policy/isolation/closeout -> policy.yaml", "Verification profile -> verify.yaml", "Schemas only for assignments/reports/status/templates", "mcp.yaml only when optional integrations matter", "Deployment -> deploy.yaml"]
 
 startup:
-  controller: ["Read AGENTS.md, then classify", "Answer-only with no current repo-state claim: no command", "Before edits, git/deploy actions, or worktree claims: inspect git status", "For other current-state claims: inspect only the named state", "Read only needed canonical files", "Use the smallest proof profile", "Recover/poll employees only for known active employees, explicit runtime claims, ledger entries, or edits near owned scopes"]
+  controller: ["Read AGENTS.md and ai-runtime.yaml, then classify", "Answer-only with no current repo-state claim: no command", "Before edits, git/deploy actions, or worktree claims: inspect git status", "For other current-state claims: inspect only the named state", "Read only needed canonical files", "Use the smallest proof profile", "Recover/poll employees only for known active employees, explicit runtime claims, ledger entries, or edits near owned scopes"]
   common_task_matrix:
     answer_only: "Reads loaded rules only; no status; no verify; compact isolation closeout."
     assigned_read_only_audit: "Assigned files only; no status unless assigned; read_only_audit."
