@@ -36,16 +36,23 @@ assignment:
 enterprise_assignment:
   use_when: "enterprise_dispatch route"
   required_fields: ["assignment_id", "department", "leader_role", "objective", "authority", "owned_scope", "verification_profile", "model_tier", "report_back"]
-  target_rule: "Controller assignment targets department leader only."
+  target_rule: "Controller targets department leader only."
 
 department_internal_dispatch:
   owner: "department leader"
   required_fields: ["parent_assignment_id", "worker_role", "task", "scope", "authority", "model_tier", "expected_output"]
-  rule: "Worker role must be allowed by org.yaml for the department."
+  rule: "Worker role must be allowed by org.yaml."
 
 department_report:
   required_fields: ["assignment_id", "department", "leader_role", "worker_count", "objective_result", "integrated_summary", "files_changed", "verification", "risks", "escalations", "isolation"]
+  field_types:
+    worker_count: "integer >= 0"
+    objective_result: "completed|partial|blocked|stopped"
+    files_changed: "array"
+    risks: "array"
+    escalations: "array"
   target_rule: "Department leader reports one integrated result to controller."
+  alias_rule: "Use objective_result, not result."
 
 model_tier:
   required_fields: ["tier", "capability", "risk_limit", "replaceable_model_mapping"]
@@ -79,8 +86,9 @@ report_validation:
   scoring_required: ["Agent", "Overall score", "Top issues", "Top fixes", "Validity", "Isolation line"]
   score_rule: "Overall score must be numeric 0-100."
   isolation_rule: "Isolation line must include GM, GS, XR, and XW values; XR/XW may be none or exact path list."
+  project_local_skill_rule: "Project-local .agents/skills/** is not GS; only global/system SKILL.md counts as GS used."
   validity_values: ["accepted", "needs-revision", "rejected", "excluded"]
-  invalid_when: ["missing score", "non-numeric score", "missing isolation line", "forbidden read/write", "unsupported runtime or hard-isolation claim"]
+  invalid_when: ["missing score", "non-numeric score", "missing isolation line", "forbidden read/write", "unsupported runtime or hard-isolation claim", "project-local skill reported as GS without global/system skill evidence"]
   report_hash_fields: ["Agent", "Runtime id", "Task", "Status", "Overall score", "Top issues", "Top fixes", "Validity", "Files changed"]
 
 ownership_matrix:

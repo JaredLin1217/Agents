@@ -39,12 +39,13 @@ scoring_batches:
   aggregation:
     cap_rule: "Fixture cap rule."
 enterprise_dispatch_runtime:
+  source_of_truth: "docs/agents/dispatch.yaml owns enterprise dispatch semantics."
   trigger_when: ["department dispatch", "model binding"]
   do_not_trigger_for: ["answer-only", "single scoped edit"]
   controller_assignment: "Controller sends assignments only to department leaders."
   department_leader_dispatch: "Department leaders own worker split, checks, and summary."
   internal_workers: "Workers report to the department leader."
-  department_report: "Leader reports summary, result, risks, and evidence to controller."
+  department_report: "Leader reports worker_count, objective_result, files_changed, risks, escalations, and evidence to controller."
   model_policy: "Use tier names before replaceable concrete model IDs."
   escalation: "Create escalation_record for direct controller reports or unverified work."
   validation: "Require department, leader, model tier, report target, and escalation_record rules."

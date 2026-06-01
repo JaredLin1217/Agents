@@ -1,6 +1,7 @@
 param(
     [switch] $Quiet,
-    [switch] $Full
+    [switch] $Full,
+    [switch] $Score
 )
 
 $ErrorActionPreference = "Stop"
@@ -648,6 +649,135 @@ function Get-RepoFilesSize {
     return $total
 }
 
+function Write-AgentQualityScore {
+    $aiRuntimePath = Get-RepoPath "docs/agents/ai-runtime.yaml"
+    $mcpPath = Get-RepoPath "docs/agents/mcp.yaml"
+    $deployPath = Get-RepoPath "docs/agents/deploy.yaml"
+    $exportPath = Get-RepoPath "scripts/export-release-package.ps1"
+
+    $aiRuntimeText = Get-Content -LiteralPath $aiRuntimePath -Raw
+    $mcpText = Get-Content -LiteralPath $mcpPath -Raw
+    $deployText = Get-Content -LiteralPath $deployPath -Raw
+    $aiRuntimeBytes = (Get-Item -LiteralPath $aiRuntimePath).Length
+    $intendedBytes = Get-RepoFilesSize -Paths (Get-IntendedRepoFiles)
+
+    $enterpriseRouteMinimal = (
+        $aiRuntimeText -match 'enterprise_dispatch:\s*\{\s*f:\s*\[[^\]]*"docs/agents/org\.yaml"[^\]]*"docs/agents/model-policy\.yaml"[^\]]*"docs/agents/dispatch\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]' -and
+        $aiRuntimeText -notmatch 'enterprise_dispatch:\s*\{[^\r\n]*(workflows|schemas)\.yaml'
+    )
+    $officialDocsFirst = ($mcpText -match 'OpenAI developer documentation' -and $mcpText -match 'official OpenAI docs')
+    $releaseExportReady = (
+        (Test-Path -LiteralPath $exportPath -PathType Leaf) -and
+        $deployText -match 'do_not_deploy' -and
+        $deployText -match 'validation_levels'
+    )
+    $llmRuleComplete = (
+        $enterpriseRouteMinimal -and
+        $aiRuntimeText -match 'expand_only' -and
+        $aiRuntimeText -match 'canonical YAML wins' -and
+        $aiRuntimeText -match 'Do not load docs/templates/agents/\*\*' -and
+        $aiRuntimeText -match 'Never stage, deploy, or copy runtime_local'
+    )
+    $dispatchValues = Get-LightweightYamlPathValues -File (Get-Item -LiteralPath (Get-RepoPath "docs/agents/dispatch.yaml"))
+    $schemaValues = Get-LightweightYamlPathValues -File (Get-Item -LiteralPath (Get-RepoPath "docs/agents/schemas.yaml"))
+    $levelChecks = @()
+    foreach ($level in 1..6) {
+        $levelChecks += (
+            $dispatchValues.ContainsKey("runtime_test_matrix.level_$level.kind") -and
+            $dispatchValues.ContainsKey("runtime_test_matrix.level_$level.pass_when")
+        )
+    }
+    $countChecks = @()
+    foreach ($countName in @("requested", "spawned", "completed", "closed", "missing", "duplicate", "invalid_format", "failed", "risk")) {
+        $countChecks += $dispatchValues.ContainsKey("runtime_report_contract.required_counts.$countName")
+    }
+    $enterpriseGuardrailsComplete = (
+        ($levelChecks -notcontains $false) -and
+        ($countChecks -notcontains $false) -and
+            $dispatchValues.ContainsKey("runtime_report_contract.response_envelope_rule") -and
+            ([string]$dispatchValues["runtime_report_contract.response_envelope_rule"] -match "strip \$\$") -and
+            $dispatchValues.ContainsKey("runtime_report_contract.guardrail_rule") -and
+        ([string]$dispatchValues["runtime_report_contract.guardrail_rule"] -match "escalation_record") -and
+        $dispatchValues.ContainsKey("runtime_report_contract.count_authority_rule") -and
+        ([string]$dispatchValues["runtime_report_contract.count_authority_rule"] -match "authoritative") -and
+        ([string]$dispatchValues["runtime_report_contract.count_authority_rule"] -match "employee") -and
+        $dispatchValues.ContainsKey("runtime_report_contract.cleanup_rule") -and
+        ([string]$dispatchValues["runtime_report_contract.cleanup_rule"] -match "runtime cleanup success") -and
+        $schemaValues.ContainsKey("report_validation.project_local_skill_rule") -and
+        ([string]$schemaValues["report_validation.project_local_skill_rule"] -match "not GS")
+    )
+
+    $items = @(
+        [pscustomobject]@{
+            Name = "llm_rule_fit"
+            Score = if ($llmRuleComplete) { 100.0 } elseif ($aiRuntimeText -match 'expand_only') { 96.0 } else { 84.0 }
+            Evidence = if ($llmRuleComplete) { "minimal enterprise route, expand-only router, canonical priority, template skip, and runtime-local block" } else { "router present; LLM rule fit is incomplete" }
+        },
+        [pscustomobject]@{
+            Name = "official_guidance_path"
+            Score = if ($officialDocsFirst) { 100.0 } else { 84.0 }
+            Evidence = if ($officialDocsFirst) { "OpenAI developer docs first path retained" } else { "official guidance path missing or weak" }
+        },
+        [pscustomobject]@{
+            Name = "token_economy"
+            Score = if ($aiRuntimeBytes -le 1300) { 100.0 } elseif ($aiRuntimeBytes -le 1536) { 97.0 } else { 86.0 }
+            Evidence = "ai-runtime.yaml is $aiRuntimeBytes bytes; 100 gate <= 1300 bytes"
+        },
+        [pscustomobject]@{
+            Name = "repo_growth_control"
+            Score = if ($intendedBytes -le (512 * 1024)) { 100.0 } elseif ($intendedBytes -le (640 * 1024)) { 97.0 } else { 82.0 }
+            Evidence = "intended repo files are $intendedBytes bytes; 100 gate <= 524288 bytes"
+        },
+        [pscustomobject]@{
+            Name = "enterprise_guardrails"
+            Score = if ($enterpriseGuardrailsComplete) { 100.0 } else { 88.0 }
+            Evidence = if ($enterpriseGuardrailsComplete) { "Level 1-6 matrix, controller-authoritative counts, guardrail rule, cleanup split, and project-local skill normalization are canonical" } else { "enterprise guardrail contract is incomplete" }
+        },
+        [pscustomobject]@{
+            Name = "deploy_portability"
+            Score = if ($Full -and $releaseExportReady -and $Failures.Count -eq 0) { 100.0 } elseif ($releaseExportReady) { 98.0 } else { 84.0 }
+            Evidence = if ($Full) { "full release/export gates included" } else { "fast score; run -Full for package proof" }
+        }
+    )
+
+    if ($Failures.Count -gt 0) {
+        $items = @($items | ForEach-Object {
+            [pscustomobject]@{
+                Name = $_.Name
+                Score = [Math]::Min([decimal]$_.Score, 80.0)
+                Evidence = "$($_.Evidence); validation failures present"
+            }
+        })
+    }
+
+    $scoreTarget = 100.0
+    $items = @($items | ForEach-Object {
+        $scoreValue = [decimal]$_.Score
+        [pscustomobject]@{
+            Name = $_.Name
+            Status = if ($scoreValue -ge $scoreTarget) { "PASS" } else { "WARN" }
+            Score = $scoreValue
+            Evidence = $_.Evidence
+        }
+    })
+    $belowTarget = @($items | Where-Object { $_.Score -lt $scoreTarget })
+    $overall = [Math]::Round([decimal](($items | Measure-Object -Property Score -Average).Average), 1)
+    Write-Host ""
+    Write-Host "Individual validation:"
+    foreach ($item in $items) {
+        Write-Host ("[{0}] {1}: {2:0.0}/100 - {3}" -f $item.Status, $item.Name, $item.Score, $item.Evidence)
+    }
+    Write-Host ("Individual target: {0} (>= {1:0.0})" -f $(if ($belowTarget.Count -eq 0) { "PASS" } else { "WARN" }), $scoreTarget)
+    Write-Host ("Overall: {0:0.0}/100" -f $overall)
+    if ($belowTarget.Count -eq 0) {
+        Write-Host "Evaluation: every individual score meets the 100.0 target threshold; keep runtime deployment checks separate."
+    } elseif ($overall -ge 97) {
+        Write-Host "Evaluation: overall score is near target, but at least one individual score is still below threshold."
+    } else {
+        Write-Host "Evaluation: below target; inspect failed or low-scoring gates before release."
+    }
+}
+
 function Test-ExactPairs {
     $startFailureCount = $Failures.Count
     $pairs = @(
@@ -967,8 +1097,8 @@ function Test-AiRuntimeCompactness {
         }
 
         $item = Get-Item -LiteralPath $fullPath
-        if ($item.Length -gt 1536) {
-            Add-Failure ("AI runtime compact route exceeds 1536 bytes: {0} ({1} bytes)" -f $path, $item.Length)
+        if ($item.Length -gt 1300) {
+            Add-Failure ("AI runtime compact route exceeds 1300 bytes: {0} ({1} bytes)" -f $path, $item.Length)
         }
 
         $content = Get-Content -LiteralPath $fullPath -Raw
@@ -981,8 +1111,8 @@ function Test-AiRuntimeCompactness {
         if ($content -notmatch 'multi_agent:\s*\{\s*f:\s*\[[^\]]*"docs/agents/workflows\.yaml"[^\]]*"docs/agents/schemas\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]') {
             Add-Failure ("AI runtime multi-agent route must load workflows, schemas, and verify: {0}" -f $path)
         }
-        if ($content -notmatch 'enterprise_dispatch:\s*\{\s*f:\s*\[[^\]]*"docs/agents/org\.yaml"[^\]]*"docs/agents/model-policy\.yaml"[^\]]*"docs/agents/dispatch\.yaml"[^\]]*"docs/agents/workflows\.yaml"[^\]]*"docs/agents/schemas\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]') {
-            Add-Failure ("AI runtime enterprise dispatch route must load org, model-policy, dispatch, workflows, schemas, and verify: {0}" -f $path)
+        if ($content -notmatch 'enterprise_dispatch:\s*\{\s*f:\s*\[[^\]]*"docs/agents/org\.yaml"[^\]]*"docs/agents/model-policy\.yaml"[^\]]*"docs/agents/dispatch\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]' -or $content -match 'enterprise_dispatch:\s*\{[^\r\n]*(workflows|schemas)\.yaml') {
+            Add-Failure ("AI runtime enterprise dispatch route must load only org, model-policy, dispatch, and verify: {0}" -f $path)
         }
     }
 
@@ -1008,8 +1138,9 @@ function Test-EnterpriseDispatchIntegrity {
     $orgPath = Get-RepoPath "docs/agents/org.yaml"
     $modelPath = Get-RepoPath "docs/agents/model-policy.yaml"
     $dispatchPath = Get-RepoPath "docs/agents/dispatch.yaml"
+    $workflowsPath = Get-RepoPath "docs/agents/workflows.yaml"
 
-    if (-not ((Test-Path -LiteralPath $orgPath -PathType Leaf) -and (Test-Path -LiteralPath $modelPath -PathType Leaf) -and (Test-Path -LiteralPath $dispatchPath -PathType Leaf))) {
+    if (-not ((Test-Path -LiteralPath $orgPath -PathType Leaf) -and (Test-Path -LiteralPath $modelPath -PathType Leaf) -and (Test-Path -LiteralPath $dispatchPath -PathType Leaf) -and (Test-Path -LiteralPath $workflowsPath -PathType Leaf))) {
         Add-Failure "Enterprise dispatch canonical files are incomplete."
         return
     }
@@ -1017,6 +1148,7 @@ function Test-EnterpriseDispatchIntegrity {
     $org = Get-LightweightYamlPathValues -File (Get-Item -LiteralPath $orgPath)
     $model = Get-LightweightYamlPathValues -File (Get-Item -LiteralPath $modelPath)
     $dispatch = Get-LightweightYamlPathValues -File (Get-Item -LiteralPath $dispatchPath)
+    $workflows = Get-LightweightYamlPathValues -File (Get-Item -LiteralPath $workflowsPath)
     $tiers = @("low_fast", "quick_code", "code_standard", "senior_review", "principal")
     $departments = [ordered]@{
         executive_office = "executive_lead"
@@ -1089,9 +1221,34 @@ function Test-EnterpriseDispatchIntegrity {
             Add-Failure ("Model policy risk rule references unknown tier at {0}: {1}" -f $path, $model[$path])
         }
     }
+    foreach ($path in @("risk_rules.fallback_order", "risk_rules.model_missing_behavior")) {
+        if (-not $model.ContainsKey($path)) {
+            Add-Failure ("Model policy missing deterministic fallback path: {0}" -f $path)
+        }
+    }
+    if ($model.ContainsKey("risk_rules.fallback_order")) {
+        $fallbackOrder = $model["risk_rules.fallback_order"]
+        $lastIndex = -1
+        foreach ($tier in $tiers) {
+            $index = $fallbackOrder.IndexOf($tier)
+            if ($index -lt 0) {
+                Add-Failure ("Model policy fallback_order missing tier: {0}" -f $tier)
+            }
+            elseif ($index -le $lastIndex) {
+                Add-Failure "Model policy fallback_order must preserve low-to-high tier order."
+            }
+            $lastIndex = $index
+        }
+    }
+    if ($model.ContainsKey("risk_rules.model_missing_behavior") -and (-not $model["risk_rules.model_missing_behavior"].Contains("never downgrade") -or -not $model["risk_rules.model_missing_behavior"].Contains("escalation_record"))) {
+        Add-Failure "Model policy model_missing_behavior must forbid downgrade and require escalation_record."
+    }
 
     if (-not $dispatch.ContainsKey("protocol.name") -or $dispatch["protocol.name"] -ne "enterprise_dispatch") {
         Add-Failure "Dispatch protocol name must be enterprise_dispatch."
+    }
+    if (-not $dispatch.ContainsKey("protocol.canonical_source_rule") -or -not $dispatch["protocol.canonical_source_rule"].Contains("enterprise dispatch semantics") -or -not $dispatch["protocol.canonical_source_rule"].Contains("workflows.yaml")) {
+        Add-Failure "Dispatch protocol must name dispatch.yaml as the enterprise dispatch source of truth."
     }
     if (-not $dispatch.ContainsKey("controller_assignment.target") -or $dispatch["controller_assignment.target"] -ne "department leader") {
         Add-Failure "Controller assignment target must be department leader."
@@ -1111,6 +1268,97 @@ function Test-EnterpriseDispatchIntegrity {
     if (-not $dispatch.ContainsKey("validation.worker_bypass_rule") -or -not $dispatch["validation.worker_bypass_rule"].Contains("escalation_record")) {
         Add-Failure "Dispatch validation worker bypass rule must require escalation_record."
     }
+    $levelKinds = @{
+        level_1 = "pass"
+        level_2 = "pass"
+        level_3 = "pass"
+        level_4 = "guardrail"
+        level_5 = "reserved"
+        level_6 = "guardrail"
+    }
+    foreach ($level in $levelKinds.Keys) {
+        foreach ($suffix in @("kind", "assignment", "model_tier", "pass_when")) {
+            $path = "runtime_test_matrix.{0}.{1}" -f $level, $suffix
+            if (-not $dispatch.ContainsKey($path)) {
+                Add-Failure ("Dispatch runtime test matrix missing path: {0}" -f $path)
+            }
+        }
+        $kindPath = "runtime_test_matrix.{0}.kind" -f $level
+        if ($dispatch.ContainsKey($kindPath) -and $dispatch[$kindPath] -ne $levelKinds[$level]) {
+            Add-Failure ("Dispatch runtime test matrix kind mismatch at {0}." -f $kindPath)
+        }
+        $tierPath = "runtime_test_matrix.{0}.model_tier" -f $level
+        if ($dispatch.ContainsKey($tierPath) -and ($tiers -notcontains $dispatch[$tierPath])) {
+            Add-Failure ("Dispatch runtime test matrix unknown model tier at {0}: {1}" -f $tierPath, $dispatch[$tierPath])
+        }
+    }
+    foreach ($level in @("level_4", "level_6")) {
+        $path = "runtime_test_matrix.{0}.pass_when" -f $level
+        if (-not $dispatch.ContainsKey($path) -or -not $dispatch[$path].Contains("blocked") -or -not $dispatch[$path].Contains("escalation_record") -or -not $dispatch[$path].Contains("fails")) {
+            Add-Failure ("Dispatch {0} guardrail pass_when must require block/escalation/fail behavior." -f $level)
+        }
+    }
+    if ($dispatch.ContainsKey("runtime_test_matrix.level_6.pass_when") -and (-not $dispatch["runtime_test_matrix.level_6.pass_when"].Contains("senior_review") -or -not $dispatch["runtime_test_matrix.level_6.pass_when"].Contains("silent acceptance fails"))) {
+        Add-Failure "Dispatch level_6 pass_when must reject silent acceptance."
+    }
+    foreach ($path in @("escalation_record.canonical_value_rule", "validation.escalation_value_rule")) {
+        if (-not $dispatch.ContainsKey($path)) {
+            Add-Failure ("Dispatch escalation canonical value rule is missing: {0}" -f $path)
+        }
+    }
+    if ($dispatch.ContainsKey("escalation_record.canonical_value_rule") -and (-not $dispatch["escalation_record.canonical_value_rule"].Contains("department id") -or -not $dispatch["escalation_record.canonical_value_rule"].Contains("model tiers"))) {
+        Add-Failure "Dispatch escalation record must require canonical department ids and model tiers."
+    }
+    if ($dispatch.ContainsKey("validation.escalation_value_rule") -and (-not $dispatch["validation.escalation_value_rule"].Contains("canonical department ids") -or -not $dispatch["validation.escalation_value_rule"].Contains("model tiers"))) {
+        Add-Failure "Dispatch validation must check escalation canonical department ids and model tiers."
+    }
+    foreach ($countName in @("requested", "spawned", "completed", "closed", "missing", "duplicate", "invalid_format", "failed", "risk")) {
+        $path = "runtime_report_contract.required_counts.{0}" -f $countName
+        if (-not $dispatch.ContainsKey($path)) {
+            Add-Failure ("Dispatch runtime report contract missing count: {0}" -f $countName)
+        }
+    }
+    foreach ($path in @("runtime_report_contract.output_format", "runtime_report_contract.response_envelope_rule", "runtime_report_contract.count_authority_rule", "runtime_report_contract.positive_rule", "runtime_report_contract.guardrail_rule", "runtime_report_contract.cleanup_rule", "runtime_report_contract.isolation_rule", "validation.runtime_test_rule", "validation.runtime_report_rule", "validation.count_authority_rule", "validation.isolation_normalization_rule", "validation.department_report_field_rule", "validation.authority_enforcement_rule", "validation.source_of_truth_rule")) {
+        if (-not $dispatch.ContainsKey($path)) {
+            Add-Failure ("Dispatch runtime report or validation rule is missing: {0}" -f $path)
+        }
+    }
+    if ($dispatch.ContainsKey("runtime_report_contract.output_format") -and $dispatch["runtime_report_contract.output_format"] -ne "single compact JSON object") {
+        Add-Failure "Dispatch runtime report output_format must be a single compact JSON object."
+    }
+    if ($dispatch.ContainsKey("runtime_report_contract.response_envelope_rule") -and (-not $dispatch["runtime_report_contract.response_envelope_rule"].Contains('strip $$') -or -not $dispatch["runtime_report_contract.response_envelope_rule"].Contains("valid JSON"))) {
+        Add-Failure "Dispatch runtime report contract must normalize the required visible prefix before machine parsing."
+    }
+    if ($dispatch.ContainsKey("runtime_report_contract.response_envelope_rule") -and $dispatch["runtime_report_contract.response_envelope_rule"].Contains("stable fields")) {
+        Add-Failure "Dispatch response envelope must not permit ambiguous stable-field parsing."
+    }
+    if ($dispatch.ContainsKey("runtime_report_contract.count_authority_rule") -and (-not $dispatch["runtime_report_contract.count_authority_rule"].Contains("Controller-reconciled") -or -not $dispatch["runtime_report_contract.count_authority_rule"].Contains("authoritative") -or -not $dispatch["runtime_report_contract.count_authority_rule"].Contains("employee"))) {
+        Add-Failure "Dispatch runtime report contract must make controller-reconciled counts authoritative."
+    }
+    if ($dispatch.ContainsKey("runtime_report_contract.positive_rule") -and (-not $dispatch["runtime_report_contract.positive_rule"].Contains("Level 1-3") -or -not $dispatch["runtime_report_contract.positive_rule"].Contains("department_report") -or -not $dispatch["runtime_report_contract.positive_rule"].Contains("no raw worker chatter"))) {
+        Add-Failure "Dispatch positive runtime rule must require Level 1-3 department reports without raw worker chatter."
+    }
+    if ($dispatch.ContainsKey("runtime_report_contract.guardrail_rule") -and (-not $dispatch["runtime_report_contract.guardrail_rule"].Contains("Level 4") -or -not $dispatch["runtime_report_contract.guardrail_rule"].Contains("level_6") -or -not $dispatch["runtime_report_contract.guardrail_rule"].Contains("escalation_record"))) {
+        Add-Failure "Dispatch guardrail runtime rule must cover Level 4, level_6, and escalation_record."
+    }
+    if ($dispatch.ContainsKey("runtime_report_contract.cleanup_rule") -and (-not $dispatch["runtime_report_contract.cleanup_rule"].Contains("protocol smoke success") -or -not $dispatch["runtime_report_contract.cleanup_rule"].Contains("runtime cleanup success"))) {
+        Add-Failure "Dispatch cleanup rule must split protocol smoke success from runtime cleanup success."
+    }
+    if ($dispatch.ContainsKey("runtime_report_contract.isolation_rule") -and (-not $dispatch["runtime_report_contract.isolation_rule"].Contains(".agents/skills/**") -or -not $dispatch["runtime_report_contract.isolation_rule"].Contains("not GS"))) {
+        Add-Failure "Dispatch isolation rule must normalize project-local skill usage as not GS."
+    }
+    if ($dispatch.ContainsKey("validation.count_authority_rule") -and (-not $dispatch["validation.count_authority_rule"].Contains("controller reconciliation") -or -not $dispatch["validation.count_authority_rule"].Contains("employee self-counts"))) {
+        Add-Failure "Dispatch validation must reject employee self-counts as lifecycle proof."
+    }
+    if (-not $workflows.ContainsKey("enterprise_dispatch_runtime.source_of_truth") -or -not $workflows["enterprise_dispatch_runtime.source_of_truth"].Contains("docs/agents/dispatch.yaml")) {
+        Add-Failure "Workflows enterprise dispatch summary must point to docs/agents/dispatch.yaml."
+    }
+    if (-not $workflows.ContainsKey("enterprise_dispatch_runtime.department_report") -or -not $workflows["enterprise_dispatch_runtime.department_report"].Contains("objective_result")) {
+        Add-Failure "Workflows enterprise dispatch department_report summary must use objective_result."
+    }
+    if ($workflows.ContainsKey("enterprise_dispatch_runtime.department_report") -and $workflows["enterprise_dispatch_runtime.department_report"].Contains("worker_count, result")) {
+        Add-Failure "Workflows enterprise dispatch department_report summary must not use result alias."
+    }
 
     $routeChecks = @(
         @("docs/agents/workflows.yaml", "enterprise_dispatch_runtime"),
@@ -1118,6 +1366,7 @@ function Test-EnterpriseDispatchIntegrity {
         @("docs/agents/schemas.yaml", "department_report"),
         @("docs/agents/schemas.yaml", "model_tier"),
         @("docs/agents/schemas.yaml", "escalation_record"),
+        @("docs/agents/schemas.yaml", "project_local_skill_rule"),
         @("docs/agents/verify.yaml", "enterprise_dispatch"),
         @("docs/agents/deploy.yaml", "docs/templates/agents/agents/org.yaml"),
         @("docs/agents/deploy.yaml", "docs/templates/agents/agents/model-policy.yaml"),
@@ -1963,6 +2212,10 @@ finally {
 if ($Warnings.Count -gt 0 -and -not $Quiet) {
     Write-Host ""
     Write-Host ("Warnings: {0}" -f $Warnings.Count)
+}
+
+if ($Score -and -not $Quiet) {
+    Write-AgentQualityScore
 }
 
 if ($Failures.Count -gt 0) {

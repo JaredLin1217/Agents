@@ -111,12 +111,13 @@ multi_agent_runtime:
     loop_guard: "Stop after 3 unchanged polls or 5 minutes; close retry max 2."
 
 enterprise_dispatch_runtime:
+  source_of_truth: "docs/agents/dispatch.yaml owns enterprise dispatch semantics; this section only flags multi-agent runtime handling."
   trigger_when: "Organization-style dispatch, department command, employee delegation, or model tier binding."
   do_not_trigger_for: ["answer-only", "ordinary scoped edit", "plain deploy without department command"]
   controller_assignment: "Controller assigns only department leaders with department, leader_role, objective, authority, owned_scope, verification_profile, model_tier, and report_back."
   department_leader_dispatch: "Leader may split internal work only to allowed worker roles and owns merge before controller report."
   internal_workers: "Workers report to their department leader unless escalation_record is required."
-  department_report: "Leader returns one integrated department report with assignment_id, department, leader_role, worker_count, result, verification, risks, escalations, and isolation."
+  department_report: "Leader returns one integrated department report with assignment_id, department, leader_role, worker_count, objective_result, verification, risks, escalations, and isolation."
   model_policy: "Use tier names from model-policy; concrete model mapping is replaceable."
   escalation: "Create escalation_record for worker bypass, scope violation, unverifiable result, missing tier, model mismatch, or blocked authority."
   validation: "Verify department exists, leader matches org, tier exists, worker role is allowed, and direct worker-to-controller report has escalation_record."

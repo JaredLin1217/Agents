@@ -49,11 +49,15 @@
     "risk_rules.deploy_write_min_tier",
     "risk_rules.code_write_min_tier",
     "risk_rules.read_only_batch_default",
+    "risk_rules.fallback_order",
     "risk_rules.model_missing_behavior",
+    "risk_rules.provider_inventory_rule",
     "validation.tier_first_rule",
     "validation.binding_rule",
     "validation.tier_reference_rule",
-    "validation.high_risk_review_rule"
+    "validation.high_risk_review_rule",
+    "validation.fallback_rule",
+    "validation.provider_mapping_rule"
   ],
   "x-required-values": [
     {
@@ -69,6 +73,26 @@
     {
       "path": "validation.high_risk_review_rule",
       "contains": ["senior_review", "principal"]
+    },
+    {
+      "path": "risk_rules.fallback_order",
+      "contains": ["low_fast", "quick_code", "code_standard", "senior_review", "principal"]
+    },
+    {
+      "path": "risk_rules.model_missing_behavior",
+      "contains": ["fallback_order", "never downgrade", "escalation_record"]
+    },
+    {
+      "path": "risk_rules.provider_inventory_rule",
+      "contains": ["Unavailable", "escalation_record", "not silent success"]
+    },
+    {
+      "path": "validation.fallback_rule",
+      "contains": ["upward only", "escalation_record"]
+    },
+    {
+      "path": "validation.provider_mapping_rule",
+      "contains": ["availability", "tier fit"]
     }
   ]
 }

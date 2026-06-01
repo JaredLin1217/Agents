@@ -46,7 +46,13 @@
     "department_internal_dispatch.owner",
     "department_internal_dispatch.required_fields",
     "department_report.required_fields",
+    "department_report.field_types.worker_count",
+    "department_report.field_types.objective_result",
+    "department_report.field_types.files_changed",
+    "department_report.field_types.risks",
+    "department_report.field_types.escalations",
     "department_report.target_rule",
+    "department_report.alias_rule",
     "model_tier.required_fields",
     "model_tier.rule",
     "escalation_record.required_fields",
@@ -55,6 +61,7 @@
     "scoring_rollup_report.aggregation_rule",
     "report_validation.score_rule",
     "report_validation.isolation_rule",
+    "report_validation.project_local_skill_rule",
     "report_validation.scoring_required",
     "report_validation.validity_values",
     "ownership_matrix.conflict_checks",
@@ -122,9 +129,24 @@
       ]
     },
     {
+      "path": "report_validation.project_local_skill_rule",
+      "contains": [
+        ".agents/skills/**",
+        "not GS",
+        "global/system SKILL.md"
+      ]
+    },
+    {
       "path": "enterprise_assignment.target_rule",
       "contains": [
         "department leader"
+      ]
+    },
+    {
+      "path": "department_report.alias_rule",
+      "contains": [
+        "result",
+        "objective_result"
       ]
     },
     {

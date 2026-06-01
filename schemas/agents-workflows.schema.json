@@ -49,6 +49,7 @@
     "multi_agent_runtime.roster.required_when",
     "multi_agent_runtime.report_dedupe.dedupe_key",
     "enterprise_dispatch_runtime.trigger_when",
+    "enterprise_dispatch_runtime.source_of_truth",
     "enterprise_dispatch_runtime.do_not_trigger_for",
     "enterprise_dispatch_runtime.controller_assignment",
     "enterprise_dispatch_runtime.department_leader_dispatch",
@@ -101,6 +102,14 @@
     {
       "path": "enterprise_dispatch_runtime.controller_assignment",
       "contains": ["department leaders"]
+    },
+    {
+      "path": "enterprise_dispatch_runtime.source_of_truth",
+      "contains": ["docs/agents/dispatch.yaml", "semantics"]
+    },
+    {
+      "path": "enterprise_dispatch_runtime.department_report",
+      "contains": ["objective_result"]
     },
     {
       "path": "enterprise_dispatch_runtime.validation",
