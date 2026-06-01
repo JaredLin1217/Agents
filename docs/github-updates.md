@@ -4,11 +4,36 @@ This file is generated from git history after public branch pushes.
 Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` instead.
 
 - Source branch: `main`
-- Source commit analyzed: `e972d01`
-- Source commit date: `2026-06-01T08:17:41+08:00`
+- Source commit analyzed: `f5e3dd4`
+- Source commit date: `2026-06-01T08:28:00+08:00`
 - Commit window: latest 20 non-merge commits
 
 ## Recent Commits
+
+### 2026-06-01 - `f5e3dd4`
+
+Add Apache-2.0 licensing
+
+- Author: `JaredLin1217`
+- Shortstat: `8 files changed, 228 insertions(+), 4 deletions(-)`
+- Files:
+  - `.gitattributes`
+  - `CHANGELOG.md`
+  - `LICENSE`
+  - `NOTICE`
+  - `README.md`
+  - `SECURITY.md`
+  - `docs/agents/verify.yaml`
+  - `docs/templates/agents/agents/verify.yaml`
+
+### 2026-06-01 - `fe01801`
+
+docs: update GitHub update log [skip ci]
+
+- Author: `github-actions[bot]`
+- Shortstat: `1 file changed, 18 insertions(+), 12 deletions(-)`
+- Files:
+  - `docs/github-updates.md`
 
 ### 2026-06-01 - `e972d01`
 
@@ -235,34 +260,3 @@ Validate agent ledger compatibility
   - `docs/agents/verify.yaml`
   - `docs/templates/agents/agents/verify.yaml`
   - `scripts/validate.ps1`
-
-### 2026-05-31 - `8787f93`
-
-Normalize multi-agent ledger schema
-
-- Author: `JaredLin1217`
-- Shortstat: `3 files changed, 10 insertions(+), 4 deletions(-)`
-- Files:
-  - `docs/agents/schemas.yaml`
-  - `docs/templates/agents/agents/schemas.yaml`
-  - `scripts/validate.ps1`
-
-### 2026-05-31 - `5854ea0`
-
-Harden v2 deployment validation
-
-- Author: `JaredLin1217`
-- Shortstat: `22 files changed, 514 insertions(+), 45 deletions(-)`
-- Files:
-  - `.github/workflows/README.md`
-  - `.github/workflows/checkpoint.yml`
-  - `.gitignore`
-  - `docs/agent-assignment.template.md`
-  - `docs/agents/decisions/v2-checkpoint-package.md`
-  - `docs/agents/decisions/v2-readiness-audit.md`
-  - `docs/agents/deploy.yaml`
-  - `docs/agents/policy.yaml`
-  - `docs/agents/schemas.yaml`
-  - `docs/agents/verify.yaml`
-  - `docs/agents/workflows.yaml`
-  - `docs/runbooks/multi-agent-workflow.md`
