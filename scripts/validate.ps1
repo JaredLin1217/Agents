@@ -388,6 +388,34 @@ function Test-SchemaContracts {
     }
 }
 
+function Test-PublicReadmeVersionAlignment {
+    $versionPath = Get-RepoPath "docs/agents/version.yaml"
+    $readmePath = Get-RepoPath "README.md"
+
+    if (-not (Test-Path -LiteralPath $versionPath -PathType Leaf)) {
+        Add-Failure "Canonical version file is missing: docs/agents/version.yaml"
+        return
+    }
+    if (-not (Test-Path -LiteralPath $readmePath -PathType Leaf)) {
+        Add-Failure "Public README is missing."
+        return
+    }
+
+    $values = Get-LightweightYamlPathValues -File (Get-Item -LiteralPath $versionPath)
+    foreach ($path in @("workflow.version", "workflow.channel")) {
+        if (-not $values.ContainsKey($path)) {
+            Add-Failure ("Canonical version file is missing required path: {0}" -f $path)
+            return
+        }
+    }
+
+    $expected = "Current Agents workflow version: ``{0}`` (``{1}``)." -f $values["workflow.version"], $values["workflow.channel"]
+    $readmeLines = Get-Content -LiteralPath $readmePath
+    if ($readmeLines -notcontains $expected) {
+        Add-Failure ("README.md workflow version mismatch. Expected line: {0}" -f $expected)
+    }
+}
+
 function Test-ValidationFixtures {
     $casePath = Get-RepoPath "tests/agents-governance-fixtures/schema-contracts/cases.json"
     if (-not (Test-Path -LiteralPath $casePath -PathType Leaf)) {
@@ -1590,6 +1618,12 @@ try {
     Test-ValidationFixtures
     if ($Failures.Count -eq 0) {
         Add-Pass "Validation fixtures passed."
+    }
+
+    $startVersionFailureCount = $Failures.Count
+    Test-PublicReadmeVersionAlignment
+    if ($Failures.Count -eq $startVersionFailureCount) {
+        Add-Pass "Public README workflow version matches canonical version metadata."
     }
 
     $scanRoots = @(
