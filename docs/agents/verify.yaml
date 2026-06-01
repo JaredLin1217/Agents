@@ -119,19 +119,19 @@ minimum_evidence:
   static_policy_pack: ["changed files read", "scoped diff reviewed", "applicable profile gates passed"]
   branch_push: ["checkpoint gates", "current branch/remote", "push result"]
   deploy_clean: ["target authorization", "target inspected", "target layout selected", "deployed_file_set recorded", "blocklist/source-neutral checks on deployed_file_set", "target handoff check or explicit reason it was not run"]
-  runtime_multi_agent: ["real runtime id", "assignment/report match", "git status after employee work", "close/runtime status evidence", "expected/received/closed reconciliation for batch claims"]
+  runtime_multi_agent: ["real runtime id", "assignment/report match", "git status after employee work", "close/runtime status evidence", "expected/received/closed reconciliation for batch claims", "history_cleanup_evidence when cleanup is claimed"]
   hard_isolation: ["current tool/runtime/OS/account/cloud enforcement evidence"]
 
 no_deduction_audit:
   rule: "Claim no-deduction only with release_deploy_push_audit-level proof plus applicable runtime/hard-isolation evidence."
   always: ["current repo state inspected", "changed files/diffs reviewed", "external access reported", "GM/GS reported", "templates source-neutral", "deployment checks use deployed_file_set", "runtime/local scratch artifacts not staged", "claim scope stated"]
-  when_applicable: ["workers have non-overlapping ownership", "ledger/roster/event evidence exists for compact-risk or concurrent employees", "history cleanup has explicit cleanup wording or exact authorization", "hard-isolation verification avoids forbidden reads unless exact-authorized"]
+  when_applicable: ["workers have non-overlapping ownership", "ledger/roster/event evidence exists for compact-risk or concurrent employees", "history cleanup has exact authorization plus history_cleanup_evidence when claimed", "hard-isolation verification avoids forbidden reads unless exact-authorized"]
 
 coverage_gates:
   slim_policy_pack: ["AGENTS.md and project SKILL support no-command answer-only fast path", "policy/workflows/verify define compact profiles and claim boundaries", "deploy rules keep source state out of targets", "schemas/templates preserve assignment, report, ledger, status, lease, runtime validation, memory, and skill fields", "workflow/schema gates preserve lifecycle, ownership, roster/ledger recovery, report dedupe, scoring, delegated deployment, and runtime validation together", "task closeout permits compact no-change answers"]
 
 live_employee_validation:
-  required: ["explicit user hire/spawn/delegation/parallel-agent request", "runtime id/nickname/mode/role/task", "ledger or roster path/version/permissions when required", "assignment includes ledger/roster, status-event, final-report, and ownership fields", "final report matches runtime id and required fields", "ledger or poll/report/close/reconciled evidence has matching snapshot version", "git status proves no out-of-scope changes", "history cleanup authorization recorded as none/not requested unless explicitly authorized"]
+  required: ["explicit user hire/spawn/delegation/parallel-agent request", "runtime id/nickname/mode/role/task", "ledger or roster path/version/permissions when required", "assignment includes ledger/roster, status-event, final-report, and ownership fields", "final report matches runtime id and required fields", "ledger or poll/report/close/reconciled evidence has matching snapshot version", "git status proves no out-of-scope changes", "history cleanup authorization is none/not requested unless exact-authorized; cleanup claims include history_cleanup_evidence"]
 
 batch_employee_validation:
   required: ["expected id set created before dispatch", "assignment contract includes id and compact final-report schema", "received id set has missing/duplicate/invalid-format checks", "failed/running/unclosed runtimes are counted separately", "close results or official runtime status prove cleanup for claimed closed employees", "batch report distinguishes protocol smoke success from deployment/edit/test success"]

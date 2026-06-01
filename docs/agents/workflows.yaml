@@ -71,7 +71,7 @@ multi_agent_runtime:
     wait_rule: "Wait only when the next controller step needs results."
     close_rule: "Close after final report; launch next queued employee in the freed slot."
     history_cleanup_rule: "Plain close closes runtime only; sidebar/history cleanup needs explicit cleanup wording or exact authorization."
-    dismissal_cleanup_rule: "With explicit cleanup wording, clean current-project closed subagent residue and verify zero hits."
+    dismissal_cleanup_rule: "With explicit cleanup wording, run runtime.sidebar_cleanup_success_path and record schemas.history_cleanup_evidence before clean-roster claims."
     ledger_rule: "Append hired/report/closed/integrated events when recovery matters; for batch ack record batch summary and exceptions."
   lifecycle_checks:
     before: ["Confirm explicit employee use", "Define role/read/write/command/report/close fields", "Verify exclusive normalized worker write scopes", "Record batch expected id set/schema when applicable"]
@@ -102,10 +102,12 @@ multi_agent_runtime:
     official_status_checks: ["thread/list with cwd and subAgent sourceKinds", "thread/loaded/list", "runtime close tool result"]
     official_delete_limit: "No official hard-delete thread API is assumed."
     refresh_limit: "If official lists/state are clean but sidebar still shows residue, reload/restart UI before more cleanup."
-    dismissal_cleanup_standard: "For employee cleanup, back up state DB, match closed subagent ids under current repo cwd, clean exact residue, check DB, verify zero matches."
-    quiet_cleanup: "Close target ids, verify current-project subagent matches, delete matching state/history rows/files, verify zero hits, append one summary."
+    dismissal_cleanup_standard: "For employee cleanup, back up app state, match closed subagent ids from current parent/cwd, clean exact residue, verify zero active matches, then record reload/restart result for UI claims."
+    quiet_cleanup: "Close target ids, derive cleanup targets from current parent/cwd/subagent/closed evidence, delete exact state/history/unread residue, verify zero hits, append one summary."
     history_cleanup: "External cleanup after runtime close; needs explicit cleanup wording or exact authorization."
-    history_cleanup_scope: "Delete active DB rows and matching rollout history only for closed subagent ids under current repo cwd."
+    history_cleanup_scope: "Delete active DB rows and matching rollout history only for closed subagent ids under current repo cwd and authorized parent scope."
+    sidebar_cleanup_success_path: ["authorize cleanup/restart", "close exact runtime ids or prove already inactive", "snapshot parent_thread_id and cwd", "target parent=current + cwd=current + child_source=subagent + status=closed + exact ids", "backup DB/WAL/SHM/global state", "delete exact child edges/threads; move exact child rollouts; keep parent/user rollouts", "clear current-project subagent unread markers", "verify parent kept + zero active residue + backup counts; record reload/restart result and XR/XW"]
+    sidebar_cleanup_keep: ["parent/controller/user threads", "parent/user rollout history", "unrelated cwd", "unrelated parent subagents unless explicitly requested", "runtime ledger unless exact cleanup was requested"]
     orphan_cleanup_scope: "Delete orphan thread_spawn_edges only when both endpoints are missing and cleanup was requested."
     post_cleanup_ui_rule: "When restart clears cleaned sidebar residue, record UI refresh result and stop."
     offline_cache_cleanup: "Only after exact residue survives reload/restart and explicit shutdown/cache-cleanup authorization."
