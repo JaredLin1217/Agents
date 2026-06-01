@@ -13,6 +13,11 @@ Security reports for this repository should focus on:
 This repository is not a hosted service. Security impact is primarily about
 repository content, deployment behavior, and local workflow safety.
 
+The Apache-2.0 license and project notice do not create a support obligation,
+security warranty, service-level commitment, or guarantee that a deployment is
+fit for any specific environment. Users remain responsible for validating and
+securing their own use.
+
 ## Reporting
 
 Do not open public issues containing secrets, credentials, private target paths,

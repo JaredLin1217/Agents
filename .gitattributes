@@ -2,6 +2,8 @@
 
 .gitattributes text eol=lf
 .gitignore text eol=lf
+LICENSE text eol=lf
+NOTICE text eol=lf
 docs/templates/agents/gitignore.fragment text eol=lf
 
 *.md text eol=lf

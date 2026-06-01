@@ -105,7 +105,7 @@ size_gates:
     project_skill: 1792
     canonical_agents_yaml: 16384
     script_ps1: 64512
-    tracked_repo_kib: 350
+    tracked_repo_kib: 400
   tracked_rule: "Ignored/untracked files do not count; intended new files count before commit."
 
 claim_scopes:

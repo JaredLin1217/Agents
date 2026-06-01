@@ -157,5 +157,11 @@ configuration, target credentials, or private deployment evidence in issues.
 
 ## License
 
-No license file is currently published. Until a license is added, treat this
-repository as source-available with all rights reserved by the owner.
+Copyright 2026 Yu-Jie, Lin.
+
+Licensed under the Apache License, Version 2.0. See `LICENSE` for the full
+license text and `NOTICE` for the project notice and additional disclaimer.
+
+Unless required by applicable law or agreed to in writing, this repository is
+provided on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+either express or implied.
