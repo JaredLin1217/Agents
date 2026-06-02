@@ -4,11 +4,20 @@ This file is generated from git history after public branch pushes.
 Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` instead.
 
 - Source branch: `main`
-- Source commit analyzed: `eab91a4`
-- Source commit date: `2026-06-01T21:47:17+08:00`
+- Source commit analyzed: `b39ed58`
+- Source commit date: `2026-06-01T13:47:47Z`
 - Commit window: latest 12 non-merge commits
 
 ## Recent Commits
+
+### 2026-06-01 - `b39ed58`
+
+docs: update GitHub update log [skip ci]
+
+- Author: `github-actions[bot]`
+- Shortstat: `1 file changed, 27 insertions(+), 27 deletions(-)`
+- Files:
+  - `docs/github-updates.md`
 
 ### 2026-06-01 - `eab91a4`
 
@@ -141,12 +150,3 @@ docs: codify sidebar cleanup workflow
   - `docs/agents/schemas.yaml`
   - `docs/agents/verify.yaml`
   - `docs/agents/workflows.yaml`
-
-### 2026-06-01 - `17c2bef`
-
-docs: update GitHub update log [skip ci]
-
-- Author: `github-actions[bot]`
-- Shortstat: `1 file changed, 31 insertions(+), 23 deletions(-)`
-- Files:
-  - `docs/github-updates.md`

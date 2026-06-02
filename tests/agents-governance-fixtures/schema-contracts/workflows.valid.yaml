@@ -5,8 +5,10 @@ read_first: []
 startup:
   common_task_matrix:
     enterprise_dispatch: "Use only for organization, department, employee dispatch, or model binding work."
+    workflow_artifact: "Use only for workflow artifacts, packets, approval gates, collection, or simulations."
   fast_classification:
     enterprise_dispatch: "Read enterprise files only when the task names department dispatch."
+    workflow_artifact: "Read workflow artifact files only when artifacts or simulations are requested."
 progress_updates:
   cap: "Fixture update cap."
 memory: {}
@@ -49,6 +51,15 @@ enterprise_dispatch_runtime:
   model_policy: "Use tier names before replaceable concrete model IDs."
   escalation: "Create escalation_record for direct controller reports or unverified work."
   validation: "Require department, leader, model tier, report target, and escalation_record rules."
+workflow_artifact_runtime:
+  source_of_truth: "docs/agents/workflow-artifacts.yaml owns workflow artifact semantics."
+  trigger_when: ["workflow artifacts", "packet collection", "dispatch simulation"]
+  do_not_trigger_for: ["answer-only", "enterprise dispatch without artifacts"]
+  storage_rule: ".agents/runtime/workflows and .workflow are runtime-local; never commit them."
+  controller_rule: "Controller integrates department reports and excludes raw worker chatter."
+  approval_gate_rule: "write, deploy, external access, destructive action, and model tier upgrade require approval or escalation."
+  collection_rule: "Collect normalized results, department reports, verification packets, and escalation records."
+  simulation_rule: "Level 1-3 are positive smoke tests; Level 4 and Level 6 are guardrails."
 handoff:
   project_id: "fixture-project"
 deployment:

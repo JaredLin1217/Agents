@@ -1,24 +1,19 @@
 name: checkpoint
-
 on:
   pull_request:
   push:
     branches:
       - main
       - master
-
 permissions:
   contents: read
-
 jobs:
   agents-workflow:
     name: agents workflow
     runs-on: windows-2025-vs2026
-
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
-
       - name: Run Agents workflow validation
         shell: pwsh
         run: .\scripts\validate.ps1

@@ -1,5 +1,7 @@
 # Local generated Agents state
 .agents/runtime/
+.agents/runtime/workflows/
+.workflow/
 docs/agent-status.md
 docs/agent-events/
 .agents/docs/agent-status.md

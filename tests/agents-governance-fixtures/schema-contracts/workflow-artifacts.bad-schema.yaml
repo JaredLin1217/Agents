@@ -1,0 +1,48 @@
+schema: agents-workflow-artifacts/v0
+purpose: "Fixture with bad schema version."
+owns: "Workflow artifact contract fixture."
+trigger_when: ["workflow artifacts"]
+do_not_trigger_for: ["answer-only"]
+storage:
+  live_root: ".agents/runtime/workflows/<workflow_id>/"
+  import_alias: ".workflow/<workflow_id>/"
+  git_rule: "Never stage, deploy, or release live workflow artifacts."
+  deploy_rule: "Only canonical docs, schemas, scripts, and source-neutral templates are deployable."
+  id_rule: "workflow_id has no path separators."
+layout:
+  required_files: ["state.json"]
+  optional_files: ["packets/*.json"]
+  final_report: "Controller-owned summary."
+states:
+  allowed: ["drafted"]
+  start: "drafted"
+  terminal: ["completed"]
+workflow_instance:
+  required_fields: ["workflow_id"]
+  artifact_root_rule: "Must resolve under storage.live_root."
+packets:
+  types: ["department_leader_assignment"]
+  required_fields: ["packet_id"]
+  routing_rule: "Controller-to-worker packets require escalation_packet."
+  worker_rule: "Worker packets report to department leader."
+approval_gates:
+  required_for: ["write"]
+  record_fields: ["approval_id"]
+  missing_behavior: "Block or emit escalation_record."
+security:
+  path_guard: "Reject .git."
+  authority_guard: "Authority violation creates escalation_record."
+collection:
+  inputs: ["department_report"]
+  controller_rule: "Collect normalized reports and exclude raw worker chatter."
+  required_counts: ["packets"]
+  output_files: ["final-report.md"]
+simulation:
+  levels: ["level_1"]
+  positive: "Level 1-3 require department_report output."
+  guardrail: "Level 4 and level_6 must be blocked or escalated."
+  level_5: "Reserved."
+helper:
+  script: "scripts/agents-workflow.ps1"
+  actions: ["New"]
+  validate_entry: "scripts/validate.ps1 remains the CI entry point."

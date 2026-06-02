@@ -1,0 +1,23 @@
+schema: agents-workflow-artifacts/v1
+purpose: "Fixture missing storage."
+owns: "Workflow artifact contract fixture."
+trigger_when: ["workflow artifacts"]
+do_not_trigger_for: ["answer-only"]
+layout:
+  required_files: ["state.json"]
+states:
+  start: "drafted"
+workflow_instance:
+  required_fields: ["workflow_id"]
+packets:
+  types: ["department_leader_assignment"]
+approval_gates:
+  required_for: ["write"]
+security:
+  path_guard: "Reject .git."
+collection:
+  controller_rule: "Collect normalized reports."
+simulation:
+  levels: ["level_1"]
+helper:
+  script: "scripts/agents-workflow.ps1"

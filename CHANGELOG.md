@@ -1,11 +1,21 @@
 # Changelog
-
 All notable changes to this repository are documented here.
-
 ## Unreleased
-
+## 2.2.0 - 2026-06-02
+- Added the Supervised Workflow Artifact Layer with canonical workflow
+  artifact routing, local workflow state, packets, results, approval gates,
+  collection reports, and final reports.
+- Added workflow artifact schema and template mirror coverage.
+- Added `scripts/agents-workflow.ps1` for new, verify, collect, simulate, and
+  normalize workflow artifact actions without external dependencies.
+- Added validation coverage for artifact-backed dispatch smoke tests, approval
+  gate guardrails, direct worker report rejection, route regression, and runtime
+  artifact blocklists.
+- Updated deployment and release rules to exclude `.agents/runtime/workflows/`
+  and `.workflow/` from deployable and releasable content.
+- Updated public version documentation to `2.2.0` while preserving V2
+  compatibility.
 ## 2.1.0 - 2026-06-01
-
 - Added the Enterprise Dispatch Layer with canonical organization, model policy,
   and dispatch YAML files.
 - Added controller-to-department-leader assignment, leader-owned internal
@@ -18,9 +28,7 @@ All notable changes to this repository are documented here.
   file hashes, package hash, and local-state exclusions.
 - Updated public version documentation to `2.1.0` while preserving V2
   compatibility.
-
 ## 2.0.0 - 2026-06-01
-
 - Added deployment-time Agents workflow version extraction and deployment
   report alignment from `docs/agents/version.yaml`.
 - Documented the current public workflow version and canonical version source
@@ -36,9 +44,7 @@ All notable changes to this repository are documented here.
 - Expanded public GitHub documentation for project purpose, quick start,
   deployment, validation, support, security, and contribution workflow.
 - Added public issue and pull request templates.
-
 ## 2026-06-01
-
 - Added compact Agents runtime routing through `docs/agents/ai-runtime.yaml`.
 - Added deployable template mirror for the compact runtime route.
 - Updated validation and deployment rules to include the AI runtime file.

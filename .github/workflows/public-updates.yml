@@ -1,34 +1,27 @@
 name: public updates
-
 on:
   push:
     branches:
       - main
       - master
-
 permissions:
   contents: write
-
 jobs:
   update-public-docs:
     name: update public docs
     if: github.actor != 'github-actions[bot]'
     runs-on: windows-2025-vs2026
-
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
-
       - name: Generate GitHub updates document
         shell: pwsh
         run: .\scripts\update-github-updates.ps1 -SourceRef "${{ github.sha }}" -BranchName "${{ github.ref_name }}"
-
       - name: Validate generated documentation
         shell: pwsh
         run: .\scripts\validate.ps1 -Quiet
-
       - name: Commit generated documentation
         shell: pwsh
         run: .\scripts\commit-github-updates.ps1 -BranchName "${{ github.ref_name }}"
