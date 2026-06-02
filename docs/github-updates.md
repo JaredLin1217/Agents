@@ -4,11 +4,27 @@ This file is generated from git history after public branch pushes.
 Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` instead.
 
 - Source branch: `main`
-- Source commit analyzed: `b39ed58`
-- Source commit date: `2026-06-01T13:47:47Z`
+- Source commit analyzed: `707c8da`
+- Source commit date: `2026-06-03T01:06:15+08:00`
 - Commit window: latest 12 non-merge commits
 
 ## Recent Commits
+
+### 2026-06-03 - `707c8da`
+
+Add v2.2 workflow artifact layer and slimming gates
+
+- Author: `JaredLin1217`
+- Shortstat: `124 files changed, 4588 insertions(+), 6127 deletions(-)`
+- Files:
+  - `.agents/skills/project-isolation-workflow/SKILL.md`
+  - `.agents/skills/project-isolation-workflow/agents/openai.yaml`
+  - `.github/ISSUE_TEMPLATE/bug_report.yml`
+  - `.github/ISSUE_TEMPLATE/config.yml`
+  - `.github/ISSUE_TEMPLATE/deployment.yml`
+  - `.github/ISSUE_TEMPLATE/documentation.yml`
+  - `.github/pull_request_template.md`
+  - `.github/workflows/README.md`
 
 ### 2026-06-01 - `b39ed58`
 
@@ -138,15 +154,3 @@ docs: update GitHub update log [skip ci]
 - Shortstat: `1 file changed, 23 insertions(+), 23 deletions(-)`
 - Files:
   - `docs/github-updates.md`
-
-### 2026-06-01 - `7c0be77`
-
-docs: codify sidebar cleanup workflow
-
-- Author: `JaredLin1217`
-- Shortstat: `4 files changed, 17 insertions(+), 9 deletions(-)`
-- Files:
-  - `.agents/skills/project-isolation-workflow/SKILL.md`
-  - `docs/agents/schemas.yaml`
-  - `docs/agents/verify.yaml`
-  - `docs/agents/workflows.yaml`
