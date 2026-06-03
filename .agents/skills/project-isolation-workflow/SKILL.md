@@ -10,7 +10,7 @@ Token-min router for isolation, memory, deploy, agents, handoff, skills, mainten
 - `docs/agents/policy.yaml`: isolation, authority, closeout.
 - `docs/agents/verify.yaml`: proof profile.
 - `docs/agents/deploy.yaml`: authorized deployment.
-- Deploy: preserve target layout; write only `deployed_file_set`; report legacy separately.
+- Deploy: preserve target layout; write only `deployed_file_set`; report historical files separately.
 - Memory: read relevant `docs/memory/index.md` rows only.
 ## Employee Summary
 - Exact read/write scope; explorers read-only; workers need exclusive normalized write scope.

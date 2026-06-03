@@ -43,6 +43,11 @@ param([AllowNull()][string]$Value)
 $safe = (ConvertTo-AsciiText -Value $Value).Replace('`', "'")
 return ('`' + $safe + '`')
 }
+function ConvertTo-PublicSubject {
+param([AllowNull()][string]$Value)
+$subject = ConvertTo-AsciiText -Value $Value
+return ($subject -replace '\bv([0-9]+\.[0-9]+(\.[0-9]+)?)\b', '$1')
+}
 function Get-FirstLineOrDefault {
 param(
 [string[]]$Lines,
@@ -54,6 +59,30 @@ return $line.Trim()
 }
 }
 return $Default
+}
+function Get-CurrentWorkflowMetadata {
+param([string]$RepoRoot)
+$path = Join-Path $RepoRoot "docs/agents/version.yaml"
+$metadata = @{
+version = "unknown"
+channel = "unknown"
+positioning = ""
+}
+if (-not (Test-Path -LiteralPath $path)) {
+return $metadata
+}
+foreach ($line in Get-Content -LiteralPath $path) {
+if ($line -match '^\s+version:\s+"?([^"]+)"?\s*$') {
+$metadata.version = $Matches[1]
+}
+elseif ($line -match '^\s+channel:\s+"?([^"]+)"?\s*$') {
+$metadata.channel = $Matches[1]
+}
+elseif ($line -match '^\s+positioning:\s+"?([^"]+)"?\s*$') {
+$metadata.positioning = $Matches[1]
+}
+}
+return $metadata
 }
 if ($MaxCommits -lt 1) {
 throw "MaxCommits must be at least 1."
@@ -111,6 +140,15 @@ $lines.Add(("- Source commit analyzed: {0}" -f (Format-CodeSpan -Value $sourceSh
 $lines.Add(("- Source commit date: {0}" -f (Format-CodeSpan -Value $sourceDate)))
 $lines.Add(("- Commit window: latest {0} non-merge commits" -f $MaxCommits))
 $lines.Add("")
+$workflowMetadata = Get-CurrentWorkflowMetadata -RepoRoot $repoRoot
+$lines.Add("## Current Project Version")
+$lines.Add("")
+$lines.Add(("- Version: {0}" -f (Format-CodeSpan -Value $workflowMetadata.version)))
+$lines.Add(("- Channel: {0}" -f (Format-CodeSpan -Value $workflowMetadata.channel)))
+if (-not [string]::IsNullOrWhiteSpace($workflowMetadata.positioning)) {
+$lines.Add(("- Positioning: {0}" -f (ConvertTo-AsciiText -Value $workflowMetadata.positioning)))
+}
+$lines.Add("")
 $lines.Add("## Recent Commits")
 $lines.Add("")
 foreach ($row in $commitRows) {
@@ -125,7 +163,7 @@ $hash = $parts[0]
 $shortHash = $parts[1]
 $date = $parts[2]
 $author = $parts[3]
-$subject = ConvertTo-AsciiText -Value $parts[4]
+$subject = ConvertTo-PublicSubject -Value $parts[4]
 if ([string]::IsNullOrWhiteSpace($subject)) {
 $subject = "No commit subject recorded."
 }

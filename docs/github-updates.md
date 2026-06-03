@@ -8,11 +8,17 @@ Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` ins
 - Source commit date: `2026-06-03T21:34:19+08:00`
 - Commit window: latest 12 non-merge commits
 
+## Current Project Version
+
+- Version: `2.5.0`
+- Channel: `core-runtime`
+- Positioning: Core Runtime System unifies routing, dispatch, collaborator windows, compaction, workflow artifacts, runtime evidence, deploy, verify, and release packaging.
+
 ## Recent Commits
 
 ### 2026-06-03 - `019f3a7`
 
-Add v2.3.0 collaborator window dispatch layer
+Add 2.3.0 collaborator window dispatch layer
 
 - Author: `JaredLin1217`
 - Shortstat: `38 files changed, 1368 insertions(+), 356 deletions(-)`
@@ -53,7 +59,7 @@ docs: update GitHub update log [skip ci]
 
 ### 2026-06-03 - `7cdf0fc`
 
-Add v2.2.1 context compact layer
+Add 2.2.1 context compact layer
 
 - Author: `JaredLin1217`
 - Shortstat: `26 files changed, 725 insertions(+), 423 deletions(-)`
@@ -103,7 +109,7 @@ docs: update GitHub update log [skip ci]
 
 ### 2026-06-03 - `707c8da`
 
-Add v2.2 workflow artifact layer and slimming gates
+Add 2.2 workflow artifact layer and slimming gates
 
 - Author: `JaredLin1217`
 - Shortstat: `124 files changed, 4588 insertions(+), 6127 deletions(-)`

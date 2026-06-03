@@ -122,6 +122,18 @@ $files = @($tracked) + @($untracked) |
 Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
 ForEach-Object { Convert-ToRepoRelative $_ } |
 Sort-Object -Unique
+$blocklistPolicy = @(
+".agents/runtime/**",
+".workflow/**",
+".codex/config.toml",
+".codex/environments/environment.toml",
+".codex/environments/environment.template.toml",
+".git/**",
+"live thread ids",
+"API keys",
+"provider sessions"
+)
+$blockedExcluded = @($files | Where-Object { Test-BlockedReleasePath $_ } | Sort-Object -Unique)
 $entries = @()
 foreach ($rel in $files) {
 if (Test-BlockedReleasePath $rel) {
@@ -153,6 +165,11 @@ commit = $commit
 created_at_utc = (Get-Date).ToUniversalTime().ToString("o")
 file_count = $entries.Count
 package_hash = Get-StringSha256 $hashInput
+blocklist_result = [pscustomobject]@{
+checked = $true
+policy = $blocklistPolicy
+blocked_paths_excluded = $blockedExcluded
+}
 files = $entries
 }
 $manifestPath = Join-Path $packageRoot "release-manifest.json"

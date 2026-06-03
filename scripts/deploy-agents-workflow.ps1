@@ -18,7 +18,7 @@ $DeployedFiles = New-Object System.Collections.Generic.List[string]
 $PlannedWrites = New-Object System.Collections.Generic.List[string]
 $ProtectedExisting = New-Object System.Collections.Generic.List[string]
 $UnchangedExisting = New-Object System.Collections.Generic.List[string]
-$TargetLegacyAgents = New-Object System.Collections.Generic.List[string]
+$TargetHistoricalAgents = New-Object System.Collections.Generic.List[string]
 $ProtectedDirty = New-Object System.Collections.Generic.List[string]
 $TargetLocalEnvironment = New-Object System.Collections.Generic.List[string]
 function Test-SameDirectory {
@@ -281,6 +281,11 @@ $blockedPrefixes = @(
 ".git/",
 ".codex/",
 ".agents/runtime/workflows/",
+".agents/runtime/executions/",
+".agents/runtime/knowledge/",
+".agents/runtime/route-packs/",
+".agents/runtime/tool-evidence/",
+".agents/runtime/deployments/",
 ".agents/runtime/",
 ".workflow/",
 "docs/agent-events/",
@@ -323,7 +328,7 @@ $deployed = New-Object 'System.Collections.Generic.HashSet[string]' ([System.Str
 foreach ($file in ($DeployedFiles | Sort-Object -Unique)) {
 [void] $deployed.Add((Normalize-RepoPath $file))
 }
-$legacyCandidates = @(
+$historicalCandidates = @(
 "docs/agents",
 ".agents/docs/agents",
 "docs/runbooks",
@@ -345,7 +350,7 @@ $legacyCandidates = @(
 "docs/runtime-multi-agent-validation",
 ".agents/docs/runtime-multi-agent-validation"
 )
-foreach ($relative in $legacyCandidates) {
+foreach ($relative in $historicalCandidates) {
 $candidate = Join-TargetPath -Root $Root -RelativePath $relative
 if (-not (Test-Path -LiteralPath $candidate)) {
 continue
@@ -359,7 +364,7 @@ else {
 foreach ($item in $items) {
 $itemRelative = Get-RelativeTargetPath -Root $Root -Path $item.FullName
 if (-not $deployed.Contains($itemRelative)) {
-$TargetLegacyAgents.Add($itemRelative) | Out-Null
+$TargetHistoricalAgents.Add($itemRelative) | Out-Null
 }
 }
 }
@@ -574,6 +579,11 @@ Assert-RelativeDeployPath -RelativePath $normalized
 $blockedPrefixes = @(
 ".git/",
 ".agents/runtime/workflows/",
+".agents/runtime/executions/",
+".agents/runtime/knowledge/",
+".agents/runtime/route-packs/",
+".agents/runtime/tool-evidence/",
+".agents/runtime/deployments/",
 ".agents/runtime/",
 ".workflow/",
 ".codex/",
@@ -799,7 +809,7 @@ $reportLines += @(
 "- Target app/source files outside deployed_file_set.",
 "- Runtime/local Codex config, agent status, ledger, evidence records, and Git metadata.",
 "- Existing .codex/environments/*.toml files; target-local bootstrap creates a project-named file only when none exists.",
-"- Target-owned legacy Agents files outside deployed_file_set.",
+"- Target-owned historical Agents files outside deployed_file_set.",
 "",
 "## Target Owner Next Actions",
 "",
@@ -824,10 +834,10 @@ $reportLines += "- none observed"
 }
 $reportLines += @(
 "",
-"Target-owned legacy Agents files outside deployed file set:"
+"Target-owned historical Agents files outside deployed file set:"
 )
-if ($TargetLegacyAgents.Count -gt 0) {
-foreach ($file in ($TargetLegacyAgents | Sort-Object -Unique)) {
+if ($TargetHistoricalAgents.Count -gt 0) {
+foreach ($file in ($TargetHistoricalAgents | Sort-Object -Unique)) {
 $reportLines += ("- {0}" -f $file)
 }
 }
@@ -847,7 +857,7 @@ $reportLines += @(
 "",
 "- Runtime, local Codex config, Git metadata, status, event, and filled evidence files are not deployed.",
 "- Provider environment templates are never deployed; target environments stay local.",
-"- Target-owned legacy Agents files are reported separately and remain target-owned."
+"- Target-owned historical Agents files are reported separately and remain target-owned."
 )
 $reportContent = ($reportLines -join [System.Environment]::NewLine) + [System.Environment]::NewLine
 $state = Get-DeployWriteState -Path $reportPath -Content $reportContent
@@ -899,7 +909,7 @@ Write-Step "INFO" "What was intentionally not touched:"
 Write-Step "SKIP" "Target app/source files outside deployed_file_set."
 Write-Step "SKIP" "Runtime/local Codex config, agent status, ledger, evidence records, and Git metadata."
 Write-Step "SKIP" "Existing .codex/environments/*.toml files are preserved; project-named environment is created only when absent."
-Write-Step "SKIP" "Target-owned legacy Agents files outside deployed_file_set."
+Write-Step "SKIP" "Target-owned historical Agents files outside deployed_file_set."
 Write-Step "INFO" "Target-local Codex environment bootstrap:"
 if ($TargetLocalEnvironment.Count -gt 0) {
 foreach ($file in ($TargetLocalEnvironment | Sort-Object -Unique)) {
@@ -1314,18 +1324,18 @@ Assert-SelfTestTextContains -Text $ownedPlan -Expected "[PROTECTED] .agents/runt
 Assert-SelfTestTextContains -Text $ownedPlan -Expected "[PROTECTED] .agents/runtime/workflows/example/state.json"
 Assert-SelfTestTextContains -Text $ownedPlan -Expected "[PROTECTED] .workflow/example/state.json"
 Assert-SelfTestTextContains -Text $ownedPlan -Expected "[PROTECTED] .git/HEAD"
-$routedLegacyTarget = Join-Path $selfTestRoot "routed-legacy"
-New-Item -ItemType Directory -Path (Join-Path $routedLegacyTarget "docs/agents") -Force | Out-Null
-New-Item -ItemType Directory -Path (Join-Path $routedLegacyTarget ".agents/docs/agents") -Force | Out-Null
-Set-Content -LiteralPath (Join-Path $routedLegacyTarget "AGENTS.md") -Value "Route to .agents/docs/agents." -Encoding utf8
-Set-Content -LiteralPath (Join-Path $routedLegacyTarget "docs/agents/legacy.md") -Value "legacy root docs" -Encoding utf8
-Invoke-ChildDeployment -CommandArgs @{ TargetPath = $routedLegacyTarget; Mode = "core_bootstrap"; Upgrade = $true; Quiet = $true }
-Assert-SelfTestFile -Root $routedLegacyTarget -RelativePath ".agents/docs/agents/workflows.yaml"
-Assert-SelfTestContent -Path (Join-Path $routedLegacyTarget "docs/agents/legacy.md") -Expected "legacy root docs"
-Assert-SelfTestContains -Path (Join-Path $routedLegacyTarget ".agents/docs/agents-workflow-deployment.md") -Expected "- docs/agents/legacy.md"
-$legacyPlan = Invoke-ChildDeploymentOutput -CommandArgs @{ TargetPath = $routedLegacyTarget; Mode = "core_bootstrap"; DryRun = $true; Upgrade = $true }
-Assert-SelfTestTextContains -Text $legacyPlan -Expected "Target-owned legacy Agents files outside deployed file set:"
-Assert-SelfTestTextContains -Text $legacyPlan -Expected "[LEGACY] docs/agents/legacy.md"
+$routedHistoricalTarget = Join-Path $selfTestRoot "routed-historical"
+New-Item -ItemType Directory -Path (Join-Path $routedHistoricalTarget "docs/agents") -Force | Out-Null
+New-Item -ItemType Directory -Path (Join-Path $routedHistoricalTarget ".agents/docs/agents") -Force | Out-Null
+Set-Content -LiteralPath (Join-Path $routedHistoricalTarget "AGENTS.md") -Value "Route to .agents/docs/agents." -Encoding utf8
+Set-Content -LiteralPath (Join-Path $routedHistoricalTarget "docs/agents/historical.md") -Value "historical root docs" -Encoding utf8
+Invoke-ChildDeployment -CommandArgs @{ TargetPath = $routedHistoricalTarget; Mode = "core_bootstrap"; Upgrade = $true; Quiet = $true }
+Assert-SelfTestFile -Root $routedHistoricalTarget -RelativePath ".agents/docs/agents/workflows.yaml"
+Assert-SelfTestContent -Path (Join-Path $routedHistoricalTarget "docs/agents/historical.md") -Expected "historical root docs"
+Assert-SelfTestContains -Path (Join-Path $routedHistoricalTarget ".agents/docs/agents-workflow-deployment.md") -Expected "- docs/agents/historical.md"
+$historicalPlan = Invoke-ChildDeploymentOutput -CommandArgs @{ TargetPath = $routedHistoricalTarget; Mode = "core_bootstrap"; DryRun = $true; Upgrade = $true }
+Assert-SelfTestTextContains -Text $historicalPlan -Expected "Target-owned historical Agents files outside deployed file set:"
+Assert-SelfTestTextContains -Text $historicalPlan -Expected "[HISTORICAL] docs/agents/historical.md"
 $ambiguousTarget = Join-Path $selfTestRoot "ambiguous-layout"
 New-Item -ItemType Directory -Path (Join-Path $ambiguousTarget "docs/agents") -Force | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $ambiguousTarget ".agents/docs/agents") -Force | Out-Null
@@ -1424,10 +1434,10 @@ foreach ($file in ($ProtectedDirty | Sort-Object -Unique)) {
 Write-Step "PROTECTED" $file
 }
 }
-if ($TargetLegacyAgents.Count -gt 0) {
-Write-Step "INFO" "Target-owned legacy Agents files outside deployed file set:"
-foreach ($file in ($TargetLegacyAgents | Sort-Object -Unique)) {
-Write-Step "LEGACY" $file
+if ($TargetHistoricalAgents.Count -gt 0) {
+Write-Step "INFO" "Target-owned historical Agents files outside deployed file set:"
+foreach ($file in ($TargetHistoricalAgents | Sort-Object -Unique)) {
+Write-Step "HISTORICAL" $file
 }
 }
 Write-DeploymentCloseoutSummary -Layout $layout

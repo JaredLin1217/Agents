@@ -21,6 +21,23 @@ if (-not $Quiet) {
 $Value | ConvertTo-Json -Depth 12
 }
 }
+function Get-WorkflowVersion {
+$versionPath = Join-Path $RepoRoot "docs/agents/version.yaml"
+$inWorkflow = $false
+foreach ($line in Get-Content -LiteralPath $versionPath) {
+if ($line -match "^workflow:\s*$") {
+$inWorkflow = $true
+continue
+}
+if ($inWorkflow -and $line -match "^\S") {
+$inWorkflow = $false
+}
+if ($inWorkflow -and $line -match "^\s+version:\s*[""']?([^""']+)[""']?\s*$") {
+return $Matches[1].Trim().Trim('"').Trim("'")
+}
+}
+throw "Unable to read workflow.version from docs/agents/version.yaml."
+}
 function Assert-WorkflowId {
 if ($WorkflowId -notmatch '^[a-z0-9._-]+$') {
 throw "Invalid workflow_id. Use lowercase letters, numbers, dot, underscore, or dash only."
@@ -116,7 +133,7 @@ New-Item -ItemType Directory -Force -Path (Join-Path $workflowRoot "packets") | 
 New-Item -ItemType Directory -Force -Path (Join-Path $workflowRoot "results") | Out-Null
 $state = [ordered]@{
 workflow_id = $WorkflowId
-version = "2.2.0"
+version = Get-WorkflowVersion
 objective = "supervised workflow artifact"
 owner = "controller"
 status = "drafted"

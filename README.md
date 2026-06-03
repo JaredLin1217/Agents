@@ -1,15 +1,30 @@
 # Jared's AI Team
+
 [![Checkpoint](https://github.com/JaredLin1217/Agents/actions/workflows/checkpoint.yml/badge.svg)](https://github.com/JaredLin1217/Agents/actions/workflows/checkpoint.yml)
 [![Public Updates](https://github.com/JaredLin1217/Agents/actions/workflows/public-updates.yml/badge.svg)](https://github.com/JaredLin1217/Agents/actions/workflows/public-updates.yml)
-Repo-local Agents workflow governance for Codex projects.
+
+Repo-local AI workflow core runtime system for Codex projects.
+
 Jared's AI Team turns a repository into a self-describing AI work system. It
 defines how an AI coding session should route work, assign tasks, verify claims,
 deploy workflow files, export clean release packages, and keep local runtime
 state out of source control.
+
 The project is not an application framework or hosted service. Its primary
 interface is the repository content: `AGENTS.md`, canonical YAML policies,
 project-local skills, validation scripts, deployment scripts, schemas, and
 runbooks that can be installed into another repository.
+
+## Current Version
+Current Agents workflow version: `2.5.0` (`core-runtime`).
+
+| Field | Value |
+|---|---|
+| Canonical version source | `docs/agents/version.yaml` |
+| Public README source of truth | This section must match the canonical version metadata. |
+| Deployment alignment | Deployment reads the canonical version metadata, copies the matching version file into the deployed file set, and records the aligned version in the deployment report. |
+| Release alignment | Release export records the canonical version, source commit, included file list, file hashes, and package hash. |
+
 ## What It Does
 - Gives Codex a repo-local operating model instead of relying on hidden session
   habits, global memory, or private machine settings.
@@ -17,11 +32,11 @@ runbooks that can be installed into another repository.
   expanding only the named files required for the current route.
 - Separates deployable workflow content from `.git`, `.codex`, runtime state,
   secrets, local evidence, and target-owned project files.
-- Supports simple single-agent edits, multi-agent workflows, and an optional
-  enterprise dispatch layer where the controller assigns work to department
-  leaders instead of individual workers.
-- Adds a supervised workflow artifact layer for local packets, approval gates,
-  verification results, collection reports, and final workflow evidence.
+- Supports simple single-agent edits, multi-agent workflows, and enterprise
+  dispatch where the controller assigns work to department leaders instead of
+  individual workers.
+- Uses runtime execution evidence as the shared source for runs, steps,
+  approvals, tool evidence, results, cleanup, and workflow artifacts.
 - Adds a context compact layer for safe resume, handoff, auto-compaction, and
   employee closeout summaries without storing raw transcript.
 - Provides repeatable validation gates for edits, policy changes, commits,
@@ -53,21 +68,37 @@ repeat less.
 - Verified employee closeout reduces stale sidebar or history residue that would
   otherwise pollute later context.
 
-## Core Features
-| Feature | How It Helps |
+## Core Modules
+| Module | Added In | Main Files | What It Adds |
+|---|---|---|---|
+| Versioned public workflow | `2.0.0` | `docs/agents/version.yaml`, `README.md` | Canonical version metadata, README alignment, deployment version extraction, and public release identity. |
+| Route-minimal runtime | Initial release, strengthened through `2.5.0` | `docs/agents/ai-runtime.yaml` | A small route table that tells Codex exactly which canonical files to load for each task. |
+| Project-local operating rules | Initial release | `AGENTS.md`, `.agents/skills/project-isolation-workflow/` | Portable repo-local behavior for isolation, deployment, maintenance, multi-agent work, and closeout. |
+| Enterprise dispatch | `2.1.0` | `docs/agents/org.yaml`, `docs/agents/model-policy.yaml`, `docs/agents/dispatch.yaml` | Controller-to-department-leader assignment, leader-owned internal delegation, department reports, escalation records, and tier-first model selection. |
+| Workflow artifacts | `2.2.0` | `docs/agents/workflow-artifacts.yaml`, `scripts/agents-workflow.ps1` | Runtime-local workflow instances, packets, approval gates, collection reports, and artifact-backed dispatch simulations. |
+| Context compact | `2.2.1` | `docs/agents/context-compact.yaml` | Safe resume and handoff summaries that preserve current task state without storing raw transcript. |
+| Collaborator windows | `2.3.0` | `docs/agents/collaborators.yaml` | Named, recoverable Codex work sessions for department leaders, with create, rename, report, archive, and close evidence rules. |
+| Core runtime contract | `2.5.0` | `docs/agents/core-system.yaml` | System boundary, canonical file set, runtime-local blocklists, and deploy or release contract. |
+| Runtime execution evidence | `2.5.0` | `docs/agents/runtime-execution.yaml`, `scripts/agents-runtime.ps1` | Runs, steps, approvals, tool evidence, results, escalations, collection, verification, and cleanup proof. |
+| Provider adapters | `2.5.0` | `docs/agents/provider-adapters.yaml` | Provider capability boundaries and replaceable model tier mapping without hard-binding workflows to one model id. |
+| Route packs | `2.5.0` | `docs/agents/route-packs.yaml`, `scripts/export-route-pack.ps1` | Deterministic minimal read-pack manifests for cacheable, low-token route loading. |
+| Knowledge footprint | `2.5.0` | `docs/agents/knowledge-footprint.yaml` | Compact cross-window recovery evidence with scope, opened files, evidence refs, gaps, conclusion, and resume pointer. |
+| Validation profiles | Strengthened every release | `docs/agents/verify.yaml`, `scripts/validate.ps1` | Focused gates for edits, policy changes, deployment, release, enterprise dispatch, runtime execution, route packs, and public version alignment. |
+| Deployment provider mode | `2.1.0`, strengthened through `2.5.0` | `scripts/deploy-agents-workflow.ps1`, `docs/agents/deploy.yaml` | Allowlisted installation into target repositories while preserving `.git`, `.codex`, runtime state, secrets, and target-owned files. |
+| Release package export | `2.1.0`, strengthened through `2.5.0` | `scripts/export-release-package.ps1` | Clean package manifest with canonical version, source commit, file list, file hashes, package hash, and runtime blocklist checks. |
+| Public update automation | `2.0.0` | `.github/workflows/public-updates.yml`, `docs/github-updates.md` | GitHub Actions update log generated from recent public branch history after pushes. |
+
+## Version Feature History
+| Version | Added Functions |
 |---|---|
-| Route-minimal runtime | `docs/agents/ai-runtime.yaml` maps each request to the smallest canonical file set needed for the task. |
-| Project-local operating rules | `AGENTS.md` and `.agents/skills/project-isolation-workflow/` define portable behavior inside the repo. |
-| Enterprise dispatch | `docs/agents/org.yaml`, `model-policy.yaml`, and `dispatch.yaml` define department leaders, allowed worker roles, reports, and escalations. |
-| Workflow artifacts | `docs/agents/workflow-artifacts.yaml` defines local workflow instances, packets, results, approval gates, collection reports, and artifact-backed dispatch simulations. |
-| Context compact contract | `docs/agents/context-compact.yaml` defines safe resume and handoff summaries that keep the latest request, verification state, risks, and employee closeout counts without raw transcript. |
-| Collaborator windows | `docs/agents/collaborators.yaml` defines named Codex work sessions for department leaders, including create, rename, report, archive, and close evidence rules. |
-| Tier-first model policy | Work is assigned to capability tiers such as `low_fast`, `quick_code`, `code_standard`, `senior_review`, and `principal` instead of being hard-bound to one model ID. |
-| Multi-agent lifecycle | `docs/agents/workflows.yaml` defines assignment ownership, ledger behavior, roster fallback, closeout, scoring, and recovery. |
-| Validation profiles | `docs/agents/verify.yaml` selects focused checks for scoped edits, policy edits, deployment, release, and enterprise dispatch. |
-| Deployment provider mode | `scripts/deploy-agents-workflow.ps1` installs the workflow into allowlisted target repositories without copying local runtime state. |
-| Release package export | `scripts/export-release-package.ps1` creates a clean package manifest with version, commit, file list, file hashes, and package hash. |
-| Public update automation | `.github/workflows/public-updates.yml` refreshes `docs/github-updates.md` after branch pushes. |
+| `2.5.0` | Core Runtime System positioning; core system policy; runtime execution policy and helper; provider adapter policy; route pack policy and exporter; knowledge footprint policy; stronger runtime blocklists; legacy residue checks; release and deployment package audits. |
+| `2.3.0` | Collaborator Window Dispatch Layer; named department-leader Codex sessions; create, rename, report, archive, and close lifecycle; worker-window blocking; runtime-local thread evidence exclusion. |
+| `2.2.1` | Context Compact Layer; auto-compaction and handoff rules; resume pointer; retained facts, dropped details, risks, changed files, subagent closeout counts, and raw transcript exclusion. |
+| `2.2.0` | Supervised Workflow Artifact Layer; local workflow state; department leader packets; worker packets; verification packets; escalation packets; approval gates; collect and normalize workflow reports. |
+| `2.1.0` | Enterprise Dispatch Layer; organization definition; department leaders; allowed worker roles; tier-first model policy; leader-only controller integration; escalation records; clean release package export. |
+| `2.0.0` | Public workflow version source; README version alignment; deployment-time version extraction; Apache-2.0 license and disclaimer; public issue and PR templates; GitHub update automation. |
+| Initial release | Compact AI runtime route file; deployable template mirror; validation and deployment rules for the first repo-local Agents workflow package. |
+
 ## Common Usage
 ### 1. Validate The Current Repository
 Run the default validation gate before making source-state claims:
@@ -95,7 +126,26 @@ Dispatch this task through the QA department leader and return one department re
 ```text
 Deploy this Agents workflow to D:\target\repo with a dry run first, then verify.
 ```
-### 3. Run An Artifact-Backed Workflow
+### 3. Record Runtime Execution Evidence
+Create, update, verify, collect, and clean a read-only runtime execution record
+without adding it to source control:
+```powershell
+.\scripts\agents-runtime.ps1 -Action NewRun -RunId "example" -RuntimeRoot "$env:TEMP\codex-agent-status\jared-s-ai-team\runtime\example"
+.\scripts\agents-runtime.ps1 -Action AddStep -RunId "example" -RuntimeRoot "$env:TEMP\codex-agent-status\jared-s-ai-team\runtime\example" -Step "read_only"
+.\scripts\agents-runtime.ps1 -Action AddResult -RunId "example" -RuntimeRoot "$env:TEMP\codex-agent-status\jared-s-ai-team\runtime\example" -Result "completed" -Summary "read-only example completed"
+.\scripts\agents-runtime.ps1 -Action Verify -RunId "example" -RuntimeRoot "$env:TEMP\codex-agent-status\jared-s-ai-team\runtime\example"
+.\scripts\agents-runtime.ps1 -Action Cleanup -RunId "example" -RuntimeRoot "$env:TEMP\codex-agent-status\jared-s-ai-team\runtime\example"
+```
+Runtime evidence belongs under `.agents/runtime/**` or an approved temporary
+status path. It is not deployable or releasable.
+### 4. Export A Route Pack
+Generate a deterministic minimal read pack for one route:
+```powershell
+.\scripts\export-route-pack.ps1 -RouteId core_system
+```
+Route packs are manifests for cacheable route loading. They do not call a model
+and do not write live runtime state unless an explicit output path is supplied.
+### 5. Run An Artifact-Backed Workflow
 Create, simulate, verify, and collect a local workflow artifact without adding it
 to source control:
 ```powershell
@@ -105,9 +155,9 @@ to source control:
 .\scripts\agents-workflow.ps1 -Action Collect -WorkflowId "example"
 ```
 Live artifacts are local runtime state under `.agents/runtime/workflows/`.
-`.workflow/` is accepted only as an import compatibility alias. Neither location
+`.workflow/` is blocked from deployment and release packages. Neither location
 is deployable or releasable.
-### 4. Manage Collaborator Windows
+### 6. Manage Collaborator Windows
 Collaborator windows are runtime Codex threads, not durable project files. The
 controller maps a user objective to a department leader, creates or names one
 leader window, sends a bounded assignment, and expects only a
@@ -126,7 +176,7 @@ Dismiss Documentation Desk and verify it is no longer active.
 Live thread ids, window titles, active lists, close evidence, and
 `.agents/runtime/collaborators.jsonl` stay local. They are not deployable,
 releasable, or public documentation content.
-### 5. Deploy Into Another Repository
+### 7. Deploy Into Another Repository
 Always dry-run first against an exact authorized target path:
 ```powershell
 .\scripts\deploy-agents-workflow.ps1 -TargetPath "D:\target\repo" -Mode core_bootstrap -DryRun
@@ -144,7 +194,7 @@ Deployment modes:
 Deployment is allowlist-based and preserves target app code, `.git`, `.codex`,
 runtime files, secrets, target-owned memory, and local environment state unless a
 narrower targeted action is explicitly authorized.
-### 6. Export A Clean Release Package
+### 8. Export A Clean Release Package
 ```powershell
 .\scripts\export-release-package.ps1
 ```
@@ -153,14 +203,11 @@ The release package excludes `.git/`, `.agents/runtime/`,
 environment configuration, local status records, and other machine-owned state.
 The generated manifest records workflow version, source commit, included files,
 file hashes, and package hash.
-## Enterprise Dispatch
-Version `2.1.0` added the Enterprise Dispatch Layer. Version `2.2.0` can back
-that dispatch with local workflow artifacts for packeted assignments,
-verification, approval gates, collection, and final reports.
-Version `2.2.1` adds context compact rules for resume, handoff, and employee
-closeout continuity.
-Version `2.3.0` adds collaborator windows for named, recoverable, archivable
-department leader work sessions while keeping live thread evidence local.
+## Core Runtime System
+Jared's AI Team 2.5.0 is a core runtime system for repo-local AI work. It unifies
+route selection, enterprise dispatch, collaborator windows, context compact,
+workflow artifacts, runtime evidence, deployment, validation, and release export
+into one verifiable architecture.
 Default departments:
 - Executive Office
 - PMO
@@ -176,13 +223,18 @@ Operating model:
 - Department leaders may split work internally to allowed worker roles.
 - Workers report to their leader, not directly to the controller.
 - Leaders return one department report with verification, risks, escalations,
-  and isolation details.
+  isolation details, and optional execution run references.
 - Collaborator windows expose department leaders as named Codex work sessions;
   worker windows remain blocked unless an explicit override and escalation
   record exist.
 - Invalid routing, authority violations, failed verification, or unsuitable model
   tiers must produce an escalation record.
 The canonical files are:
+- `docs/agents/core-system.yaml`
+- `docs/agents/runtime-execution.yaml`
+- `docs/agents/provider-adapters.yaml`
+- `docs/agents/route-packs.yaml`
+- `docs/agents/knowledge-footprint.yaml`
 - `docs/agents/org.yaml`
 - `docs/agents/model-policy.yaml`
 - `docs/agents/dispatch.yaml`
@@ -203,31 +255,32 @@ Validation is selected by claim scope:
 | Commit, tag, or push checkpoint | Staged hygiene, placeholder, runtime, and local-state checks. |
 | Deployment or release | Deployment self-test, template integrity, schema coverage, package exclusions, and handoff checks. |
 | Enterprise dispatch | Department leader references, model tier references, report routing, and escalation records. |
+| Runtime execution | Run records, step status, approval gates, result collection, escalations, and cleanup evidence. |
 | Workflow artifacts | Local workflow state, packet ownership, approval gates, route guardrails, collection reports, and runtime blocklists. |
 | Context compact | Required summary fields, raw transcript exclusion, subagent closeout counts, and runtime compact event boundary. |
 | Collaborator windows | Department leader window mapping, thread operation evidence, worker window blocking, and runtime thread id exclusions. |
+| Route pack | Deterministic route file selection, stable hashes, schema hash, cache key fields, and tool surface. |
 The source of truth for these gates is `docs/agents/verify.yaml`.
 ## Repository Map
 | Path | Purpose |
 |---|---|
 | `AGENTS.md` | Entry-point operating rules for Codex sessions. |
-| `docs/agents/*.yaml` | Canonical route, workflow, policy, deployment, verification, schema, MCP, dispatch, model, context compact, collaborator, and version rules. |
+| `docs/agents/*.yaml` | Canonical core system, route, workflow, runtime execution, provider, deployment, verification, schema, MCP, dispatch, model, context compact, collaborator, and version rules. |
 | `.agents/skills/project-isolation-workflow/` | Project-local Codex skill for isolation, deployment, memory, maintenance, and multi-agent work. |
 | `docs/templates/agents/` | Source-neutral deployable template bundle. |
 | `docs/runbooks/` | Operational procedures for deployment, closeout, audits, skills, sessions, and maintenance. |
 | `scripts/validate.ps1` | Main local and CI validation entry point. |
+| `scripts/agents-runtime.ps1` | Local runtime execution helper for run, step, approval, result, escalation, collect, verify, and cleanup actions. |
 | `scripts/agents-workflow.ps1` | Local workflow artifact helper for new, verify, collect, simulate, and normalize actions. |
+| `scripts/export-route-pack.ps1` | Deterministic route pack manifest exporter. |
 | `scripts/deploy-agents-workflow.ps1` | Allowlisted deployment entry point for target repositories. |
 | `scripts/export-release-package.ps1` | Clean release package exporter. |
 | `scripts/update-github-updates.ps1` | Public GitHub update log generator. |
 | `schemas/` | JSON Schema contracts used by validation. |
 | `.github/workflows/` | GitHub Actions checkpoint and public update automation. |
+
 For a detailed file-role matrix, see `docs/project-structure.md`.
-## Current Workflow Version
-Current Agents workflow version: `2.3.0` (`v2`).
-The canonical source is `docs/agents/version.yaml`. Deployment extracts version
-metadata from that file, copies the matching version file into the target
-deployed file set, and records the aligned version in the deployment report.
+
 ## Documentation
 - `docs/runbooks/agents-deployment.md`
 - `docs/runbooks/multi-agent-workflow.md`
@@ -242,11 +295,14 @@ deployed file set, and records the aligned version in the deployment report.
 - Global/system skills are not used by default.
 - Project-local skills under `.agents/skills/` are part of this repository.
 - `.agents/runtime/`, `.agents/runtime/workflows/`,
+  `.agents/runtime/executions/`, `.agents/runtime/knowledge/`,
+  `.agents/runtime/route-packs/`, `.agents/runtime/tool-evidence/`,
+  `.agents/runtime/deployments/`,
   `.agents/runtime/compact-events.jsonl`,
   `.agents/runtime/collaborators.jsonl`, `.workflow/`, `.codex/`, status
   records, evidence records, live thread ids, window state, secrets, and local
   environment state are not deployable workflow content.
-- Deployment reports target-owned legacy Agents files separately instead of
+- Deployment reports target-owned historical Agents files separately instead of
   treating a dirty target repository as a failed deployment.
 ## Contributing
 See `CONTRIBUTING.md` for local workflow rules, validation expectations, and

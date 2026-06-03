@@ -16,6 +16,16 @@ Release-package export command:
 ```powershell
 .\scripts\export-release-package.ps1
 ```
+Runtime execution evidence command:
+```powershell
+.\scripts\agents-runtime.ps1 -Action NewRun -RunId "example"
+.\scripts\agents-runtime.ps1 -Action Verify -RunId "example"
+.\scripts\agents-runtime.ps1 -Action Cleanup -RunId "example"
+```
+Route-pack export command:
+```powershell
+.\scripts\export-route-pack.ps1 -RouteId core_system
+```
 Deployment dry-run command:
 ```powershell
 .\scripts\deploy-agents-workflow.ps1 -TargetPath "D:\target\repo" -Mode core_bootstrap -DryRun
@@ -46,13 +56,19 @@ safety/self-test, template/schema/skill/CI integrity, P0-P5 evidence, and size
 budgets.
 The release-package exporter writes a versioned package outside the repo and
 creates `release-manifest.json` with the workflow version, source commit,
-included file list, file hashes, and package hash. It excludes `.git`,
-`.agents/runtime`, local Codex configuration, local environment configuration,
-status records, evidence records, approval scratch files, and runtime validation
-records.
+included file list, file hashes, package hash, and blocklist result. It excludes
+`.git`, `.agents/runtime`, `.workflow`, local Codex configuration, local
+environment configuration, status records, evidence records, approval scratch
+files, and runtime validation records.
+The runtime execution helper writes run evidence under local runtime storage or
+an approved temp status root. It records steps, approvals, results,
+escalations, collection, verification, and cleanup evidence without committing
+live state.
+The route-pack exporter writes deterministic route manifests for the named
+runtime route. It does not call a model and does not write live thread state.
 Schema files define compact repo-local contracts. The validator enforces the
 required top-level keys, nested paths, required values, and fixture cases needed
-by the V2 policy pack without external package dependencies.
+by the core runtime policy pack without external package dependencies.
 The deployment entry point reads `docs/agents/deploy.yaml`, detects the target
 layout, builds a deployed file set, rewrites target paths when the target uses
 `.agents/docs`, appends the gitignore fragment, and keeps runtime/local source

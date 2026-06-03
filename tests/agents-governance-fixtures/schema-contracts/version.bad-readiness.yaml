@@ -2,18 +2,18 @@ schema: agents-version/v2
 purpose: "Fixture for readiness ladder contract failure."
 owns: "Version metadata."
 workflow:
-  version: "2.0.0"
-  compatibility: "Targets may upgrade within v2."
-  v1_preservation: "Preserve the unified AI Agents intent."
+  version: "2.4.0"
+  positioning: "Incomplete core runtime positioning."
+  root_principle: "Preserve repo-local AI workflow intent."
 readiness_ladder:
   P0: "Incomplete readiness value."
   P1: "Deployment dry-run with provider self-write refusal and upgrade gate."
-  P2: "Source-neutral template bundle with exact-pair drift checks and V1 intent preservation."
+  P2: "Source-neutral template bundle with exact-pair drift checks and root intent preservation."
   P3: "Delegated deployment worker with ownership boundaries and before/during/after lifecycle checks."
   P4: "Release audit profile with hard-isolation claim boundaries and size gates."
-  P5: "Long-term upgrade compatibility with target-owned state preservation and compact workflow growth controls."
+  P5: "Long-term core-runtime governance with target-owned state preservation and compact workflow growth controls."
 upgrade_policy:
-  compatibility_rule: "Minor v2 upgrades preserve compatibility."
+  core_contract_rule: "Core runtime contract is incomplete."
   breaking_change_rule: "Breaking changes require explicit opt-in."
 delegation:
   large_batch_rule: "Run large batches in waves."

@@ -145,13 +145,28 @@ $required = @(
 "docs/agents/dispatch.yaml",
 "docs/agents/workflow-artifacts.yaml",
 "docs/agents/collaborators.yaml",
+"docs/agents/core-system.yaml",
+"docs/agents/runtime-execution.yaml",
+"docs/agents/provider-adapters.yaml",
+"docs/agents/route-packs.yaml",
+"docs/agents/knowledge-footprint.yaml",
 "schemas/agents-org.schema.json",
 "schemas/agents-model-policy.schema.json",
 "schemas/agents-dispatch.schema.json",
 "schemas/agents-workflow-artifacts.schema.json",
 "schemas/agents-collaborators.schema.json",
+"schemas/agents-core-system.schema.json",
+"schemas/agents-runtime-execution.schema.json",
+"schemas/agents-provider-adapters.schema.json",
+"schemas/agents-route-packs.schema.json",
+"schemas/agents-knowledge-footprint.schema.json",
 "docs/templates/agents/agents/workflow-artifacts.yaml",
 "docs/templates/agents/agents/collaborators.yaml",
+"docs/templates/agents/agents/core-system.yaml",
+"docs/templates/agents/agents/runtime-execution.yaml",
+"docs/templates/agents/agents/provider-adapters.yaml",
+"docs/templates/agents/agents/route-packs.yaml",
+"docs/templates/agents/agents/knowledge-footprint.yaml",
 "docs/agents/context-compact.yaml",
 "schemas/agents-context-compact.schema.json",
 "docs/templates/agents/agents/context-compact.yaml",
@@ -159,7 +174,9 @@ $required = @(
 "docs/project-structure.md",
 "scripts/deploy-agents-workflow.ps1",
 "scripts/export-release-package.ps1",
-"scripts/agents-workflow.ps1"
+"scripts/agents-workflow.ps1",
+"scripts/agents-runtime.ps1",
+"scripts/export-route-pack.ps1"
 )
 foreach ($path in $required) {
 if (-not (Test-Path -LiteralPath (Get-RepoPath $path) -PathType Leaf)) {
@@ -337,7 +354,12 @@ $contracts = @(
 @{ Yaml = "docs/agents/dispatch.yaml"; Schema = "schemas/agents-dispatch.schema.json" },
 @{ Yaml = "docs/agents/workflow-artifacts.yaml"; Schema = "schemas/agents-workflow-artifacts.schema.json" },
 @{ Yaml = "docs/agents/collaborators.yaml"; Schema = "schemas/agents-collaborators.schema.json" },
-@{ Yaml = "docs/agents/context-compact.yaml"; Schema = "schemas/agents-context-compact.schema.json" }
+@{ Yaml = "docs/agents/context-compact.yaml"; Schema = "schemas/agents-context-compact.schema.json" },
+@{ Yaml = "docs/agents/core-system.yaml"; Schema = "schemas/agents-core-system.schema.json" },
+@{ Yaml = "docs/agents/runtime-execution.yaml"; Schema = "schemas/agents-runtime-execution.schema.json" },
+@{ Yaml = "docs/agents/provider-adapters.yaml"; Schema = "schemas/agents-provider-adapters.schema.json" },
+@{ Yaml = "docs/agents/route-packs.yaml"; Schema = "schemas/agents-route-packs.schema.json" },
+@{ Yaml = "docs/agents/knowledge-footprint.yaml"; Schema = "schemas/agents-knowledge-footprint.schema.json" }
 )
 foreach ($contract in $contracts) {
 $yamlPath = Get-RepoPath $contract.Yaml
@@ -450,7 +472,12 @@ $ignoredRuntimePaths = @(
 "docs/runtime-multi-agent-validation/example.md",
 ".agents/docs/runtime-multi-agent-validation/example.md",
 ".agents/runtime/workflows/example/state.json",
-".workflow/example/state.json"
+".workflow/example/state.json",
+".agents/runtime/executions/example/run.json",
+".agents/runtime/knowledge/example.json",
+".agents/runtime/route-packs/example.json",
+".agents/runtime/tool-evidence/example.json",
+".agents/runtime/deployments/example.json"
 )
 foreach ($path in $ignoredRuntimePaths) {
 & git -C $RepoRoot check-ignore -q --no-index -- $path
@@ -484,7 +511,12 @@ $requiredFragmentEntries = @(
 "docs/runtime-multi-agent-validation/",
 ".agents/docs/runtime-multi-agent-validation/",
 ".agents/runtime/workflows/",
-".workflow/"
+".workflow/",
+".agents/runtime/executions/",
+".agents/runtime/knowledge/",
+".agents/runtime/route-packs/",
+".agents/runtime/tool-evidence/",
+".agents/runtime/deployments/"
 )
 foreach ($entry in $requiredFragmentEntries) {
 if (-not $fragmentEntries.Contains($entry)) {
@@ -511,7 +543,12 @@ $trackedRuntime = & git -C $RepoRoot ls-files -- `
 "docs/runtime-multi-agent-validation" `
 ".agents/docs/runtime-multi-agent-validation" `
 ".agents/runtime/workflows" `
-".workflow"
+".workflow" `
+".agents/runtime/executions" `
+".agents/runtime/knowledge" `
+".agents/runtime/route-packs" `
+".agents/runtime/tool-evidence" `
+".agents/runtime/deployments"
 if ($trackedRuntime) {
 foreach ($path in $trackedRuntime) {
 Add-Failure ("Runtime/local path is tracked: {0}" -f $path)
@@ -612,6 +649,22 @@ $collaboratorRouteMinimal = (
 $aiRuntimeText -match 'collaborator_window:\s*\{\s*f:\s*\[[^\]]*"docs/agents/collaborators\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]' -and
 $aiRuntimeText -notmatch 'collaborator_window:\s*\{[^\r\n]*(org|model-policy|dispatch|workflows|deploy|schemas|workflow-artifacts|context-compact)\.yaml'
 )
+$coreSystemRouteMinimal = (
+$aiRuntimeText -match 'core_system:\s*\{\s*f:\s*\[[^\]]*"docs/agents/core-system\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]' -and
+$aiRuntimeText -notmatch 'core_system:\s*\{[^\r\n]*(workflows|schemas|deploy|org|dispatch|context-compact)\.yaml'
+)
+$runtimeExecutionRouteMinimal = (
+$aiRuntimeText -match 'runtime_execution:\s*\{\s*f:\s*\[[^\]]*"docs/agents/runtime-execution\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]'
+)
+$providerAdapterRouteMinimal = (
+$aiRuntimeText -match 'provider_adapter:\s*\{\s*f:\s*\[[^\]]*"docs/agents/provider-adapters\.yaml"[^\]]*"docs/agents/model-policy\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]'
+)
+$routePackRouteMinimal = (
+$aiRuntimeText -match 'route_pack:\s*\{\s*f:\s*\[[^\]]*"docs/agents/route-packs\.yaml"[^\]]*"docs/agents/ai-runtime\.yaml"[^\]]*\]'
+)
+$knowledgeFootprintRouteMinimal = (
+$aiRuntimeText -match 'knowledge_footprint:\s*\{\s*f:\s*\[[^\]]*"docs/agents/knowledge-footprint\.yaml"[^\]]*"docs/agents/context-compact\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]'
+)
 $officialDocsFirst = ($mcpText -match 'OpenAI developer documentation' -and $mcpText -match 'official OpenAI docs')
 $releaseExportReady = (
 (Test-Path -LiteralPath $exportPath -PathType Leaf) -and
@@ -623,6 +676,11 @@ $enterpriseRouteMinimal -and
 $workflowArtifactRouteMinimal -and
 $contextCompactRouteMinimal -and
 $collaboratorRouteMinimal -and
+$coreSystemRouteMinimal -and
+$runtimeExecutionRouteMinimal -and
+$providerAdapterRouteMinimal -and
+$routePackRouteMinimal -and
+$knowledgeFootprintRouteMinimal -and
 $aiRuntimeText -match 'expand_only' -and
 $aiRuntimeText -match 'canonical YAML wins' -and
 $aiRuntimeText -match 'Do not load docs/templates/agents/\*\*' -and
@@ -660,7 +718,7 @@ $items = @(
 [pscustomobject]@{
 Name = "llm_rule_fit"
 Score = if ($llmRuleComplete) { 100.0 } elseif ($aiRuntimeText -match 'expand_only') { 96.0 } else { 84.0 }
-Evidence = if ($llmRuleComplete) { "minimal enterprise, workflow artifact, context compact, and collaborator window routes, expand-only router, canonical priority, template skip, and runtime-local block" } else { "router present; LLM rule fit is incomplete" }
+Evidence = if ($llmRuleComplete) { "minimal enterprise, artifact, collaborator, core runtime, provider, route pack, and knowledge footprint routes, expand-only router, canonical priority, template skip, and runtime-local block" } else { "router present; LLM rule fit is incomplete" }
 },
 [pscustomobject]@{
 Name = "official_guidance_path"
@@ -669,8 +727,8 @@ Evidence = if ($officialDocsFirst) { "OpenAI developer docs first path retained"
 },
 [pscustomobject]@{
 Name = "token_economy"
-Score = if ($aiRuntimeBytes -le 1536) { 100.0 } else { 86.0 }
-Evidence = "ai-runtime.yaml is $aiRuntimeBytes bytes; 100 gate <= 1536 bytes"
+Score = if ($aiRuntimeBytes -le 4096) { 100.0 } else { 86.0 }
+Evidence = "ai-runtime.yaml is $aiRuntimeBytes bytes; 100 gate <= 4096 bytes"
 },
 [pscustomobject]@{
 Name = "repo_growth_control"
@@ -752,6 +810,11 @@ $pairs = @(
 @("docs/agents/dispatch.yaml", "docs/templates/agents/agents/dispatch.yaml"),
 @("docs/agents/workflow-artifacts.yaml", "docs/templates/agents/agents/workflow-artifacts.yaml"),
 @("docs/agents/collaborators.yaml", "docs/templates/agents/agents/collaborators.yaml"),
+@("docs/agents/core-system.yaml", "docs/templates/agents/agents/core-system.yaml"),
+@("docs/agents/runtime-execution.yaml", "docs/templates/agents/agents/runtime-execution.yaml"),
+@("docs/agents/provider-adapters.yaml", "docs/templates/agents/agents/provider-adapters.yaml"),
+@("docs/agents/route-packs.yaml", "docs/templates/agents/agents/route-packs.yaml"),
+@("docs/agents/knowledge-footprint.yaml", "docs/templates/agents/agents/knowledge-footprint.yaml"),
 @("docs/agents/context-compact.yaml", "docs/templates/agents/agents/context-compact.yaml"),
 @("docs/runbooks/agents-deployment.md", "docs/templates/agents/agents-deployment.md"),
 @("docs/runbooks/isolation-audit.md", "docs/templates/agents/isolation-audit.md"),
@@ -811,6 +874,11 @@ $allowedItems = @(
 "docs/templates/agents/agents/dispatch.yaml",
 "docs/templates/agents/agents/workflow-artifacts.yaml",
 "docs/templates/agents/agents/collaborators.yaml",
+"docs/templates/agents/agents/core-system.yaml",
+"docs/templates/agents/agents/runtime-execution.yaml",
+"docs/templates/agents/agents/provider-adapters.yaml",
+"docs/templates/agents/agents/route-packs.yaml",
+"docs/templates/agents/agents/knowledge-footprint.yaml",
 "docs/templates/agents/agents/context-compact.yaml",
 "docs/templates/agents/agents-deployment.md",
 "docs/templates/agents/isolation-audit.md",
@@ -872,6 +940,11 @@ $requiredBlocklist = @(
 @{ Manifest = ".agents/runtime/compact-events.jsonl"; Script = ".agents/runtime/compact-events.jsonl" },
 @{ Manifest = ".agents/runtime/collaborators.jsonl"; Script = ".agents/runtime/collaborators.jsonl" },
 @{ Manifest = ".agents/runtime/workflows/"; Script = ".agents/runtime/workflows/" },
+@{ Manifest = ".agents/runtime/executions/"; Script = ".agents/runtime/executions/" },
+@{ Manifest = ".agents/runtime/knowledge/"; Script = ".agents/runtime/knowledge/" },
+@{ Manifest = ".agents/runtime/route-packs/"; Script = ".agents/runtime/route-packs/" },
+@{ Manifest = ".agents/runtime/tool-evidence/"; Script = ".agents/runtime/tool-evidence/" },
+@{ Manifest = ".agents/runtime/deployments/"; Script = ".agents/runtime/deployments/" },
 @{ Manifest = ".workflow/"; Script = ".workflow/" },
 @{ Manifest = "docs/agent-status.md"; Script = "docs/agent-status.md" },
 @{ Manifest = "docs/agent-events/"; Script = "docs/agent-events/" },
@@ -1018,12 +1091,22 @@ $requiredNeedles = @(
 "workflow_artifact",
 "context_compact",
 "collaborator_window",
+"core_system",
+"runtime_execution",
+"provider_adapter",
+"route_pack",
+"knowledge_footprint",
 "docs/agents/org.yaml",
 "docs/agents/model-policy.yaml",
 "docs/agents/dispatch.yaml",
 "docs/agents/workflow-artifacts.yaml",
 "docs/agents/context-compact.yaml",
 "docs/agents/collaborators.yaml",
+"docs/agents/core-system.yaml",
+"docs/agents/runtime-execution.yaml",
+"docs/agents/provider-adapters.yaml",
+"docs/agents/route-packs.yaml",
+"docs/agents/knowledge-footprint.yaml",
 "hard_isolation",
 "Do not load docs/templates/agents/**",
 "Never stage, deploy, or copy runtime_local"
@@ -1035,8 +1118,8 @@ Add-Failure ("AI runtime compact route is missing: {0}" -f $path)
 continue
 }
 $item = Get-Item -LiteralPath $fullPath
-if ($item.Length -gt 1536) {
-Add-Failure ("AI runtime compact route exceeds 1536 bytes: {0} ({1} bytes)" -f $path, $item.Length)
+if ($item.Length -gt 4096) {
+Add-Failure ("AI runtime compact route exceeds 4096 bytes: {0} ({1} bytes)" -f $path, $item.Length)
 }
 $content = Get-Content -LiteralPath $fullPath -Raw
 foreach ($needle in $requiredNeedles) {
@@ -1058,6 +1141,21 @@ Add-Failure ("AI runtime context compact route must load only context-compact, s
 }
 if ($content -notmatch 'collaborator_window:\s*\{\s*f:\s*\[[^\]]*"docs/agents/collaborators\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]' -or $content -match 'collaborator_window:\s*\{[^\r\n]*(org|model-policy|dispatch|workflows|deploy|schemas|workflow-artifacts|context-compact)\.yaml') {
 Add-Failure ("AI runtime collaborator window route must load only collaborators and verify: {0}" -f $path)
+}
+if ($content -notmatch 'core_system:\s*\{\s*f:\s*\[[^\]]*"docs/agents/core-system\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]' -or $content -match 'core_system:\s*\{[^\r\n]*(workflows|schemas|deploy|org|dispatch|context-compact)\.yaml') {
+Add-Failure ("AI runtime core system route must load only core-system and verify: {0}" -f $path)
+}
+if ($content -notmatch 'runtime_execution:\s*\{\s*f:\s*\[[^\]]*"docs/agents/runtime-execution\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]') {
+Add-Failure ("AI runtime execution route must load runtime-execution and verify: {0}" -f $path)
+}
+if ($content -notmatch 'provider_adapter:\s*\{\s*f:\s*\[[^\]]*"docs/agents/provider-adapters\.yaml"[^\]]*"docs/agents/model-policy\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]') {
+Add-Failure ("AI runtime provider adapter route must load provider-adapters, model-policy, and verify: {0}" -f $path)
+}
+if ($content -notmatch 'route_pack:\s*\{\s*f:\s*\[[^\]]*"docs/agents/route-packs\.yaml"[^\]]*"docs/agents/ai-runtime\.yaml"[^\]]*\]') {
+Add-Failure ("AI runtime route pack route must load route-packs and ai-runtime: {0}" -f $path)
+}
+if ($content -notmatch 'knowledge_footprint:\s*\{\s*f:\s*\[[^\]]*"docs/agents/knowledge-footprint\.yaml"[^\]]*"docs/agents/context-compact\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]') {
+Add-Failure ("AI runtime knowledge footprint route must load knowledge-footprint, context-compact, and verify: {0}" -f $path)
 }
 }
 foreach ($path in @("AGENTS.md", "docs/templates/agents/AGENTS.md", ".agents/skills/project-isolation-workflow/SKILL.md", "docs/templates/agents/skills/project-isolation-workflow/SKILL.md")) {
@@ -1757,7 +1855,7 @@ $selfTestScriptMarkers = @(
 "partial-gitignore",
 "missing-target",
 "target-owned-state",
-"routed-legacy",
+"routed-historical",
 "ambiguous-layout"
 )
 foreach ($marker in $selfTestScriptMarkers) {
@@ -1779,7 +1877,7 @@ $selfTestDocumentationMarkers = @(
 "git-backed foreign project",
 "missing-target",
 "target-owned-state",
-"routed-legacy",
+"routed-historical",
 "ambiguous-layout",
 "app-file preservation",
 "partial-gitignore",
@@ -2117,7 +2215,7 @@ Evidence = @(
 Level = "P2"
 Evidence = @(
 @("docs/agents/version.yaml", "P2:"),
-@("docs/agents/version.yaml", "v1_preservation"),
+@("docs/agents/version.yaml", "root_principle"),
 @("scripts/validate.ps1", "Test-TemplateSourceNeutrality"),
 @("scripts/validate.ps1", "Test-ExactPairs"),
 @("scripts/validate.ps1", "Test-TemplateCoverage")
@@ -2161,6 +2259,11 @@ Evidence = @(
 @("docs/agents/verify.yaml", "workflow_artifact"),
 @("docs/agents/verify.yaml", "context_compact"),
 @("docs/agents/verify.yaml", "collaborator_window"),
+@("docs/agents/verify.yaml", "core_system"),
+@("docs/agents/verify.yaml", "runtime_execution"),
+@("docs/agents/verify.yaml", "provider_adapter"),
+@("docs/agents/verify.yaml", "route_pack"),
+@("docs/agents/verify.yaml", "knowledge_footprint"),
 @("scripts/export-release-package.ps1", "release-manifest.json"),
 @("scripts/validate.ps1", "Test-ReleasePackageExport"),
 @("scripts/validate.ps1", "Test-SizeGates"),
@@ -2173,7 +2276,7 @@ Evidence = @(
 Level = "P5"
 Evidence = @(
 @("docs/agents/version.yaml", "P5:"),
-@("docs/agents/version.yaml", "compatibility_rule"),
+@("docs/agents/version.yaml", "core_contract_rule"),
 @("docs/agents/version.yaml", "workflow_artifact"),
 @("docs/agents/version.yaml", "context_compact"),
 @("docs/agents/version.yaml", "rollback"),
@@ -2190,7 +2293,7 @@ Evidence = @(
 @("scripts/deploy-agents-workflow.ps1", "target git rollback scope"),
 @("scripts/deploy-agents-workflow.ps1", "Update-TargetStateClassification"),
 @("scripts/deploy-agents-workflow.ps1", "Protected dirty/local target state observed"),
-@("scripts/deploy-agents-workflow.ps1", "Target-owned legacy Agents files outside deployed file set")
+@("scripts/deploy-agents-workflow.ps1", "Target-owned historical Agents files outside deployed file set")
 )
 }
 )
@@ -2301,6 +2404,231 @@ if ($Failures.Count -eq $startFailureCount) {
 Add-Pass ("Size gates passed: AGENTS.md {0} bytes; project skill {1} bytes; max yaml {2} bytes; max ps1 {3} bytes; tracked repo {4} bytes; intended repo {5} bytes." -f $agentsSize, $skillSize, $maxYamlSize, $maxScriptSize, $trackedTotal, $intendedTotal)
 }
 }
+function Test-CoreRuntimeSystemIntegrity {
+$startFailureCount = $Failures.Count
+$mirrorPairs = @(
+@("docs/agents/core-system.yaml", "docs/templates/agents/agents/core-system.yaml"),
+@("docs/agents/runtime-execution.yaml", "docs/templates/agents/agents/runtime-execution.yaml"),
+@("docs/agents/provider-adapters.yaml", "docs/templates/agents/agents/provider-adapters.yaml"),
+@("docs/agents/route-packs.yaml", "docs/templates/agents/agents/route-packs.yaml"),
+@("docs/agents/knowledge-footprint.yaml", "docs/templates/agents/agents/knowledge-footprint.yaml")
+)
+foreach ($pair in $mirrorPairs) {
+$source = Get-RepoPath $pair[0]
+$mirror = Get-RepoPath $pair[1]
+if (-not (Test-Path -LiteralPath $source -PathType Leaf) -or -not (Test-Path -LiteralPath $mirror -PathType Leaf)) {
+Add-Failure ("Core runtime mirror pair is missing: {0} <-> {1}" -f $pair[0], $pair[1])
+continue
+}
+$sourceHash = (Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash
+$mirrorHash = (Get-FileHash -LiteralPath $mirror -Algorithm SHA256).Hash
+if ($sourceHash -ne $mirrorHash) {
+Add-Failure ("Core runtime template mirror drift: {0} <-> {1}" -f $pair[0], $pair[1])
+}
+}
+$markerChecks = @(
+@("docs/agents/ai-runtime.yaml", @("core_system", "runtime_execution", "provider_adapter", "route_pack", "knowledge_footprint")),
+@("docs/agents/workflows.yaml", @("core_system_runtime", "runtime_execution_runtime", "provider_adapter_runtime", "route_pack_runtime", "knowledge_footprint_runtime")),
+@("docs/agents/deploy.yaml", @("docs/agents/core-system.yaml", "docs/agents/runtime-execution.yaml", "docs/agents/provider-adapters.yaml", "docs/agents/route-packs.yaml", "docs/agents/knowledge-footprint.yaml", ".agents/runtime/executions/", ".agents/runtime/tool-evidence/", ".agents/runtime/deployments/", ".agents/runtime/route-packs/", ".agents/runtime/knowledge/")),
+@("docs/agents/verify.yaml", @("core_system", "runtime_execution", "provider_adapter", "route_pack", "knowledge_footprint", "core_system_integrity", "runtime_execution_integrity", "provider_adapter_integrity", "route_pack_integrity", "knowledge_footprint_integrity", "route_pack_export", "runtime_helper")),
+@("docs/agents/route-packs.yaml", @("answer_only", "no_read_default", "no_file_read", "manifest_hash")),
+@("docs/agents/version.yaml", @("2.5.0", "core-runtime", "core_contract_rule", "runtime_execution_rule", "knowledge_footprint_rule")),
+@("docs/agents/schemas.yaml", @("core_system", "runtime_execution", "provider_adapter", "route_pack", "knowledge_footprint")),
+@("docs/agents/collaborators.yaml", @("thread_operation_record", "execution_run_ref")),
+@("docs/agents/context-compact.yaml", @("retained_facts", "dropped_details", "resume_pointer")),
+@("docs/agents/dispatch.yaml", @("execution_run_ref")),
+@("docs/agents/workflow-artifacts.yaml", @("runtime_execution"))
+)
+foreach ($check in $markerChecks) {
+$path = [string] $check[0]
+$contentPath = Get-RepoPath $path
+if (-not (Test-Path -LiteralPath $contentPath -PathType Leaf)) {
+Add-Failure ("Core runtime marker file is missing: {0}" -f $path)
+continue
+}
+$content = Get-Content -LiteralPath $contentPath -Raw
+foreach ($marker in @($check[1])) {
+if (-not $content.Contains([string] $marker)) {
+Add-Failure ("Core runtime marker missing from {0}: {1}" -f $path, $marker)
+}
+}
+}
+$leaf = Split-Path -Leaf $RepoRoot.Path
+$projectId = ($leaf.ToLowerInvariant() -replace "[^a-z0-9]+", "-").Trim("-")
+if ([string]::IsNullOrWhiteSpace($projectId)) {
+$projectId = "agents"
+}
+$tempRoot = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), "codex-agent-status", $projectId)
+$routePackRoot = Join-Path $tempRoot "route-pack-validation"
+$routePackA = Join-Path $routePackRoot "core-system-a.json"
+$routePackB = Join-Path $routePackRoot "core-system-b.json"
+$routePackAnswerA = Join-Path $routePackRoot "answer-only-a.json"
+$routePackAnswerB = Join-Path $routePackRoot "answer-only-b.json"
+try {
+$outputA = & (Get-RepoPath "scripts/export-route-pack.ps1") -RouteId "core_system" -OutputPath $routePackA -Quiet 2>&1
+$outputB = & (Get-RepoPath "scripts/export-route-pack.ps1") -RouteId "core_system" -OutputPath $routePackB -Quiet 2>&1
+$outputAnswerA = & (Get-RepoPath "scripts/export-route-pack.ps1") -RouteId "answer_only" -OutputPath $routePackAnswerA -Quiet 2>&1
+$outputAnswerB = & (Get-RepoPath "scripts/export-route-pack.ps1") -RouteId "answer_only" -OutputPath $routePackAnswerB -Quiet 2>&1
+if (@($outputA).Count -gt 0 -or @($outputB).Count -gt 0 -or @($outputAnswerA).Count -gt 0 -or @($outputAnswerB).Count -gt 0) {
+Add-Failure "Route pack export quiet mode produced output during deterministic check."
+}
+if (-not (Test-Path -LiteralPath $routePackA -PathType Leaf) -or -not (Test-Path -LiteralPath $routePackB -PathType Leaf) -or -not (Test-Path -LiteralPath $routePackAnswerA -PathType Leaf) -or -not (Test-Path -LiteralPath $routePackAnswerB -PathType Leaf)) {
+Add-Failure "Route pack deterministic check did not produce both manifests."
+}
+else {
+$hashA = (Get-FileHash -LiteralPath $routePackA -Algorithm SHA256).Hash
+$hashB = (Get-FileHash -LiteralPath $routePackB -Algorithm SHA256).Hash
+if ($hashA -ne $hashB) {
+Add-Failure "Route pack deterministic check produced different manifest hashes."
+}
+$answerHashA = (Get-FileHash -LiteralPath $routePackAnswerA -Algorithm SHA256).Hash
+$answerHashB = (Get-FileHash -LiteralPath $routePackAnswerB -Algorithm SHA256).Hash
+if ($answerHashA -ne $answerHashB) {
+Add-Failure "Answer-only route pack deterministic check produced different manifest hashes."
+}
+$manifest = Get-Content -LiteralPath $routePackA -Raw | ConvertFrom-Json
+if ([string] $manifest.route_id -ne "core_system") {
+Add-Failure "Route pack manifest route_id mismatch."
+}
+if ([string] $manifest.version -ne "2.5.0") {
+Add-Failure "Route pack manifest version must be 2.5.0."
+}
+if ($manifest.PSObject.Properties["files"]) {
+Add-Failure "Route pack manifest must use required_files, not files."
+}
+$requiredFiles = $manifest.PSObject.Properties["required_files"]
+if (-not $requiredFiles -or $null -eq $requiredFiles.Value -or @($requiredFiles.Value).Count -eq 0) {
+Add-Failure "Route pack manifest must contain non-empty required_files for core_system."
+}
+if (-not $manifest.PSObject.Properties["manifest_hash"] -or [string]::IsNullOrWhiteSpace([string] $manifest.manifest_hash)) {
+Add-Failure "Route pack manifest must include manifest_hash."
+}
+$answerManifest = Get-Content -LiteralPath $routePackAnswerA -Raw | ConvertFrom-Json
+if ([string] $answerManifest.route_id -ne "answer_only") {
+Add-Failure "Answer-only route pack manifest route_id mismatch."
+}
+if ([string] $answerManifest.tool_surface -ne "no_file_read") {
+Add-Failure "Answer-only route pack must use no_file_read tool_surface."
+}
+$answerRequiredFiles = $answerManifest.PSObject.Properties["required_files"]
+if (-not $answerRequiredFiles) {
+Add-Failure "Answer-only route pack manifest must include required_files."
+}
+elseif ($null -ne $answerRequiredFiles.Value -and @($answerRequiredFiles.Value).Count -ne 0) {
+Add-Failure "Answer-only route pack required_files must be empty."
+}
+if (-not $answerManifest.PSObject.Properties["manifest_hash"] -or [string]::IsNullOrWhiteSpace([string] $answerManifest.manifest_hash)) {
+Add-Failure "Answer-only route pack manifest must include manifest_hash."
+}
+}
+}
+catch {
+Add-Failure ("Route pack deterministic check failed: {0}" -f $_.Exception.Message)
+}
+$runtimeRoot = Join-Path $tempRoot "runtime-execution-validation"
+$runId = "readonly-smoke"
+try {
+$runtimeScript = Get-RepoPath "scripts/agents-runtime.ps1"
+& $runtimeScript -Action NewRun -RunId $runId -RuntimeRoot $runtimeRoot -Objective "readonly validation smoke" -Authority "read_only" -Quiet 2>&1 | Out-Null
+& $runtimeScript -Action AddStep -RunId $runId -RuntimeRoot $runtimeRoot -Step "read_only" -Authority "read_only" -Quiet 2>&1 | Out-Null
+& $runtimeScript -Action AddResult -RunId $runId -RuntimeRoot $runtimeRoot -Result "completed" -Summary "readonly smoke completed" -Quiet 2>&1 | Out-Null
+& $runtimeScript -Action Collect -RunId $runId -RuntimeRoot $runtimeRoot -Quiet 2>&1 | Out-Null
+& $runtimeScript -Action Verify -RunId $runId -RuntimeRoot $runtimeRoot -Quiet 2>&1 | Out-Null
+& $runtimeScript -Action Cleanup -RunId $runId -RuntimeRoot $runtimeRoot -Quiet 2>&1 | Out-Null
+& $runtimeScript -Action Verify -RunId $runId -RuntimeRoot $runtimeRoot -Quiet 2>&1 | Out-Null
+$runPath = Join-Path (Join-Path $runtimeRoot $runId) "run.json"
+if (-not (Test-Path -LiteralPath $runPath -PathType Leaf)) {
+Add-Failure "Runtime execution smoke did not produce run.json."
+}
+else {
+$run = Get-Content -LiteralPath $runPath -Raw | ConvertFrom-Json
+if ([string] $run.version -ne "2.5.0") {
+Add-Failure "Runtime execution run version must be 2.5.0."
+}
+if ([string] $run.status -ne "cleaned") {
+Add-Failure "Runtime execution smoke must end with cleaned status."
+}
+if (@($run.cleanup_evidence).Count -lt 1) {
+Add-Failure "Runtime execution smoke must include cleanup evidence."
+}
+}
+}
+catch {
+Add-Failure ("Runtime execution helper smoke failed: {0}" -f $_.Exception.Message)
+}
+if ($Failures.Count -eq $startFailureCount) {
+Add-Pass "Core runtime system integrity checks passed."
+}
+}
+function Test-LegacyResidue {
+$startFailureCount = $Failures.Count
+$roots = @(
+"README.md",
+"docs/agents",
+"docs/project-structure.md",
+"docs/templates/agents",
+"docs/runbooks",
+"schemas",
+"scripts",
+".agents/skills",
+"tests/agents-governance-fixtures"
+)
+$excluded = @(
+"CHANGELOG.md",
+"docs/github-updates.md",
+"docs/templates/agents/github-updates.md"
+)
+$files = @()
+foreach ($root in $roots) {
+$fullRoot = Get-RepoPath $root
+if (-not (Test-Path -LiteralPath $fullRoot)) {
+continue
+}
+if (Test-Path -LiteralPath $fullRoot -PathType Leaf) {
+$files += Get-Item -LiteralPath $fullRoot
+}
+else {
+$files += Get-ChildItem -LiteralPath $fullRoot -Recurse -File | Where-Object { @(".md", ".yaml", ".yml", ".json", ".ps1", ".toml", ".txt").Contains($_.Extension.ToLowerInvariant()) }
+}
+}
+$files = @($files | Sort-Object FullName -Unique | Where-Object {
+$rel = ($_.FullName.Substring($RepoRoot.Path.Length).TrimStart("\") -replace "\\", "/")
+$excluded -notcontains $rel
+})
+$bannedPatterns = @(
+"v2 compat" + "ible",
+"v2-" + "compatible",
+"legacy " + "v2",
+"optional " + "overlay",
+"compatible " + "overlay",
+"within " + "v2",
+"target_" + "legacy_agents",
+"routed-" + "legacy",
+"workflow compat" + "ibility",
+"legacy target " + "docs",
+"v1_" + "preservation",
+"compatibility_" + "rule",
+"2\." + "2\.0",
+"2\." + "3\.0",
+"Target" + "Legacy",
+"legacy" + "Candidates",
+"\[" + "LEGACY\]",
+"target-owned " + "legacy",
+"legacy " + "Agents"
+)
+foreach ($file in $files) {
+foreach ($pattern in $bannedPatterns) {
+$matches = Select-String -LiteralPath $file.FullName -Pattern $pattern -AllMatches
+foreach ($match in $matches) {
+$relative = ($file.FullName.Substring($RepoRoot.Path.Length).TrimStart("\") -replace "\\", "/")
+Add-Failure ("Retired positioning residue remains in {0}:{1}: {2}" -f $relative, $match.LineNumber, $match.Line.Trim())
+}
+}
+}
+if ($Failures.Count -eq $startFailureCount) {
+Add-Pass "Legacy residue scan passed."
+}
+}
 function Test-ReleasePackageExport {
 $startFailureCount = $Failures.Count
 $leaf = Split-Path -Leaf $RepoRoot.Path
@@ -2355,13 +2683,32 @@ Add-Failure "Release package manifest package_hash is empty."
 if ([int] $manifest.file_count -le 0) {
 Add-Failure "Release package manifest file_count must be positive."
 }
+if ($null -eq $manifest.PSObject.Properties["blocklist_result"]) {
+Add-Failure "Release package manifest blocklist_result is missing."
+}
+else {
+if (-not [bool] $manifest.blocklist_result.checked) {
+Add-Failure "Release package manifest blocklist_result.checked must be true."
+}
+$policy = @($manifest.blocklist_result.policy | ForEach-Object { [string] $_ })
+foreach ($requiredPolicy in @(".agents/runtime/**", ".workflow/**", ".codex/config.toml", "API keys", "provider sessions")) {
+if ($policy -notcontains $requiredPolicy) {
+Add-Failure ("Release package manifest blocklist policy is missing: {0}" -f $requiredPolicy)
+}
+}
+}
 $requiredFiles = @(
 "docs/agents/org.yaml",
 "docs/agents/model-policy.yaml",
 "docs/agents/dispatch.yaml",
 "docs/agents/workflow-artifacts.yaml",
 "docs/agents/context-compact.yaml",
-"docs/agents/collaborators.yaml"
+"docs/agents/collaborators.yaml",
+"docs/agents/core-system.yaml",
+"docs/agents/runtime-execution.yaml",
+"docs/agents/provider-adapters.yaml",
+"docs/agents/route-packs.yaml",
+"docs/agents/knowledge-footprint.yaml"
 )
 $manifestPaths = @($manifest.files | ForEach-Object { [string] $_.path })
 foreach ($requiredFile in $requiredFiles) {
@@ -2410,6 +2757,11 @@ $blockedPhysical = @(
 ".git",
 ".agents/runtime",
 ".agents/runtime/workflows",
+".agents/runtime/executions",
+".agents/runtime/knowledge",
+".agents/runtime/route-packs",
+".agents/runtime/tool-evidence",
+".agents/runtime/deployments",
 ".workflow",
 ".codex/config.toml",
 ".codex/environments/environment.toml",
@@ -2440,6 +2792,8 @@ Test-MultiAgentWorkflowIntegrity
 Test-WorkflowArtifactIntegrity
 Test-ContextCompactIntegrity
 Test-CollaboratorWindowIntegrity
+Test-CoreRuntimeSystemIntegrity
+Test-LegacyResidue
 Test-AgentLedgerCompatibility
 Test-EvidenceTemplateSchemaCoverage
 Test-CIWorkflowStability
@@ -2481,6 +2835,8 @@ Test-EnterpriseDispatchIntegrity
 Test-WorkflowArtifactIntegrity
 Test-ContextCompactIntegrity
 Test-CollaboratorWindowIntegrity
+Test-CoreRuntimeSystemIntegrity
+Test-LegacyResidue
 Test-ValidationFixtures
 if ($Failures.Count -eq 0) {
 Add-Pass "Validation fixtures passed."

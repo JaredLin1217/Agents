@@ -2,6 +2,11 @@
 .agents/runtime/
 .agents/runtime/collaborators.jsonl
 .agents/runtime/workflows/
+.agents/runtime/executions/
+.agents/runtime/knowledge/
+.agents/runtime/route-packs/
+.agents/runtime/tool-evidence/
+.agents/runtime/deployments/
 .workflow/
 docs/agent-status.md
 docs/agent-events/

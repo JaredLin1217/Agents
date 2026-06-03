@@ -1,6 +1,22 @@
 # Changelog
 All notable changes to this repository are documented here.
 ## Unreleased
+## 2.5.0 - 2026-06-03
+- Repositioned the project as `2.5.0 Core Runtime System` for repo-local AI
+  workflow routing, dispatch, collaborator windows, context compact, workflow
+  artifacts, runtime evidence, deployment, validation, and release export.
+- Added canonical core system, runtime execution, provider adapter, route pack,
+  and knowledge footprint policies with schema contracts and template mirrors.
+- Added `scripts/agents-runtime.ps1` for local execution run evidence,
+  approvals, results, escalations, collection, verification, and cleanup.
+- Added `scripts/export-route-pack.ps1` for deterministic minimal route pack
+  manifests without model calls or live runtime writes.
+- Strengthened validation for core runtime integrity, route pack determinism,
+  runtime blocklists, version alignment, retired positioning residue, approval
+  gates, and cleanup evidence.
+- Updated deployment and release package contracts to block runtime evidence,
+  live thread ids, provider sessions, API keys, `.workflow/`, and local Codex
+  configuration.
 ## 2.3.0 - 2026-06-03
 - Added the Collaborator Window Dispatch Layer for named, recoverable, and
   archivable Codex department-leader work sessions.
@@ -18,7 +34,7 @@ All notable changes to this repository are documented here.
   exclusion, subagent closeout counts, runtime compact event boundaries, and
   route guardrails.
 - Updated deployment, version metadata, and README documentation for context
-  compact compatibility while preserving V2 behavior.
+  compact resume behavior.
 ## 2.2.0 - 2026-06-02
 - Added the Supervised Workflow Artifact Layer with canonical workflow
   artifact routing, local workflow state, packets, results, approval gates,
@@ -31,8 +47,7 @@ All notable changes to this repository are documented here.
   artifact blocklists.
 - Updated deployment and release rules to exclude `.agents/runtime/workflows/`
   and `.workflow/` from deployable and releasable content.
-- Updated public version documentation to `2.2.0` while preserving V2
-  compatibility.
+- Updated public version documentation to `2.2.0`.
 ## 2.1.0 - 2026-06-01
 - Added the Enterprise Dispatch Layer with canonical organization, model policy,
   and dispatch YAML files.
@@ -44,8 +59,7 @@ All notable changes to this repository are documented here.
   coverage, and validation checks.
 - Added clean release package export with manifest version, commit, file list,
   file hashes, package hash, and local-state exclusions.
-- Updated public version documentation to `2.1.0` while preserving V2
-  compatibility.
+- Updated public version documentation to `2.1.0`.
 ## 2.0.0 - 2026-06-01
 - Added deployment-time Agents workflow version extraction and deployment
   report alignment from `docs/agents/version.yaml`.
