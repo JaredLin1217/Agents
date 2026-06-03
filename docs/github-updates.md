@@ -4,11 +4,52 @@ This file is generated from git history after public branch pushes.
 Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` instead.
 
 - Source branch: `main`
-- Source commit analyzed: `7cdf0fc`
-- Source commit date: `2026-06-03T13:19:12+08:00`
+- Source commit analyzed: `019f3a7`
+- Source commit date: `2026-06-03T21:34:19+08:00`
 - Commit window: latest 12 non-merge commits
 
 ## Recent Commits
+
+### 2026-06-03 - `019f3a7`
+
+Add v2.3.0 collaborator window dispatch layer
+
+- Author: `JaredLin1217`
+- Shortstat: `38 files changed, 1368 insertions(+), 356 deletions(-)`
+- Files:
+  - `.agents/skills/project-isolation-workflow/SKILL.md`
+  - `.gitignore`
+  - `CHANGELOG.md`
+  - `README.md`
+  - `docs/agents/ai-runtime.yaml`
+  - `docs/agents/collaborators.yaml`
+  - `docs/agents/deploy.yaml`
+  - `docs/agents/dispatch.yaml`
+
+### 2026-06-03 - `aef5f67`
+
+Prevent deploying target-local Codex environment templates
+
+- Author: `JaredLin1217`
+- Shortstat: `14 files changed, 179 insertions(+), 34 deletions(-)`
+- Files:
+  - `.codex/environments/environment.template.toml`
+  - `.gitignore`
+  - `docs/agents/deploy.yaml`
+  - `docs/agents/policy.yaml`
+  - `docs/agents/verify.yaml`
+  - `docs/project-structure.md`
+  - `docs/templates/agents/agents/deploy.yaml`
+  - `docs/templates/agents/agents/policy.yaml`
+
+### 2026-06-03 - `bb25403`
+
+docs: update GitHub update log [skip ci]
+
+- Author: `github-actions[bot]`
+- Shortstat: `1 file changed, 27 insertions(+), 23 deletions(-)`
+- Files:
+  - `docs/github-updates.md`
 
 ### 2026-06-03 - `7cdf0fc`
 
@@ -125,37 +166,3 @@ feat: add enterprise dispatch layer
   - `docs/agents/model-policy.yaml`
   - `docs/agents/org.yaml`
   - `docs/agents/schemas.yaml`
-
-### 2026-06-01 - `e7431ba`
-
-docs: update GitHub update log [skip ci]
-
-- Author: `github-actions[bot]`
-- Shortstat: `1 file changed, 27 insertions(+), 22 deletions(-)`
-- Files:
-  - `docs/github-updates.md`
-
-### 2026-06-01 - `cdef6fc`
-
-Tighten no-backup subagent cleanup rules
-
-- Author: `JaredLin1217`
-- Shortstat: `10 files changed, 44 insertions(+), 36 deletions(-)`
-- Files:
-  - `.agents/skills/project-isolation-workflow/SKILL.md`
-  - `docs/agents/policy.yaml`
-  - `docs/agents/schemas.yaml`
-  - `docs/agents/workflows.yaml`
-  - `docs/runbooks/multi-agent-workflow.md`
-  - `docs/templates/agents/agents/policy.yaml`
-  - `docs/templates/agents/agents/schemas.yaml`
-  - `docs/templates/agents/agents/workflows.yaml`
-
-### 2026-06-01 - `2f6659b`
-
-docs: update GitHub update log [skip ci]
-
-- Author: `github-actions[bot]`
-- Shortstat: `1 file changed, 14 insertions(+), 18 deletions(-)`
-- Files:
-  - `docs/github-updates.md`
