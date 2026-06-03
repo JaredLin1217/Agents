@@ -4,8 +4,8 @@ This file is generated from git history after public branch pushes.
 Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` instead.
 
 - Source branch: `main`
-- Source commit analyzed: `019f3a7`
-- Source commit date: `2026-06-03T21:34:19+08:00`
+- Source commit analyzed: `5a59786`
+- Source commit date: `2026-06-04T05:22:49+08:00`
 - Commit window: latest 12 non-merge commits
 
 ## Current Project Version
@@ -15,6 +15,31 @@ Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` ins
 - Positioning: Core Runtime System unifies routing, dispatch, collaborator windows, compaction, workflow artifacts, runtime evidence, deploy, verify, and release packaging.
 
 ## Recent Commits
+
+### 2026-06-04 - `5a59786`
+
+Add 2.5.0 core runtime system
+
+- Author: `JaredLin1217`
+- Shortstat: `58 files changed, 2763 insertions(+), 1186 deletions(-)`
+- Files:
+  - `.agents/skills/project-isolation-workflow/SKILL.md`
+  - `.gitignore`
+  - `CHANGELOG.md`
+  - `README.md`
+  - `docs/agents/ai-runtime.yaml`
+  - `docs/agents/collaborators.yaml`
+  - `docs/agents/context-compact.yaml`
+  - `docs/agents/core-system.yaml`
+
+### 2026-06-03 - `ca7f5cf`
+
+docs: update GitHub update log [skip ci]
+
+- Author: `github-actions[bot]`
+- Shortstat: `1 file changed, 43 insertions(+), 36 deletions(-)`
+- Files:
+  - `docs/github-updates.md`
 
 ### 2026-06-03 - `019f3a7`
 
@@ -147,28 +172,3 @@ feat: strengthen enterprise dispatch workflow
   - `docs/agents/verify.yaml`
   - `docs/agents/workflows.yaml`
   - `docs/templates/agents/agents/ai-runtime.yaml`
-
-### 2026-06-01 - `aec4671`
-
-docs: update GitHub update log [skip ci]
-
-- Author: `github-actions[bot]`
-- Shortstat: `1 file changed, 27 insertions(+), 21 deletions(-)`
-- Files:
-  - `docs/github-updates.md`
-
-### 2026-06-01 - `45d8fd1`
-
-feat: add enterprise dispatch layer
-
-- Author: `JaredLin1217`
-- Shortstat: `33 files changed, 1458 insertions(+), 50 deletions(-)`
-- Files:
-  - `CHANGELOG.md`
-  - `README.md`
-  - `docs/agents/ai-runtime.yaml`
-  - `docs/agents/deploy.yaml`
-  - `docs/agents/dispatch.yaml`
-  - `docs/agents/model-policy.yaml`
-  - `docs/agents/org.yaml`
-  - `docs/agents/schemas.yaml`
