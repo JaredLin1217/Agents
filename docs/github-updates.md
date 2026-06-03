@@ -4,8 +4,8 @@ This file is generated from git history after public branch pushes.
 Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` instead.
 
 - Source branch: `main`
-- Source commit analyzed: `5a59786`
-- Source commit date: `2026-06-04T05:22:49+08:00`
+- Source commit analyzed: `e6d2543`
+- Source commit date: `2026-06-04T06:55:53+08:00`
 - Commit window: latest 12 non-merge commits
 
 ## Current Project Version
@@ -15,6 +15,30 @@ Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` ins
 - Positioning: Core Runtime System unifies routing, dispatch, collaborator windows, compaction, workflow artifacts, runtime evidence, deploy, verify, and release packaging.
 
 ## Recent Commits
+
+### 2026-06-04 - `e6d2543`
+
+Add AI runtime schema validation
+
+- Author: `JaredLin1217`
+- Shortstat: `7 files changed, 43 insertions(+), 5 deletions(-)`
+- Files:
+  - `docs/agents/ai-runtime.yaml`
+  - `docs/agents/provider-adapters.yaml`
+  - `docs/templates/agents/agents/ai-runtime.yaml`
+  - `docs/templates/agents/agents/provider-adapters.yaml`
+  - `schemas/agents-ai-runtime.schema.json`
+  - `schemas/agents-provider-adapters.schema.json`
+  - `scripts/validate.ps1`
+
+### 2026-06-03 - `cde5335`
+
+docs: update GitHub update log [skip ci]
+
+- Author: `github-actions[bot]`
+- Shortstat: `1 file changed, 27 insertions(+), 27 deletions(-)`
+- Files:
+  - `docs/github-updates.md`
 
 ### 2026-06-04 - `5a59786`
 
@@ -147,28 +171,3 @@ Add 2.2 workflow artifact layer and slimming gates
   - `.github/ISSUE_TEMPLATE/documentation.yml`
   - `.github/pull_request_template.md`
   - `.github/workflows/README.md`
-
-### 2026-06-01 - `b39ed58`
-
-docs: update GitHub update log [skip ci]
-
-- Author: `github-actions[bot]`
-- Shortstat: `1 file changed, 27 insertions(+), 27 deletions(-)`
-- Files:
-  - `docs/github-updates.md`
-
-### 2026-06-01 - `eab91a4`
-
-feat: strengthen enterprise dispatch workflow
-
-- Author: `JaredLin1217`
-- Shortstat: `19 files changed, 835 insertions(+), 197 deletions(-)`
-- Files:
-  - `README.md`
-  - `docs/agents/ai-runtime.yaml`
-  - `docs/agents/dispatch.yaml`
-  - `docs/agents/model-policy.yaml`
-  - `docs/agents/schemas.yaml`
-  - `docs/agents/verify.yaml`
-  - `docs/agents/workflows.yaml`
-  - `docs/templates/agents/agents/ai-runtime.yaml`
