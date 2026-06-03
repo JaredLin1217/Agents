@@ -4,8 +4,8 @@ This file is generated from git history after public branch pushes.
 Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` instead.
 
 - Source branch: `main`
-- Source commit analyzed: `e6d2543`
-- Source commit date: `2026-06-04T06:55:53+08:00`
+- Source commit analyzed: `9c9fde0`
+- Source commit date: `2026-06-04T07:13:56+08:00`
 - Commit window: latest 12 non-merge commits
 
 ## Current Project Version
@@ -15,6 +15,28 @@ Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` ins
 - Positioning: Core Runtime System unifies routing, dispatch, collaborator windows, compaction, workflow artifacts, runtime evidence, deploy, verify, and release packaging.
 
 ## Recent Commits
+
+### 2026-06-04 - `9c9fde0`
+
+Improve public README value narrative
+
+- Author: `JaredLin1217`
+- Shortstat: `5 files changed, 241 insertions(+), 286 deletions(-)`
+- Files:
+  - `README.md`
+  - `docs/agents/deploy.yaml`
+  - `docs/templates/agents/agents/deploy.yaml`
+  - `scripts/deploy-agents-workflow.ps1`
+  - `scripts/validate.ps1`
+
+### 2026-06-03 - `08f743e`
+
+docs: update GitHub update log [skip ci]
+
+- Author: `github-actions[bot]`
+- Shortstat: `1 file changed, 26 insertions(+), 27 deletions(-)`
+- Files:
+  - `docs/github-updates.md`
 
 ### 2026-06-04 - `e6d2543`
 
@@ -146,28 +168,3 @@ docs: tighten subagent cleanup workflow
   - `docs/templates/agents/agents/schemas.yaml`
   - `docs/templates/agents/agents/workflows.yaml`
   - `docs/templates/agents/multi-agent-workflow.md`
-
-### 2026-06-02 - `ec7288c`
-
-docs: update GitHub update log [skip ci]
-
-- Author: `github-actions[bot]`
-- Shortstat: `1 file changed, 18 insertions(+), 14 deletions(-)`
-- Files:
-  - `docs/github-updates.md`
-
-### 2026-06-03 - `707c8da`
-
-Add 2.2 workflow artifact layer and slimming gates
-
-- Author: `JaredLin1217`
-- Shortstat: `124 files changed, 4588 insertions(+), 6127 deletions(-)`
-- Files:
-  - `.agents/skills/project-isolation-workflow/SKILL.md`
-  - `.agents/skills/project-isolation-workflow/agents/openai.yaml`
-  - `.github/ISSUE_TEMPLATE/bug_report.yml`
-  - `.github/ISSUE_TEMPLATE/config.yml`
-  - `.github/ISSUE_TEMPLATE/deployment.yml`
-  - `.github/ISSUE_TEMPLATE/documentation.yml`
-  - `.github/pull_request_template.md`
-  - `.github/workflows/README.md`
