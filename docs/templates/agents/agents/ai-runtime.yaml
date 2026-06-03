@@ -1,7 +1,7 @@
 schema: agents-ai-runtime/v1
 purpose: route
 load: {default: ["AGENTS.md","docs/agents/ai-runtime.yaml"], expand_only: true}
-codes: {gm: global memory, gs: global/system skill, xr: external read, xw: external write}
+codes: {gm: global mem, gs: global/sys skill, xr: ext read, xw: ext write}
 route:
   answer_only: {f: [], v: none}
   current_state: {f: [], v: named_state}
@@ -12,6 +12,7 @@ route:
   multi_agent: {f: ["docs/agents/workflows.yaml","docs/agents/schemas.yaml","docs/agents/verify.yaml"], v: runtime_multi_agent}
   enterprise_dispatch: {f: ["docs/agents/org.yaml","docs/agents/model-policy.yaml","docs/agents/dispatch.yaml","docs/agents/verify.yaml"], v: enterprise_dispatch}
   workflow_artifact: {f: ["docs/agents/workflow-artifacts.yaml","docs/agents/schemas.yaml","docs/agents/verify.yaml"], v: workflow_artifact}
+  context_compact: {f: ["docs/agents/context-compact.yaml","docs/agents/schemas.yaml","docs/agents/verify.yaml"], v: context_compact}
   hard_isolation: {f: ["docs/agents/policy.yaml","docs/agents/verify.yaml"], v: hard_isolation}
 rules: ["classify->route->read f", "canonical YAML wins", "Do not load docs/templates/agents/**", "Never stage, deploy, or copy runtime_local"]
 closeout: "Isolation: GM <used/not used> | GS <used/not used> | XR <none/paths> | XW <none/paths>"

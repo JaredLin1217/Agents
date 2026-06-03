@@ -282,7 +282,7 @@ $TargetLegacyAgents.Add($itemRelative) | Out-Null
 }
 }
 }
-foreach ($relative in @(".codex/config.toml", ".codex/environments/environment.toml", ".agents/runtime/agent-ledger.jsonl", ".agents/runtime/workflows/example/state.json", ".workflow/example/state.json", ".git/HEAD")) {
+foreach ($relative in @(".codex/config.toml", ".codex/environments/environment.toml", ".agents/runtime/agent-ledger.jsonl", ".agents/runtime/compact-events.jsonl", ".agents/runtime/workflows/example/state.json", ".workflow/example/state.json", ".git/HEAD")) {
 $candidate = Join-TargetPath -Root $Root -RelativePath $relative
 if (Test-Path -LiteralPath $candidate) {
 $ProtectedDirty.Add($relative) | Out-Null
@@ -961,6 +961,7 @@ foreach ($blockedPath in @(
 ".codex/config.toml",
 ".codex/environments/environment.toml",
 ".agents/runtime/agent-ledger.jsonl",
+".agents/runtime/compact-events.jsonl",
 ".agents/runtime/workflows/example/state.json",
 ".workflow/example/state.json",
 "docs/agent-status.md",
@@ -982,6 +983,7 @@ Assert-SelfTestFile -Root $rootTarget -RelativePath "AGENTS.md"
 Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents/ai-runtime.yaml"
 Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents/workflows.yaml"
 Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents/workflow-artifacts.yaml"
+Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents/context-compact.yaml"
 Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/deployment-feedback.template.md"
 Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents-workflow-deployment.md"
 Assert-SelfTestContains -Path (Join-Path $rootTarget "docs/agents-workflow-deployment.md") -Expected "- docs/agents/workflows.yaml"
@@ -1006,6 +1008,7 @@ Invoke-ChildDeployment -CommandArgs @{ TargetPath = $templateProviderTarget; Mod
 Assert-SelfTestFile -Root $templateProviderTarget -RelativePath "docs/templates/agents/AGENTS.md"
 Assert-SelfTestFile -Root $templateProviderTarget -RelativePath "docs/templates/agents/agents/deploy.yaml"
 Assert-SelfTestFile -Root $templateProviderTarget -RelativePath "docs/templates/agents/agents/workflow-artifacts.yaml"
+Assert-SelfTestFile -Root $templateProviderTarget -RelativePath "docs/templates/agents/agents/context-compact.yaml"
 Assert-SelfTestFile -Root $templateProviderTarget -RelativePath "docs/templates/agents/deployment-feedback.template.md"
 Assert-NoSourceLiteral -Root $templateProviderTarget
 $dotTarget = Join-Path $selfTestRoot "dot-agents-docs"
@@ -1017,6 +1020,7 @@ Assert-SelfTestFile -Root $dotTarget -RelativePath "AGENTS.md"
 Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/agents/ai-runtime.yaml"
 Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/agents/workflows.yaml"
 Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/agents/workflow-artifacts.yaml"
+Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/agents/context-compact.yaml"
 Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/agents-workflow-deployment.md"
 Invoke-ChildDeployment -CommandArgs @{ TargetPath = $dotTarget; Mode = "full_workflow"; Upgrade = $true; Quiet = $true }
 Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/project-memory.md"
@@ -1029,6 +1033,7 @@ Invoke-ChildDeployment -CommandArgs @{ TargetPath = $dotTarget; Mode = "template
 Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/templates/agents/AGENTS.md"
 Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/templates/agents/agents/deploy.yaml"
 Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/templates/agents/agents/workflow-artifacts.yaml"
+Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/templates/agents/agents/context-compact.yaml"
 Assert-SelfTestContains -Path (Join-Path $dotTarget ".agents/docs/agents-workflow-deployment.md") -Expected "- .agents/docs/templates/agents/agents/deploy.yaml"
 Assert-SelfTestContains -Path (Join-Path $dotTarget ".agents/docs/agents-workflow-deployment.md") -Expected "- Deployed version file: .agents/docs/agents/version.yaml"
 Assert-NoSourceLiteral -Root $dotTarget
@@ -1135,6 +1140,7 @@ New-Item -ItemType Directory -Path (Join-Path $ownedTarget ".git") -Force | Out-
 Set-Content -LiteralPath (Join-Path $ownedTarget ".codex/config.toml") -Value "local = true" -Encoding utf8
 Set-Content -LiteralPath (Join-Path $ownedTarget ".codex/environments/environment.toml") -Value "runtime = true" -Encoding utf8
 Set-Content -LiteralPath (Join-Path $ownedTarget ".agents/runtime/agent-ledger.jsonl") -Value '{"local":true}' -Encoding utf8
+Set-Content -LiteralPath (Join-Path $ownedTarget ".agents/runtime/compact-events.jsonl") -Value '{"compact":true}' -Encoding utf8
 Set-Content -LiteralPath (Join-Path $ownedTarget ".agents/runtime/workflows/example/state.json") -Value '{"workflow":true}' -Encoding utf8
 Set-Content -LiteralPath (Join-Path $ownedTarget ".workflow/example/state.json") -Value '{"alias":true}' -Encoding utf8
 Set-Content -LiteralPath (Join-Path $ownedTarget ".git/HEAD") -Value "ref: refs/heads/main" -Encoding utf8
@@ -1143,6 +1149,7 @@ Invoke-ChildDeployment -CommandArgs @{ TargetPath = $ownedTarget; Mode = "core_b
 Assert-SelfTestContent -Path (Join-Path $ownedTarget ".codex/config.toml") -Expected "local = true"
 Assert-SelfTestContent -Path (Join-Path $ownedTarget ".codex/environments/environment.toml") -Expected "runtime = true"
 Assert-SelfTestContent -Path (Join-Path $ownedTarget ".agents/runtime/agent-ledger.jsonl") -Expected '{"local":true}'
+Assert-SelfTestContent -Path (Join-Path $ownedTarget ".agents/runtime/compact-events.jsonl") -Expected '{"compact":true}'
 Assert-SelfTestContent -Path (Join-Path $ownedTarget ".agents/runtime/workflows/example/state.json") -Expected '{"workflow":true}'
 Assert-SelfTestContent -Path (Join-Path $ownedTarget ".workflow/example/state.json") -Expected '{"alias":true}'
 Assert-SelfTestContent -Path (Join-Path $ownedTarget ".git/HEAD") -Expected "ref: refs/heads/main"
@@ -1158,6 +1165,7 @@ Assert-SelfTestTextContains -Text $ownedPlan -Expected "Protected dirty/local ta
 Assert-SelfTestTextContains -Text $ownedPlan -Expected "[PROTECTED] .codex/config.toml"
 Assert-SelfTestTextContains -Text $ownedPlan -Expected "[PROTECTED] .codex/environments/environment.toml"
 Assert-SelfTestTextContains -Text $ownedPlan -Expected "[PROTECTED] .agents/runtime/agent-ledger.jsonl"
+Assert-SelfTestTextContains -Text $ownedPlan -Expected "[PROTECTED] .agents/runtime/compact-events.jsonl"
 Assert-SelfTestTextContains -Text $ownedPlan -Expected "[PROTECTED] .agents/runtime/workflows/example/state.json"
 Assert-SelfTestTextContains -Text $ownedPlan -Expected "[PROTECTED] .workflow/example/state.json"
 Assert-SelfTestTextContains -Text $ownedPlan -Expected "[PROTECTED] .git/HEAD"

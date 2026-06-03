@@ -149,6 +149,9 @@ $required = @(
 "schemas/agents-dispatch.schema.json",
 "schemas/agents-workflow-artifacts.schema.json",
 "docs/templates/agents/agents/workflow-artifacts.yaml",
+"docs/agents/context-compact.yaml",
+"schemas/agents-context-compact.schema.json",
+"docs/templates/agents/agents/context-compact.yaml",
 ".agents/skills/project-isolation-workflow/SKILL.md",
 "docs/project-structure.md",
 "scripts/deploy-agents-workflow.ps1",
@@ -329,7 +332,8 @@ $contracts = @(
 @{ Yaml = "docs/agents/org.yaml"; Schema = "schemas/agents-org.schema.json" },
 @{ Yaml = "docs/agents/model-policy.yaml"; Schema = "schemas/agents-model-policy.schema.json" },
 @{ Yaml = "docs/agents/dispatch.yaml"; Schema = "schemas/agents-dispatch.schema.json" },
-@{ Yaml = "docs/agents/workflow-artifacts.yaml"; Schema = "schemas/agents-workflow-artifacts.schema.json" }
+@{ Yaml = "docs/agents/workflow-artifacts.yaml"; Schema = "schemas/agents-workflow-artifacts.schema.json" },
+@{ Yaml = "docs/agents/context-compact.yaml"; Schema = "schemas/agents-context-compact.schema.json" }
 )
 foreach ($contract in $contracts) {
 $yamlPath = Get-RepoPath $contract.Yaml
@@ -572,12 +576,16 @@ function Write-AgentQualityScore {
 $aiRuntimePath = Get-RepoPath "docs/agents/ai-runtime.yaml"
 $mcpPath = Get-RepoPath "docs/agents/mcp.yaml"
 $deployPath = Get-RepoPath "docs/agents/deploy.yaml"
+$verifyPath = Get-RepoPath "docs/agents/verify.yaml"
 $exportPath = Get-RepoPath "scripts/export-release-package.ps1"
 $aiRuntimeText = Get-Content -LiteralPath $aiRuntimePath -Raw
 $mcpText = Get-Content -LiteralPath $mcpPath -Raw
 $deployText = Get-Content -LiteralPath $deployPath -Raw
+$verifyText = Get-Content -LiteralPath $verifyPath -Raw
 $aiRuntimeBytes = (Get-Item -LiteralPath $aiRuntimePath).Length
 $intendedBytes = Get-RepoFilesSize -Paths (Get-IntendedRepoFiles)
+$repoGrowthMatch = [regex]::Match($verifyText, "(?m)^\s*tracked_repo_kib:\s*(\d+)\s*$")
+$repoGrowthLimitBytes = if ($repoGrowthMatch.Success) { [int]$repoGrowthMatch.Groups[1].Value * 1024 } else { 512 * 1024 }
 $enterpriseRouteMinimal = (
 $aiRuntimeText -match 'enterprise_dispatch:\s*\{\s*f:\s*\[[^\]]*"docs/agents/org\.yaml"[^\]]*"docs/agents/model-policy\.yaml"[^\]]*"docs/agents/dispatch\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]' -and
 $aiRuntimeText -notmatch 'enterprise_dispatch:\s*\{[^\r\n]*(workflows|schemas)\.yaml'
@@ -585,6 +593,10 @@ $aiRuntimeText -notmatch 'enterprise_dispatch:\s*\{[^\r\n]*(workflows|schemas)\.
 $workflowArtifactRouteMinimal = (
 $aiRuntimeText -match 'workflow_artifact:\s*\{\s*f:\s*\[[^\]]*"docs/agents/workflow-artifacts\.yaml"[^\]]*"docs/agents/schemas\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]' -and
 $aiRuntimeText -notmatch 'workflow_artifact:\s*\{[^\r\n]*(org|model-policy|dispatch|workflows|deploy)\.yaml'
+)
+$contextCompactRouteMinimal = (
+$aiRuntimeText -match 'context_compact:\s*\{\s*f:\s*\[[^\]]*"docs/agents/context-compact\.yaml"[^\]]*"docs/agents/schemas\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]' -and
+$aiRuntimeText -notmatch 'context_compact:\s*\{[^\r\n]*(org|model-policy|dispatch|workflows|deploy|workflow-artifacts)\.yaml'
 )
 $officialDocsFirst = ($mcpText -match 'OpenAI developer documentation' -and $mcpText -match 'official OpenAI docs')
 $releaseExportReady = (
@@ -595,6 +607,7 @@ $deployText -match 'validation_levels'
 $llmRuleComplete = (
 $enterpriseRouteMinimal -and
 $workflowArtifactRouteMinimal -and
+$contextCompactRouteMinimal -and
 $aiRuntimeText -match 'expand_only' -and
 $aiRuntimeText -match 'canonical YAML wins' -and
 $aiRuntimeText -match 'Do not load docs/templates/agents/\*\*' -and
@@ -632,7 +645,7 @@ $items = @(
 [pscustomobject]@{
 Name = "llm_rule_fit"
 Score = if ($llmRuleComplete) { 100.0 } elseif ($aiRuntimeText -match 'expand_only') { 96.0 } else { 84.0 }
-Evidence = if ($llmRuleComplete) { "minimal enterprise and workflow artifact routes, expand-only router, canonical priority, template skip, and runtime-local block" } else { "router present; LLM rule fit is incomplete" }
+Evidence = if ($llmRuleComplete) { "minimal enterprise, workflow artifact, and context compact routes, expand-only router, canonical priority, template skip, and runtime-local block" } else { "router present; LLM rule fit is incomplete" }
 },
 [pscustomobject]@{
 Name = "official_guidance_path"
@@ -646,8 +659,8 @@ Evidence = "ai-runtime.yaml is $aiRuntimeBytes bytes; 100 gate <= 1536 bytes"
 },
 [pscustomobject]@{
 Name = "repo_growth_control"
-Score = if ($intendedBytes -le (512 * 1024)) { 100.0 } elseif ($intendedBytes -le (640 * 1024)) { 97.0 } else { 82.0 }
-Evidence = "intended repo files are $intendedBytes bytes; 100 gate <= 524288 bytes"
+Score = if ($intendedBytes -le $repoGrowthLimitBytes) { 100.0 } elseif ($intendedBytes -le [int]($repoGrowthLimitBytes * 1.25)) { 97.0 } else { 82.0 }
+Evidence = "intended repo files are $intendedBytes bytes; 100 gate <= $repoGrowthLimitBytes bytes"
 },
 [pscustomobject]@{
 Name = "enterprise_guardrails"
@@ -723,6 +736,7 @@ $pairs = @(
 @("docs/agents/model-policy.yaml", "docs/templates/agents/agents/model-policy.yaml"),
 @("docs/agents/dispatch.yaml", "docs/templates/agents/agents/dispatch.yaml"),
 @("docs/agents/workflow-artifacts.yaml", "docs/templates/agents/agents/workflow-artifacts.yaml"),
+@("docs/agents/context-compact.yaml", "docs/templates/agents/agents/context-compact.yaml"),
 @("docs/runbooks/agents-deployment.md", "docs/templates/agents/agents-deployment.md"),
 @("docs/runbooks/isolation-audit.md", "docs/templates/agents/isolation-audit.md"),
 @("docs/runbooks/multi-agent-workflow.md", "docs/templates/agents/multi-agent-workflow.md"),
@@ -780,6 +794,7 @@ $allowedItems = @(
 "docs/templates/agents/agents/model-policy.yaml",
 "docs/templates/agents/agents/dispatch.yaml",
 "docs/templates/agents/agents/workflow-artifacts.yaml",
+"docs/templates/agents/agents/context-compact.yaml",
 "docs/templates/agents/agents-deployment.md",
 "docs/templates/agents/isolation-audit.md",
 "docs/templates/agents/multi-agent-workflow.md",
@@ -837,6 +852,7 @@ Add-Failure "Deployment script mode ValidateSet is missing."
 }
 $requiredBlocklist = @(
 @{ Manifest = ".agents/runtime/"; Script = ".agents/runtime/" },
+@{ Manifest = ".agents/runtime/compact-events.jsonl"; Script = ".agents/runtime/compact-events.jsonl" },
 @{ Manifest = ".agents/runtime/workflows/"; Script = ".agents/runtime/workflows/" },
 @{ Manifest = ".workflow/"; Script = ".workflow/" },
 @{ Manifest = "docs/agent-status.md"; Script = "docs/agent-status.md" },
@@ -980,10 +996,12 @@ $requiredNeedles = @(
 "multi_agent",
 "enterprise_dispatch",
 "workflow_artifact",
+"context_compact",
 "docs/agents/org.yaml",
 "docs/agents/model-policy.yaml",
 "docs/agents/dispatch.yaml",
 "docs/agents/workflow-artifacts.yaml",
+"docs/agents/context-compact.yaml",
 "hard_isolation",
 "Do not load docs/templates/agents/**",
 "Never stage, deploy, or copy runtime_local"
@@ -1012,6 +1030,9 @@ Add-Failure ("AI runtime enterprise dispatch route must load only org, model-pol
 }
 if ($content -notmatch 'workflow_artifact:\s*\{\s*f:\s*\[[^\]]*"docs/agents/workflow-artifacts\.yaml"[^\]]*"docs/agents/schemas\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]' -or $content -match 'workflow_artifact:\s*\{[^\r\n]*(org|model-policy|dispatch|workflows|deploy)\.yaml') {
 Add-Failure ("AI runtime workflow artifact route must load only workflow-artifacts, schemas, and verify: {0}" -f $path)
+}
+if ($content -notmatch 'context_compact:\s*\{\s*f:\s*\[[^\]]*"docs/agents/context-compact\.yaml"[^\]]*"docs/agents/schemas\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]' -or $content -match 'context_compact:\s*\{[^\r\n]*(org|model-policy|dispatch|workflows|deploy|workflow-artifacts)\.yaml') {
+Add-Failure ("AI runtime context compact route must load only context-compact, schemas, and verify: {0}" -f $path)
 }
 }
 foreach ($path in @("AGENTS.md", "docs/templates/agents/AGENTS.md", ".agents/skills/project-isolation-workflow/SKILL.md", "docs/templates/agents/skills/project-isolation-workflow/SKILL.md")) {
@@ -1393,6 +1414,96 @@ Add-Failure ("Workflow artifact marker is missing in {0}: {1}" -f $check[0], $ch
 }
 if ($Failures.Count -eq $startFailureCount) {
 Add-Pass "Workflow artifact integrity checks passed."
+}
+}
+function Test-ContextCompactIntegrity {
+$startFailureCount = $Failures.Count
+$requiredFiles = @(
+"docs/agents/context-compact.yaml",
+"docs/templates/agents/agents/context-compact.yaml",
+"schemas/agents-context-compact.schema.json"
+)
+$allRequiredFilesExist = $true
+foreach ($path in $requiredFiles) {
+if (-not (Test-Path -LiteralPath (Get-RepoPath $path) -PathType Leaf)) {
+Add-Failure ("Context compact required file is missing: {0}" -f $path)
+$allRequiredFilesExist = $false
+}
+}
+if (-not $allRequiredFilesExist) {
+return
+}
+$canonicalFile = Get-Item -LiteralPath (Get-RepoPath "docs/agents/context-compact.yaml")
+$templateFile = Get-Item -LiteralPath (Get-RepoPath "docs/templates/agents/agents/context-compact.yaml")
+if ((Get-FileHash -LiteralPath $canonicalFile.FullName -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $templateFile.FullName -Algorithm SHA256).Hash) {
+Add-Failure "Context compact canonical and template mirror must be identical."
+}
+$compact = Get-LightweightYamlPathValues -File $canonicalFile
+function Assert-CompactPath {
+param([string] $Path)
+if (-not $compact.ContainsKey($Path)) {
+Add-Failure ("Context compact canonical is missing path: {0}" -f $Path)
+}
+}
+function Assert-CompactPathContains {
+param(
+[string] $Path,
+[string[]] $Needles
+)
+if (-not $compact.ContainsKey($Path)) {
+Add-Failure ("Context compact canonical is missing path: {0}" -f $Path)
+return
+}
+$value = [string] $compact[$Path]
+foreach ($needle in $Needles) {
+if (-not $value.Contains($needle)) {
+Add-Failure ("Context compact path {0} is missing marker: {1}" -f $Path, $needle)
+}
+}
+}
+foreach ($path in @(
+"trigger_when.include",
+"trigger_when.route_signal",
+"summary_contract.required_fields",
+"summary_contract.freshness_rule",
+"summary_contract.minimality_rule",
+"auto_compact.before",
+"auto_compact.after",
+"auto_compact.reject_when",
+"runtime_events.optional_path",
+"runtime_events.git_rule",
+"runtime_events.event_fields",
+"runtime_events.trigger_values",
+"subagent_rule",
+"approval_rule",
+"verification.profile"
+)) {
+Assert-CompactPath $path
+}
+Assert-CompactPathContains "summary_contract.required_fields" @("latest_user_request", "changed_files", "verification_state", "open_risks", "external_access", "subagents_open", "next_step", "isolation")
+Assert-CompactPathContains "summary_contract.minimality_rule" @("raw transcript", "raw worker chatter")
+Assert-CompactPathContains "auto_compact.reject_when" @("missing latest_user_request", "unclosed subagents", "raw transcript", "external access omitted")
+Assert-CompactPathContains "runtime_events.optional_path" @(".agents/runtime/compact-events.jsonl")
+Assert-CompactPathContains "runtime_events.git_rule" @("never stage", "deploy", "release")
+Assert-CompactPathContains "subagent_rule" @("requested", "spawned", "completed", "closed")
+Assert-CompactPathContains "approval_rule" @("approval gate", "escalation record")
+Assert-CompactPathContains "verification.profile" @("context_compact")
+$routeChecks = @(
+@("docs/agents/ai-runtime.yaml", "context_compact"),
+@("docs/agents/workflows.yaml", "context_compact_runtime"),
+@("docs/agents/schemas.yaml", "context_compact_summary"),
+@("docs/agents/verify.yaml", "context_compact"),
+@("docs/agents/deploy.yaml", "docs/templates/agents/agents/context-compact.yaml"),
+@("docs/agents/version.yaml", "context_compact")
+)
+foreach ($check in $routeChecks) {
+$content = Get-Content -LiteralPath (Get-RepoPath $check[0]) -Raw
+if (-not $content.Contains($check[1])) {
+Add-Failure ("Context compact marker is missing in {0}: {1}" -f $check[0], $check[1])
+}
+}
+if ($Failures.Count -eq $startFailureCount) {
+Add-Pass "Context compact integrity checks passed."
 }
 }
 function Test-DeploymentScriptSafety {
@@ -1815,7 +1926,9 @@ Evidence = @(
 @("docs/agents/deploy.yaml", "deployment_worker"),
 @("docs/agents/workflows.yaml", "enterprise_dispatch_runtime"),
 @("docs/agents/workflows.yaml", "workflow_artifact_runtime"),
+@("docs/agents/workflows.yaml", "context_compact_runtime"),
 @("docs/agents/workflow-artifacts.yaml", "artifact_root_rule"),
+@("docs/agents/context-compact.yaml", "summary_contract"),
 @("docs/agents/dispatch.yaml", "department_report"),
 @("docs/agents/workflows.yaml", "ownership:"),
 @("docs/agents/workflows.yaml", "ledger_missing_or_cleared"),
@@ -1825,6 +1938,7 @@ Evidence = @(
 @("scripts/agents-workflow.ps1", "SimulateDispatch"),
 @("scripts/validate.ps1", "Test-EnterpriseDispatchIntegrity"),
 @("scripts/validate.ps1", "Test-WorkflowArtifactIntegrity"),
+@("scripts/validate.ps1", "Test-ContextCompactIntegrity"),
 @("scripts/validate.ps1", "Test-MultiAgentWorkflowIntegrity"),
 @("scripts/validate.ps1", "Test-AgentLedgerCompatibility")
 )
@@ -1837,6 +1951,7 @@ Evidence = @(
 @("docs/agents/verify.yaml", "runtime_multi_agent"),
 @("docs/agents/verify.yaml", "hard_isolation"),
 @("docs/agents/verify.yaml", "workflow_artifact"),
+@("docs/agents/verify.yaml", "context_compact"),
 @("scripts/export-release-package.ps1", "release-manifest.json"),
 @("scripts/validate.ps1", "Test-ReleasePackageExport"),
 @("scripts/validate.ps1", "Test-SizeGates"),
@@ -1851,6 +1966,7 @@ Evidence = @(
 @("docs/agents/version.yaml", "P5:"),
 @("docs/agents/version.yaml", "compatibility_rule"),
 @("docs/agents/version.yaml", "workflow_artifact"),
+@("docs/agents/version.yaml", "context_compact"),
 @("docs/agents/version.yaml", "rollback"),
 @("docs/agents/verify.yaml", "stale_literal_rule"),
 @("docs/agents/verify.yaml", "batch_rule"),
@@ -1860,6 +1976,7 @@ Evidence = @(
 @("docs/agents/deploy.yaml", "target git rollback scope"),
 @("docs/agents/deploy.yaml", ".workflow/"),
 @("docs/agents/workflows.yaml", "compact_output"),
+@("docs/agents/context-compact.yaml", "raw transcript"),
 @("scripts/validate.ps1", "Test-SizeGates"),
 @("scripts/deploy-agents-workflow.ps1", "target git rollback scope"),
 @("scripts/deploy-agents-workflow.ps1", "Update-TargetStateClassification"),
@@ -2033,7 +2150,8 @@ $requiredFiles = @(
 "docs/agents/org.yaml",
 "docs/agents/model-policy.yaml",
 "docs/agents/dispatch.yaml",
-"docs/agents/workflow-artifacts.yaml"
+"docs/agents/workflow-artifacts.yaml",
+"docs/agents/context-compact.yaml"
 )
 $manifestPaths = @($manifest.files | ForEach-Object { [string] $_.path })
 foreach ($requiredFile in $requiredFiles) {
@@ -2105,6 +2223,7 @@ Test-DeploymentScriptSafety
 Test-DeploymentSelfTest
 Test-MultiAgentWorkflowIntegrity
 Test-WorkflowArtifactIntegrity
+Test-ContextCompactIntegrity
 Test-AgentLedgerCompatibility
 Test-EvidenceTemplateSchemaCoverage
 Test-CIWorkflowStability
@@ -2144,6 +2263,7 @@ Add-Pass "Canonical YAML files match initial schema contracts."
 }
 Test-EnterpriseDispatchIntegrity
 Test-WorkflowArtifactIntegrity
+Test-ContextCompactIntegrity
 Test-ValidationFixtures
 if ($Failures.Count -eq 0) {
 Add-Pass "Validation fixtures passed."

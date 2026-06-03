@@ -1,6 +1,15 @@
 # Changelog
 All notable changes to this repository are documented here.
 ## Unreleased
+## 2.2.1 - 2026-06-03
+- Added the Context Compact Layer with canonical auto-compaction, handoff,
+  resume, and subagent closeout summary rules.
+- Added context compact schema and template mirror coverage.
+- Added validation coverage for required compact summary fields, raw transcript
+  exclusion, subagent closeout counts, runtime compact event boundaries, and
+  route guardrails.
+- Updated deployment, version metadata, and README documentation for context
+  compact compatibility while preserving V2 behavior.
 ## 2.2.0 - 2026-06-02
 - Added the Supervised Workflow Artifact Layer with canonical workflow
   artifact routing, local workflow state, packets, results, approval gates,
