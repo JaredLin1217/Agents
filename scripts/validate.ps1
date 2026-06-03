@@ -140,6 +140,7 @@ $required = @(
 "docs/agents/deploy.yaml",
 "docs/agents/mcp.yaml",
 "docs/agents/version.yaml",
+"schemas/agents-ai-runtime.schema.json",
 "docs/agents/org.yaml",
 "docs/agents/model-policy.yaml",
 "docs/agents/dispatch.yaml",
@@ -342,6 +343,7 @@ return $issues
 }
 function Test-SchemaContracts {
 $contracts = @(
+@{ Yaml = "docs/agents/ai-runtime.yaml"; Schema = "schemas/agents-ai-runtime.schema.json" },
 @{ Yaml = "docs/agents/workflows.yaml"; Schema = "schemas/agents-workflows.schema.json" },
 @{ Yaml = "docs/agents/verify.yaml"; Schema = "schemas/agents-verify.schema.json" },
 @{ Yaml = "docs/agents/policy.yaml"; Schema = "schemas/agents-policy.schema.json" },
@@ -1075,6 +1077,27 @@ Add-Pass "Deploy manifest integrity checks passed."
 }
 function Test-AiRuntimeCompactness {
 $startFailureCount = $Failures.Count
+$verifyProfiles = New-Object 'System.Collections.Generic.HashSet[string]'
+$verifyPath = Get-RepoPath "docs/agents/verify.yaml"
+if (Test-Path -LiteralPath $verifyPath -PathType Leaf) {
+$inProfiles = $false
+foreach ($line in Get-Content -LiteralPath $verifyPath) {
+if ($line -match '^profiles:\s*$') {
+$inProfiles = $true
+continue
+}
+if ($inProfiles -and $line -match '^\S') {
+break
+}
+if ($inProfiles -and $line -match '^  ([A-Za-z0-9_]+):') {
+[void] $verifyProfiles.Add($Matches[1])
+}
+}
+}
+else {
+Add-Failure "AI runtime route profile check requires docs/agents/verify.yaml."
+}
+$profileExemptions = @("none", "named_state")
 $paths = @(
 "docs/agents/ai-runtime.yaml",
 "docs/templates/agents/agents/ai-runtime.yaml"
@@ -1151,11 +1174,25 @@ Add-Failure ("AI runtime execution route must load runtime-execution and verify:
 if ($content -notmatch 'provider_adapter:\s*\{\s*f:\s*\[[^\]]*"docs/agents/provider-adapters\.yaml"[^\]]*"docs/agents/model-policy\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]') {
 Add-Failure ("AI runtime provider adapter route must load provider-adapters, model-policy, and verify: {0}" -f $path)
 }
+if ($content -notmatch 'provider_adapter:\s*\{[^\r\n]*v:\s*provider_adapter\b') {
+Add-Failure ("AI runtime provider adapter route must use provider_adapter verify profile: {0}" -f $path)
+}
 if ($content -notmatch 'route_pack:\s*\{\s*f:\s*\[[^\]]*"docs/agents/route-packs\.yaml"[^\]]*"docs/agents/ai-runtime\.yaml"[^\]]*\]') {
 Add-Failure ("AI runtime route pack route must load route-packs and ai-runtime: {0}" -f $path)
 }
 if ($content -notmatch 'knowledge_footprint:\s*\{\s*f:\s*\[[^\]]*"docs/agents/knowledge-footprint\.yaml"[^\]]*"docs/agents/context-compact\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]') {
 Add-Failure ("AI runtime knowledge footprint route must load knowledge-footprint, context-compact, and verify: {0}" -f $path)
+}
+$routeMatches = [regex]::Matches($content, '(?m)^\s+([A-Za-z0-9_]+):\s*\{[^\r\n]*\bv:\s*([A-Za-z0-9_]+|none)\s*\}')
+foreach ($match in $routeMatches) {
+$routeId = [string] $match.Groups[1].Value
+$profile = [string] $match.Groups[2].Value
+if ($profileExemptions -contains $profile) {
+continue
+}
+if (-not $verifyProfiles.Contains($profile)) {
+Add-Failure ("AI runtime route {0} references missing verify profile: {1}" -f $routeId, $profile)
+}
 }
 }
 foreach ($path in @("AGENTS.md", "docs/templates/agents/AGENTS.md", ".agents/skills/project-isolation-workflow/SKILL.md", "docs/templates/agents/skills/project-isolation-workflow/SKILL.md")) {

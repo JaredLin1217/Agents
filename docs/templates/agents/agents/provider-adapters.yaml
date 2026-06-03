@@ -35,4 +35,4 @@ rules:
   - "Adapters may substitute equivalent models inside the same tier."
   - "Tier downgrade for write, deploy, security, or architecture work requires escalation."
 validation:
-  profile: "provider_adapters"
+  profile: "provider_adapter"
