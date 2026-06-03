@@ -26,6 +26,26 @@ runbooks that can be installed into another repository.
   deployments, release exports, and enterprise dispatch records.
 - Packages the workflow as a source-neutral template bundle that can be copied
   into authorized target repositories.
+
+## Why It Saves Tokens And Context
+Jared's AI Team is designed as an LLM-readable operating layer, not a long-form
+manual. It reduces token use by making the model read less, infer less, and
+repeat less.
+- Route-first loading keeps each task scoped to the smallest canonical file set
+  needed for that route.
+- Canonical YAML uses stable keys and compact structures so the model can parse
+  policy by shape instead of re-reading long prose.
+- Template mirrors preserve deployability without duplicating divergent rules in
+  multiple places.
+- Validation scripts turn correctness checks into command output, reducing
+  repeated manual reasoning about repository state.
+- Department-level dispatch lets the controller integrate leader reports instead
+  of every raw worker message.
+- Runtime artifacts keep temporary packets, status, and evidence out of durable
+  documentation and release packages.
+- Verified employee closeout reduces stale sidebar or history residue that would
+  otherwise pollute later context.
+
 ## Core Features
 | Feature | How It Helps |
 |---|---|

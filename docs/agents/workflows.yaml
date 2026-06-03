@@ -21,7 +21,7 @@ startup:
     current_state: "Inspect named now/current/latest/clean/dirty/online/committed/pushed/tagged/deployed/active/completed."
     scoped_edit: "Status, target read, patch, scoped diff, focused verify."
     policy_pack_edit: "Use policy_pack_edit; changed mirror pairs only."
-    multi_agent_runtime: "Explicit hire/delegate; fill slots; success needs ack + close proof."
+    multi_agent_runtime: "Explicit hire/delegate; fill slots; success needs ack + close proof + residue-zero proof."
     enterprise_dispatch: "Use only for org dispatch, department commands, staff delegation, or model tier binding."
     workflow_artifact: "Use only to create, verify, collect, simulate, or normalize workflow artifacts."
     deploy_release_audit: "Use deploy.yaml + release_deploy_push_audit."
@@ -58,14 +58,14 @@ multi_agent_runtime:
     prework: ["Status when worktree matters", "Brief per role", "Precompute expected id set/schema", "No per-employee reread"]
     queue_rule: "Fill slots, queue rest, refill on completion/close."
     wait_rule: "Wait only when controller needs results."
-    close_rule: "Close after final report; run runtime.quiet_cleanup for current parent/cwd closed subagent ids before clean closeout; launch next queued in freed slot."
+    close_rule: "Close after final report; run runtime.quiet_cleanup for current parent/cwd closed subagent ids before clean closeout; launch next queued only after residue-zero proof."
     history_cleanup_rule: "Employee dispatch closeout has standing cleanup authorization for current parent/cwd closed subagent ids only; broader sidebar/history cleanup needs exact authorization."
     dismissal_cleanup_rule: "Explicit dismissal/cleanup expands to runtime.sidebar_cleanup_success_path; record history_cleanup_evidence before clean-roster claim."
     ledger_rule: "Append hired/report/closed/integrated events when recovery matters; batch ack records summary/exceptions."
   lifecycle_checks:
     before: ["confirm explicit employee use", "define role/read/write/command/report/close", "exclusive worker scopes", "record batch expected id set/schema"]
     during: ["poll when results needed", "dedupe reports", "track ids/formats/failures/unclosed", "stop at convergence/cap"]
-    after: ["close completed runtimes", "quiet cleanup closed parent/cwd subagent residue before clean-roster claims", "reconcile expected/received/completed/closed", "reconcile git/owned scopes", "keep ledger/runtime ignored"]
+    after: ["close completed runtimes", "quiet cleanup closed parent/cwd subagent residue before clean-roster claims", "prove sqlite/unread/rollout/delayed zero residue", "reconcile expected/received/completed/closed", "reconcile git/owned scopes", "keep ledger/runtime ignored"]
   ownership:
     required_for: "worker, two active employees, or controller edits near employee scopes"
     normalize: "repo-relative, slash-normalized, containment-aware, case-insensitive where needed"
@@ -86,21 +86,16 @@ multi_agent_runtime:
   runtime:
     completion: "Final report is completion notice."
     close: "Close exact runtime id before history cleanup."
-    official_controls_first: "Prefer runtime close, then official status/archive/unsubscribe if available."
-    official_status_checks: ["thread/list cwd+subAgent", "thread/loaded/list", "runtime close result"]
-    official_delete_limit: "No official hard-delete API assumed."
-    refresh_limit: "If official state is clean but sidebar shows residue, reload/restart UI before more cleanup."
-    dismissal_cleanup_standard: "Close ids, match parent/cwd, hard-delete exact residue without backup, verify zero, record reload."
-    quiet_cleanup: "Standing closeout cleanup: close ids, derive parent/cwd/subagent/closed targets, hard-delete exact DB/unread/rollout residue without backup, verify zero hits, summarize."
-    history_cleanup: "Employee dispatch closeout uses quiet_cleanup after close; other external destructive cleanup needs exact authorization with no-backup acknowledgement."
-    history_cleanup_scope: "Hard-delete DB rows, unread state, and rollouts only for closed subagent ids under current repo cwd + authorized parent."
-    history_cleanup_no_backup: "Do not create, require, or rely on cleanup backups; if exact target scope cannot be proven, abort instead of broad deletion."
-    sidebar_cleanup_success_path: ["standing closeout authorization or exact cleanup request; destructive/restart/no-backup", "close/prove inactive ids", "record parent+cwd+target counts", "target closed subagent ids for parent/cwd", "hard-delete child edges/threads/unread/rollouts; keep parent/user", "verify parent + zero residue", "reload/restart UI; record XR/XW"]
-    sidebar_cleanup_keep: ["parent/controller/user threads", "parent/user rollouts", "unrelated cwd/parent subagents", "runtime ledger unless exact cleanup requested"]
+    official_controls_first: "Use runtime close/status/archive/unsubscribe first; no hard-delete API assumed."
+    close_success: "Clean roster = close/inactive + official-list zero + sqlite edge/thread zero + unread-state zero + rollout zero + delayed zero verification."
+    residue_sources: ["state_*.sqlite: threads/thread_spawn_edges", ".codex-global-state*.json: unread ids", "sessions|archived_sessions: child rollouts"]
+    cleanup_order: ["close/prove exact ids inactive", "official list by cwd/source", "match closed child ids by parent/cwd/thread_source=subagent", "delete thread_spawn_edges then threads", "delete unread ids + rollouts", "repeat unread if rewritten", "delay then verify zero hits"]
+    quiet_cleanup: "Standing closeout cleanup: exact ids only; hard-delete sqlite/unread/rollout residue without backup after standing cleanup authorization; delayed zero verification; summarize XR/XW."
+    history_cleanup: "Dispatch closeout uses quiet_cleanup after close; other destructive cleanup needs exact no-backup authorization."
+    sidebar_cleanup_success_path: "close proof -> official zero -> sqlite/unread/rollout zero -> delayed zero -> UI reload if stale"
+    sidebar_cleanup_keep: ["parent/controller/user threads", "unrelated cwd/parent", "runtime ledger unless exact cleanup requested"]
     orphan_cleanup_scope: "Delete orphan thread_spawn_edges only when both endpoints are missing and cleanup requested."
-    post_cleanup_ui_rule: "When restart clears residue, record UI refresh result and stop."
-    offline_cache_cleanup: "Only after exact residue survives reload/restart plus explicit shutdown/cache-cleanup authorization."
-    history_cleanup_never: "Never delete parent/controller/user threads, unrelated cwd, non-subagent rollouts, backup DBs, ledger-only ids, cleanup backups, or claim live UI refresh."
+    history_cleanup_never: "Never delete parent/user threads, unrelated cwd, non-subagent rollouts, DB backups/copies, ledger-only ids, or claim UI refresh without observation."
   report_dedupe:
     report_hash: "Hash normalized report identity and result."
     dedupe_key: "agent + runtime id + event + roster snapshot version + report hash"

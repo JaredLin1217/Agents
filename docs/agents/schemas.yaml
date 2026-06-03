@@ -241,6 +241,10 @@ runtime_multi_agent_validation:
     - "Runtime close attempted"
     - "Runtime close result"
     - "Official list result"
+    - "SQLite thread state result"
+    - "Global unread state result"
+    - "Rollout residue result"
+    - "Delayed cleanup verification"
     - "History cleanup requested"
     - "History cleanup authorization"
     - "History cleanup target ids"
@@ -253,9 +257,9 @@ runtime_multi_agent_validation:
     - "Controller conclusion"
   storage_rule: "Filled records are local scratch unless sanitized and promoted."
 history_cleanup_evidence:
-  required_when_claimed: ["authorization", "no_backup_authorization", "parent_thread_id", "repo_cwd", "target_ids", "target_counts", "deleted_counts", "parent_preserved", "zero_active_residue", "desktop_reload_or_restart_result"]
-  target_filter: "current parent thread, same normalized cwd, child thread_source=subagent, closed/inactive status, explicit target ids only"
-  no_backup_rule: "No cleanup backup is created or required; abort if exact target ids, inactive state, parent/cwd scope, or post-delete zero residue cannot be proven."
+  required_when_claimed: ["authorization", "no_backup_authorization", "official_close_result", "parent_thread_id", "repo_cwd", "target_ids", "target_counts", "deleted_counts", "sqlite_thread_state_result", "global_unread_state_result", "rollout_residue_result", "parent_preserved", "delayed_zero_residue", "desktop_reload_or_restart_result"]
+  target_filter: "parent/cwd closed child subagent ids; delete thread_spawn_edges before threads"
+  no_backup_rule: "No backup; abort without exact inactive ids, scope, delay zero."
   forbidden_targets: ["parent/controller/user threads", "unrelated cwd", "unrelated subagents", "ledger-only ids", "non-subagent rollouts", "backup/copy DB files"]
 memory_entry:
   draft_fields: ["Trigger", "Context", "Cause", "Fix / Rule", "Verification", "Reuse when"]

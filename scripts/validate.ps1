@@ -1566,7 +1566,12 @@ $workflowMarkers = @(
 "deployment_worker",
 "deployed_file_set",
 "standing cleanup authorization",
-"Standing closeout cleanup"
+"Standing closeout cleanup",
+"residue-zero proof",
+"state_*.sqlite",
+"thread_spawn_edges",
+"unread-state zero",
+"delayed zero verification"
 )
 foreach ($path in $workflowPaths) {
 $content = Get-Content -LiteralPath (Get-RepoPath $path) -Raw
@@ -1593,13 +1598,33 @@ $schemaMarkers = @(
 "Roster snapshot version",
 "Ownership matrix status",
 "Final report matched runtime id",
-"Git status after employee work"
+"Git status after employee work",
+"SQLite thread state result",
+"Global unread state result",
+"Rollout residue result",
+"Delayed cleanup verification",
+"history_cleanup_evidence:"
 )
 foreach ($path in $schemaPaths) {
 $content = Get-Content -LiteralPath (Get-RepoPath $path) -Raw
 foreach ($marker in $schemaMarkers) {
 if (-not $content.Contains($marker)) {
 Add-Failure ("Multi-agent schema marker is missing in {0}: {1}" -f $path, $marker)
+}
+}
+}
+$runbookPaths = @("docs/runbooks/multi-agent-workflow.md", "docs/templates/agents/multi-agent-workflow.md")
+$runbookMarkers = @(
+"thread_spawn_edges",
+".codex-global-state",
+"delayed zero",
+"clean roster"
+)
+foreach ($path in $runbookPaths) {
+$content = Get-Content -LiteralPath (Get-RepoPath $path) -Raw
+foreach ($marker in $runbookMarkers) {
+if (-not $content.Contains($marker)) {
+Add-Failure ("Multi-agent runbook marker is missing in {0}: {1}" -f $path, $marker)
 }
 }
 }
