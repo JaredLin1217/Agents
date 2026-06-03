@@ -144,11 +144,14 @@ $required = @(
 "docs/agents/model-policy.yaml",
 "docs/agents/dispatch.yaml",
 "docs/agents/workflow-artifacts.yaml",
+"docs/agents/collaborators.yaml",
 "schemas/agents-org.schema.json",
 "schemas/agents-model-policy.schema.json",
 "schemas/agents-dispatch.schema.json",
 "schemas/agents-workflow-artifacts.schema.json",
+"schemas/agents-collaborators.schema.json",
 "docs/templates/agents/agents/workflow-artifacts.yaml",
+"docs/templates/agents/agents/collaborators.yaml",
 "docs/agents/context-compact.yaml",
 "schemas/agents-context-compact.schema.json",
 "docs/templates/agents/agents/context-compact.yaml",
@@ -333,6 +336,7 @@ $contracts = @(
 @{ Yaml = "docs/agents/model-policy.yaml"; Schema = "schemas/agents-model-policy.schema.json" },
 @{ Yaml = "docs/agents/dispatch.yaml"; Schema = "schemas/agents-dispatch.schema.json" },
 @{ Yaml = "docs/agents/workflow-artifacts.yaml"; Schema = "schemas/agents-workflow-artifacts.schema.json" },
+@{ Yaml = "docs/agents/collaborators.yaml"; Schema = "schemas/agents-collaborators.schema.json" },
 @{ Yaml = "docs/agents/context-compact.yaml"; Schema = "schemas/agents-context-compact.schema.json" }
 )
 foreach ($contract in $contracts) {
@@ -430,6 +434,7 @@ Add-Failure ("{0}: {1}:{2}: {3}" -f $Name, $match.Path, $match.LineNumber, $matc
 function Test-RuntimeBoundaries {
 $ignoredRuntimePaths = @(
 ".agents/runtime/agent-ledger.jsonl",
+".agents/runtime/collaborators.jsonl",
 ".codex/config.toml",
 ".codex/environments/environment.toml",
 ".codex/environments/example-project.toml",
@@ -464,6 +469,7 @@ if ($entry.Length -gt 0 -and -not $entry.StartsWith("#")) {
 }
 $requiredFragmentEntries = @(
 ".agents/runtime/",
+".agents/runtime/collaborators.jsonl",
 ".codex/config.toml",
 ".codex/environments/environment.toml",
 ".codex/environments/*.toml",
@@ -491,6 +497,7 @@ Add-Failure "Gitignore fragment is missing: docs/templates/agents/gitignore.frag
 }
 $trackedRuntime = & git -C $RepoRoot ls-files -- `
 ".agents/runtime" `
+".agents/runtime/collaborators.jsonl" `
 ".codex/config.toml" `
 ".codex/environments/environment.toml" `
 "docs/agent-status.md" `
@@ -601,6 +608,10 @@ $contextCompactRouteMinimal = (
 $aiRuntimeText -match 'context_compact:\s*\{\s*f:\s*\[[^\]]*"docs/agents/context-compact\.yaml"[^\]]*"docs/agents/schemas\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]' -and
 $aiRuntimeText -notmatch 'context_compact:\s*\{[^\r\n]*(org|model-policy|dispatch|workflows|deploy|workflow-artifacts)\.yaml'
 )
+$collaboratorRouteMinimal = (
+$aiRuntimeText -match 'collaborator_window:\s*\{\s*f:\s*\[[^\]]*"docs/agents/collaborators\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]' -and
+$aiRuntimeText -notmatch 'collaborator_window:\s*\{[^\r\n]*(org|model-policy|dispatch|workflows|deploy|schemas|workflow-artifacts|context-compact)\.yaml'
+)
 $officialDocsFirst = ($mcpText -match 'OpenAI developer documentation' -and $mcpText -match 'official OpenAI docs')
 $releaseExportReady = (
 (Test-Path -LiteralPath $exportPath -PathType Leaf) -and
@@ -611,6 +622,7 @@ $llmRuleComplete = (
 $enterpriseRouteMinimal -and
 $workflowArtifactRouteMinimal -and
 $contextCompactRouteMinimal -and
+$collaboratorRouteMinimal -and
 $aiRuntimeText -match 'expand_only' -and
 $aiRuntimeText -match 'canonical YAML wins' -and
 $aiRuntimeText -match 'Do not load docs/templates/agents/\*\*' -and
@@ -648,7 +660,7 @@ $items = @(
 [pscustomobject]@{
 Name = "llm_rule_fit"
 Score = if ($llmRuleComplete) { 100.0 } elseif ($aiRuntimeText -match 'expand_only') { 96.0 } else { 84.0 }
-Evidence = if ($llmRuleComplete) { "minimal enterprise, workflow artifact, and context compact routes, expand-only router, canonical priority, template skip, and runtime-local block" } else { "router present; LLM rule fit is incomplete" }
+Evidence = if ($llmRuleComplete) { "minimal enterprise, workflow artifact, context compact, and collaborator window routes, expand-only router, canonical priority, template skip, and runtime-local block" } else { "router present; LLM rule fit is incomplete" }
 },
 [pscustomobject]@{
 Name = "official_guidance_path"
@@ -739,6 +751,7 @@ $pairs = @(
 @("docs/agents/model-policy.yaml", "docs/templates/agents/agents/model-policy.yaml"),
 @("docs/agents/dispatch.yaml", "docs/templates/agents/agents/dispatch.yaml"),
 @("docs/agents/workflow-artifacts.yaml", "docs/templates/agents/agents/workflow-artifacts.yaml"),
+@("docs/agents/collaborators.yaml", "docs/templates/agents/agents/collaborators.yaml"),
 @("docs/agents/context-compact.yaml", "docs/templates/agents/agents/context-compact.yaml"),
 @("docs/runbooks/agents-deployment.md", "docs/templates/agents/agents-deployment.md"),
 @("docs/runbooks/isolation-audit.md", "docs/templates/agents/isolation-audit.md"),
@@ -797,6 +810,7 @@ $allowedItems = @(
 "docs/templates/agents/agents/model-policy.yaml",
 "docs/templates/agents/agents/dispatch.yaml",
 "docs/templates/agents/agents/workflow-artifacts.yaml",
+"docs/templates/agents/agents/collaborators.yaml",
 "docs/templates/agents/agents/context-compact.yaml",
 "docs/templates/agents/agents-deployment.md",
 "docs/templates/agents/isolation-audit.md",
@@ -856,6 +870,7 @@ Add-Failure "Deployment script mode ValidateSet is missing."
 $requiredBlocklist = @(
 @{ Manifest = ".agents/runtime/"; Script = ".agents/runtime/" },
 @{ Manifest = ".agents/runtime/compact-events.jsonl"; Script = ".agents/runtime/compact-events.jsonl" },
+@{ Manifest = ".agents/runtime/collaborators.jsonl"; Script = ".agents/runtime/collaborators.jsonl" },
 @{ Manifest = ".agents/runtime/workflows/"; Script = ".agents/runtime/workflows/" },
 @{ Manifest = ".workflow/"; Script = ".workflow/" },
 @{ Manifest = "docs/agent-status.md"; Script = "docs/agent-status.md" },
@@ -1002,11 +1017,13 @@ $requiredNeedles = @(
 "enterprise_dispatch",
 "workflow_artifact",
 "context_compact",
+"collaborator_window",
 "docs/agents/org.yaml",
 "docs/agents/model-policy.yaml",
 "docs/agents/dispatch.yaml",
 "docs/agents/workflow-artifacts.yaml",
 "docs/agents/context-compact.yaml",
+"docs/agents/collaborators.yaml",
 "hard_isolation",
 "Do not load docs/templates/agents/**",
 "Never stage, deploy, or copy runtime_local"
@@ -1038,6 +1055,9 @@ Add-Failure ("AI runtime workflow artifact route must load only workflow-artifac
 }
 if ($content -notmatch 'context_compact:\s*\{\s*f:\s*\[[^\]]*"docs/agents/context-compact\.yaml"[^\]]*"docs/agents/schemas\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]' -or $content -match 'context_compact:\s*\{[^\r\n]*(org|model-policy|dispatch|workflows|deploy|workflow-artifacts)\.yaml') {
 Add-Failure ("AI runtime context compact route must load only context-compact, schemas, and verify: {0}" -f $path)
+}
+if ($content -notmatch 'collaborator_window:\s*\{\s*f:\s*\[[^\]]*"docs/agents/collaborators\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]' -or $content -match 'collaborator_window:\s*\{[^\r\n]*(org|model-policy|dispatch|workflows|deploy|schemas|workflow-artifacts|context-compact)\.yaml') {
+Add-Failure ("AI runtime collaborator window route must load only collaborators and verify: {0}" -f $path)
 }
 }
 foreach ($path in @("AGENTS.md", "docs/templates/agents/AGENTS.md", ".agents/skills/project-isolation-workflow/SKILL.md", "docs/templates/agents/skills/project-isolation-workflow/SKILL.md")) {
@@ -1511,6 +1531,174 @@ if ($Failures.Count -eq $startFailureCount) {
 Add-Pass "Context compact integrity checks passed."
 }
 }
+function Test-CollaboratorWindowIntegrity {
+$startFailureCount = $Failures.Count
+$requiredFiles = @(
+"docs/agents/collaborators.yaml",
+"docs/templates/agents/agents/collaborators.yaml",
+"schemas/agents-collaborators.schema.json"
+)
+$allRequiredFilesExist = $true
+foreach ($path in $requiredFiles) {
+if (-not (Test-Path -LiteralPath (Get-RepoPath $path) -PathType Leaf)) {
+Add-Failure ("Collaborator window required file is missing: {0}" -f $path)
+$allRequiredFilesExist = $false
+}
+}
+if (-not $allRequiredFilesExist) {
+return
+}
+$canonicalFile = Get-Item -LiteralPath (Get-RepoPath "docs/agents/collaborators.yaml")
+$templateFile = Get-Item -LiteralPath (Get-RepoPath "docs/templates/agents/agents/collaborators.yaml")
+if ((Get-FileHash -LiteralPath $canonicalFile.FullName -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $templateFile.FullName -Algorithm SHA256).Hash) {
+Add-Failure "Collaborator window canonical and template mirror must be identical."
+}
+$collab = Get-LightweightYamlPathValues -File $canonicalFile
+$org = Get-LightweightYamlPathValues -File (Get-Item -LiteralPath (Get-RepoPath "docs/agents/org.yaml"))
+$model = Get-LightweightYamlPathValues -File (Get-Item -LiteralPath (Get-RepoPath "docs/agents/model-policy.yaml"))
+function Assert-CollabPath {
+param([string] $Path)
+if (-not $collab.ContainsKey($Path)) {
+Add-Failure ("Collaborator canonical is missing path: {0}" -f $Path)
+}
+}
+function Assert-CollabPathContains {
+param(
+[string] $Path,
+[string[]] $Needles
+)
+if (-not $collab.ContainsKey($Path)) {
+Add-Failure ("Collaborator canonical is missing path: {0}" -f $Path)
+return
+}
+$value = [string] $collab[$Path]
+foreach ($needle in $Needles) {
+if (-not $value.Contains($needle)) {
+Add-Failure ("Collaborator path {0} is missing marker: {1}" -f $Path, $needle)
+}
+}
+}
+foreach ($path in @(
+"trigger_when.include",
+"trigger_when.route_signal",
+"storage.runtime_registry",
+"storage.temp_registry",
+"storage.git_rule",
+"storage.thread_id_rule",
+"capability.discover_before_use",
+"capability.unavailable_behavior",
+"capability.delete_claim_rule",
+"types.default",
+"types.allowed",
+"types.blocked_without_override",
+"lifecycle.states",
+"lifecycle.close_rule",
+"lifecycle.cleanup_boundary",
+"leader_mapping.greeting_or_docs.department",
+"leader_mapping.greeting_or_docs.leader_role",
+"leader_mapping.greeting_or_docs.default_model_tier",
+"commands.create_named_collaborator",
+"commands.rename_named_collaborator",
+"commands.dismiss_named_collaborator",
+"assignment.required_fields",
+"assignment.target_rule",
+"assignment.worker_window_rule",
+"reports.allowed_outputs",
+"reports.integration_rule",
+"reports.collaborator_report_fields",
+"validation.profile",
+"validation.leader_reference_rule",
+"validation.model_tier_rule",
+"validation.runtime_boundary_rule",
+"validation.close_claim_rule"
+)) {
+Assert-CollabPath $path
+}
+Assert-CollabPathContains "storage.runtime_registry" @(".agents/runtime/collaborators.jsonl")
+Assert-CollabPathContains "storage.git_rule" @("Never stage", "deploy", "release")
+Assert-CollabPathContains "storage.thread_id_rule" @("thread ids", "runtime evidence", "templates", "release packages")
+Assert-CollabPathContains "capability.discover_before_use" @("Discover thread tools")
+Assert-CollabPathContains "types.allowed" @("department_leader_window")
+Assert-CollabPathContains "types.blocked_without_override" @("worker_window")
+Assert-CollabPathContains "lifecycle.states" @("created", "active", "renamed", "reporting", "archived", "closed", "orphaned")
+Assert-CollabPathContains "lifecycle.cleanup_boundary" @("thread archive or close", "subagent sidebar/history cleanup")
+Assert-CollabPathContains "assignment.required_fields" @("department", "leader_role", "thread_id", "model_tier")
+Assert-CollabPathContains "assignment.worker_window_rule" @("blocked", "explicit override", "escalation_record")
+Assert-CollabPathContains "reports.allowed_outputs" @("department_report", "collaborator_report", "escalation_record")
+Assert-CollabPathContains "reports.integration_rule" @("raw worker chatter")
+Assert-CollabPathContains "validation.runtime_boundary_rule" @("thread ids", "deploy", "release")
+if ($collab.ContainsKey("types.default") -and $collab["types.default"] -ne "department_leader_window") {
+Add-Failure "Collaborator default type must be department_leader_window."
+}
+if ($collab.ContainsKey("validation.profile") -and $collab["validation.profile"] -ne "collaborator_window") {
+Add-Failure "Collaborator validation profile must be collaborator_window."
+}
+$mappings = [ordered]@{
+greeting_or_docs = @("documentation", "documentation_lead", "low_fast")
+validation_or_testing = @("qa", "qa_lead", "code_standard")
+deploy_or_release = @("devops", "devops_lead", "senior_review")
+architecture_or_design = @("architecture", "architecture_lead", "principal")
+model_or_provider = @("provider_management", "provider_management_lead", "senior_review")
+cross_department = @("pmo", "pmo_lead", "senior_review")
+}
+foreach ($mapping in $mappings.Keys) {
+$expected = $mappings[$mapping]
+$deptPath = "leader_mapping.$mapping.department"
+$leaderPath = "leader_mapping.$mapping.leader_role"
+$tierPath = "leader_mapping.$mapping.default_model_tier"
+if (-not $collab.ContainsKey($deptPath) -or $collab[$deptPath] -ne $expected[0]) {
+Add-Failure ("Collaborator mapping department mismatch: {0}" -f $mapping)
+}
+if (-not $collab.ContainsKey($leaderPath) -or $collab[$leaderPath] -ne $expected[1]) {
+Add-Failure ("Collaborator mapping leader mismatch: {0}" -f $mapping)
+}
+if (-not $collab.ContainsKey($tierPath) -or $collab[$tierPath] -ne $expected[2]) {
+Add-Failure ("Collaborator mapping model tier mismatch: {0}" -f $mapping)
+}
+if (-not $org.ContainsKey(("departments.{0}.leader_role" -f $expected[0])) -or $org[("departments.{0}.leader_role" -f $expected[0])] -ne $expected[1]) {
+Add-Failure ("Collaborator mapping references invalid department leader: {0}" -f $mapping)
+}
+if (-not $org.ContainsKey(("leader_registry.{0}.department" -f $expected[1]))) {
+Add-Failure ("Collaborator mapping references missing leader registry entry: {0}" -f $expected[1])
+}
+if (-not $model.ContainsKey(("tiers.{0}.capability" -f $expected[2]))) {
+Add-Failure ("Collaborator mapping references missing model tier: {0}" -f $expected[2])
+}
+}
+$routeChecks = @(
+@("docs/agents/ai-runtime.yaml", "collaborator_window"),
+@("docs/agents/ai-runtime.yaml", "docs/agents/collaborators.yaml"),
+@("docs/agents/org.yaml", "collaborator_windows"),
+@("docs/agents/org.yaml", "department_leader_window"),
+@("docs/agents/dispatch.yaml", "collaborator_target_rule"),
+@("docs/agents/dispatch.yaml", "collaborator_window_target"),
+@("docs/agents/dispatch.yaml", "collaborator_rule"),
+@("docs/agents/workflows.yaml", "collaborator_window_runtime"),
+@("docs/agents/workflows.yaml", "close_rule"),
+@("docs/agents/workflows.yaml", "runtime_rule"),
+@("docs/agents/mcp.yaml", "thread_management"),
+@("docs/agents/mcp.yaml", ".agents/runtime/collaborators.jsonl"),
+@("docs/agents/mcp.yaml", "live thread ids"),
+@("docs/agents/deploy.yaml", "docs/templates/agents/agents/collaborators.yaml"),
+@("docs/agents/deploy.yaml", ".agents/runtime/collaborators.jsonl"),
+@("docs/agents/deploy.yaml", "live thread ids"),
+@("docs/agents/schemas.yaml", "collaborator_record"),
+@("docs/agents/schemas.yaml", "collaborator_assignment"),
+@("docs/agents/schemas.yaml", "collaborator_report"),
+@("docs/agents/schemas.yaml", "thread_operation_record"),
+@("docs/agents/verify.yaml", "collaborator_window"),
+@("docs/agents/version.yaml", "collaborator_window")
+)
+foreach ($check in $routeChecks) {
+$content = Get-Content -LiteralPath (Get-RepoPath $check[0]) -Raw
+if (-not $content.Contains($check[1])) {
+Add-Failure ("Collaborator marker is missing in {0}: {1}" -f $check[0], $check[1])
+}
+}
+if ($Failures.Count -eq $startFailureCount) {
+Add-Pass "Collaborator window integrity checks passed."
+}
+}
 function Test-DeploymentScriptSafety {
 $startFailureCount = $Failures.Count
 $path = "scripts/deploy-agents-workflow.ps1"
@@ -1689,8 +1877,11 @@ $workflowMarkers = @(
 "Standing closeout cleanup",
 "residue-zero proof",
 "state_*.sqlite",
+"session_index.jsonl",
 "thread_spawn_edges",
+"session-index zero",
 "unread-state zero",
+"not sidebar nicknames",
 "delayed zero verification"
 )
 foreach ($path in $workflowPaths) {
@@ -1720,8 +1911,10 @@ $schemaMarkers = @(
 "Final report matched runtime id",
 "Git status after employee work",
 "SQLite thread state result",
+"session_index_result",
 "Global unread state result",
 "Rollout residue result",
+"never sidebar nicknames",
 "Delayed cleanup verification",
 "history_cleanup_evidence:"
 )
@@ -1736,8 +1929,10 @@ Add-Failure ("Multi-agent schema marker is missing in {0}: {1}" -f $path, $marke
 $runbookPaths = @("docs/runbooks/multi-agent-workflow.md", "docs/templates/agents/multi-agent-workflow.md")
 $runbookMarkers = @(
 "thread_spawn_edges",
+"session_index.jsonl",
 ".codex-global-state",
 "delayed zero",
+"runtime ids, never sidebar",
 "clean roster"
 )
 foreach ($path in $runbookPaths) {
@@ -1936,8 +2131,11 @@ Evidence = @(
 @("docs/agents/workflows.yaml", "enterprise_dispatch_runtime"),
 @("docs/agents/workflows.yaml", "workflow_artifact_runtime"),
 @("docs/agents/workflows.yaml", "context_compact_runtime"),
+@("docs/agents/workflows.yaml", "collaborator_window_runtime"),
 @("docs/agents/workflow-artifacts.yaml", "artifact_root_rule"),
 @("docs/agents/context-compact.yaml", "summary_contract"),
+@("docs/agents/collaborators.yaml", "lifecycle"),
+@("docs/agents/collaborators.yaml", "leader_mapping"),
 @("docs/agents/dispatch.yaml", "department_report"),
 @("docs/agents/workflows.yaml", "ownership:"),
 @("docs/agents/workflows.yaml", "ledger_missing_or_cleared"),
@@ -1948,6 +2146,7 @@ Evidence = @(
 @("scripts/validate.ps1", "Test-EnterpriseDispatchIntegrity"),
 @("scripts/validate.ps1", "Test-WorkflowArtifactIntegrity"),
 @("scripts/validate.ps1", "Test-ContextCompactIntegrity"),
+@("scripts/validate.ps1", "Test-CollaboratorWindowIntegrity"),
 @("scripts/validate.ps1", "Test-MultiAgentWorkflowIntegrity"),
 @("scripts/validate.ps1", "Test-AgentLedgerCompatibility")
 )
@@ -1961,6 +2160,7 @@ Evidence = @(
 @("docs/agents/verify.yaml", "hard_isolation"),
 @("docs/agents/verify.yaml", "workflow_artifact"),
 @("docs/agents/verify.yaml", "context_compact"),
+@("docs/agents/verify.yaml", "collaborator_window"),
 @("scripts/export-release-package.ps1", "release-manifest.json"),
 @("scripts/validate.ps1", "Test-ReleasePackageExport"),
 @("scripts/validate.ps1", "Test-SizeGates"),
@@ -2160,7 +2360,8 @@ $requiredFiles = @(
 "docs/agents/model-policy.yaml",
 "docs/agents/dispatch.yaml",
 "docs/agents/workflow-artifacts.yaml",
-"docs/agents/context-compact.yaml"
+"docs/agents/context-compact.yaml",
+"docs/agents/collaborators.yaml"
 )
 $manifestPaths = @($manifest.files | ForEach-Object { [string] $_.path })
 foreach ($requiredFile in $requiredFiles) {
@@ -2175,6 +2376,7 @@ $blockedExact = @(
 ".codex/config.toml",
 ".codex/environments/environment.toml",
 ".codex/environments/environment.template.toml",
+".agents/runtime/collaborators.jsonl",
 "docs/agent-status.md",
 ".agents/docs/agent-status.md"
 )
@@ -2211,7 +2413,8 @@ $blockedPhysical = @(
 ".workflow",
 ".codex/config.toml",
 ".codex/environments/environment.toml",
-".codex/environments"
+".codex/environments",
+".agents/runtime/collaborators.jsonl"
 )
 foreach ($blocked in $blockedPhysical) {
 $fullPath = Join-Path $packageRoot ($blocked -replace "/", [System.IO.Path]::DirectorySeparatorChar)
@@ -2236,6 +2439,7 @@ Test-DeploymentSelfTest
 Test-MultiAgentWorkflowIntegrity
 Test-WorkflowArtifactIntegrity
 Test-ContextCompactIntegrity
+Test-CollaboratorWindowIntegrity
 Test-AgentLedgerCompatibility
 Test-EvidenceTemplateSchemaCoverage
 Test-CIWorkflowStability
@@ -2276,6 +2480,7 @@ Add-Pass "Canonical YAML files match initial schema contracts."
 Test-EnterpriseDispatchIntegrity
 Test-WorkflowArtifactIntegrity
 Test-ContextCompactIntegrity
+Test-CollaboratorWindowIntegrity
 Test-ValidationFixtures
 if ($Failures.Count -eq 0) {
 Add-Pass "Validation fixtures passed."

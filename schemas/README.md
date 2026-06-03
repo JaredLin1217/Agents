@@ -13,6 +13,7 @@ Initial scope:
 - `docs/agents/dispatch.yaml`
 - `docs/agents/workflow-artifacts.yaml`
 - `docs/agents/context-compact.yaml`
+- `docs/agents/collaborators.yaml`
 Schema contracts are standard JSON Schema documents with a small supported
 subset used by `scripts/validate.ps1`:
 - top-level `required`
@@ -26,6 +27,7 @@ runner without changing the schema ownership model.
 The enterprise dispatch schemas keep organization structure, model tier policy,
 and dispatch protocol machine-checkable without tying the workflow to one
 future-sensitive model ID.
-The workflow artifact and context compact schemas keep local packets, approval
-gates, collection reports, and compact resume state machine-checkable while
-runtime evidence stays local.
+The workflow artifact, context compact, and collaborator schemas keep local
+packets, approval gates, collection reports, compact resume state, named thread
+window assignments, and close evidence machine-checkable while runtime evidence
+stays local.

@@ -294,7 +294,8 @@ $blockedPrefixes = @(
 )
 $blockedFiles = @(
 "docs/agent-status.md",
-".agents/docs/agent-status.md"
+".agents/docs/agent-status.md",
+".agents/runtime/collaborators.jsonl"
 )
 foreach ($prefix in $blockedPrefixes) {
 if ($normalized.StartsWith($prefix, [System.StringComparison]::OrdinalIgnoreCase)) {
@@ -366,7 +367,7 @@ foreach ($file in (Get-TargetEnvironmentFiles -Root $Root)) {
 $relative = Get-RelativeTargetPath -Root $Root -Path $file.FullName
 Add-UniqueListItem -List $ProtectedDirty -Value $relative
 }
-foreach ($relative in @(".codex/config.toml", ".agents/runtime/agent-ledger.jsonl", ".agents/runtime/compact-events.jsonl", ".agents/runtime/workflows/example/state.json", ".workflow/example/state.json", ".git/HEAD")) {
+foreach ($relative in @(".codex/config.toml", ".agents/runtime/agent-ledger.jsonl", ".agents/runtime/compact-events.jsonl", ".agents/runtime/collaborators.jsonl", ".agents/runtime/workflows/example/state.json", ".workflow/example/state.json", ".git/HEAD")) {
 $candidate = Join-TargetPath -Root $Root -RelativePath $relative
 if (Test-Path -LiteralPath $candidate) {
 Add-UniqueListItem -List $ProtectedDirty -Value $relative
@@ -582,7 +583,8 @@ $blockedPrefixes = @(
 "docs/runtime-multi-agent-validation/"
 )
 $blockedFiles = @(
-"docs/agent-status.md"
+"docs/agent-status.md",
+".agents/runtime/collaborators.jsonl"
 )
 foreach ($prefix in $blockedPrefixes) {
 if ($normalized.StartsWith($prefix)) {
@@ -1073,6 +1075,7 @@ foreach ($blockedPath in @(
 ".codex/environments/project.toml",
 ".agents/runtime/agent-ledger.jsonl",
 ".agents/runtime/compact-events.jsonl",
+".agents/runtime/collaborators.jsonl",
 ".agents/runtime/workflows/example/state.json",
 ".workflow/example/state.json",
 "docs/agent-status.md",
@@ -1095,6 +1098,7 @@ Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents/ai-runtime.yaml
 Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents/workflows.yaml"
 Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents/workflow-artifacts.yaml"
 Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents/context-compact.yaml"
+Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents/collaborators.yaml"
 Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/deployment-feedback.template.md"
 Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents-workflow-deployment.md"
 Assert-SelfTestFile -Root $rootTarget -RelativePath ".codex/environments/root-docs.toml"
@@ -1125,6 +1129,7 @@ Assert-SelfTestFile -Root $templateProviderTarget -RelativePath "docs/templates/
 Assert-SelfTestFile -Root $templateProviderTarget -RelativePath "docs/templates/agents/agents/deploy.yaml"
 Assert-SelfTestFile -Root $templateProviderTarget -RelativePath "docs/templates/agents/agents/workflow-artifacts.yaml"
 Assert-SelfTestFile -Root $templateProviderTarget -RelativePath "docs/templates/agents/agents/context-compact.yaml"
+Assert-SelfTestFile -Root $templateProviderTarget -RelativePath "docs/templates/agents/agents/collaborators.yaml"
 Assert-SelfTestFile -Root $templateProviderTarget -RelativePath "docs/templates/agents/deployment-feedback.template.md"
 Assert-NoSourceLiteral -Root $templateProviderTarget
 $dotTarget = Join-Path $selfTestRoot "dot-agents-docs"
@@ -1137,6 +1142,7 @@ Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/agents/ai-runti
 Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/agents/workflows.yaml"
 Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/agents/workflow-artifacts.yaml"
 Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/agents/context-compact.yaml"
+Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/agents/collaborators.yaml"
 Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/agents-workflow-deployment.md"
 Invoke-ChildDeployment -CommandArgs @{ TargetPath = $dotTarget; Mode = "full_workflow"; Upgrade = $true; Quiet = $true }
 Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/project-memory.md"
@@ -1150,6 +1156,7 @@ Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/templates/agent
 Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/templates/agents/agents/deploy.yaml"
 Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/templates/agents/agents/workflow-artifacts.yaml"
 Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/templates/agents/agents/context-compact.yaml"
+Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/templates/agents/agents/collaborators.yaml"
 Assert-SelfTestContains -Path (Join-Path $dotTarget ".agents/docs/agents-workflow-deployment.md") -Expected "- .agents/docs/templates/agents/agents/deploy.yaml"
 Assert-SelfTestContains -Path (Join-Path $dotTarget ".agents/docs/agents-workflow-deployment.md") -Expected "- Deployed version file: .agents/docs/agents/version.yaml"
 Assert-NoSourceLiteral -Root $dotTarget
@@ -1197,6 +1204,7 @@ throw "Deployment self-test expected foreign project app files to stay clean: $(
 }
 Assert-SelfTestContains -Path (Join-Path $foreignTarget ".gitignore") -Expected "bin/"
 Assert-SelfTestContains -Path (Join-Path $foreignTarget ".gitignore") -Expected ".agents/runtime/"
+Assert-SelfTestContains -Path (Join-Path $foreignTarget ".gitignore") -Expected ".agents/runtime/collaborators.jsonl"
 Assert-SelfTestContains -Path (Join-Path $foreignTarget ".gitignore") -Expected ".agents/runtime/workflows/"
 Assert-SelfTestContains -Path (Join-Path $foreignTarget ".gitignore") -Expected ".workflow/"
 Assert-SelfTestContains -Path (Join-Path $foreignTarget ".gitignore") -Expected ".codex/config.toml"
@@ -1223,18 +1231,21 @@ New-Item -ItemType Directory -Path $partialGitignoreTarget | Out-Null
 Set-Content -LiteralPath (Join-Path $partialGitignoreTarget ".gitignore") -Value ".agents/runtime/" -Encoding utf8
 Invoke-ChildDeployment -CommandArgs @{ TargetPath = $partialGitignoreTarget; Mode = "core_bootstrap"; Quiet = $true }
 Assert-SelfTestContains -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".agents/runtime/"
+Assert-SelfTestContains -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".agents/runtime/collaborators.jsonl"
 Assert-SelfTestContains -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".agents/runtime/workflows/"
 Assert-SelfTestContains -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".workflow/"
 Assert-SelfTestContains -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".codex/config.toml"
 Assert-SelfTestContains -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".codex/environments/environment.toml"
 Assert-SelfTestContains -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".codex/environments/*.toml"
 Assert-SelfTestLineCount -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".agents/runtime/" -Count 1
+Assert-SelfTestLineCount -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".agents/runtime/collaborators.jsonl" -Count 1
 Assert-SelfTestLineCount -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".agents/runtime/workflows/" -Count 1
 Assert-SelfTestLineCount -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".workflow/" -Count 1
 Assert-SelfTestLineCount -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".codex/config.toml" -Count 1
 Assert-SelfTestLineCount -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".codex/environments/*.toml" -Count 1
 Invoke-ChildDeployment -CommandArgs @{ TargetPath = $partialGitignoreTarget; Mode = "core_bootstrap"; Quiet = $true }
 Assert-SelfTestLineCount -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".agents/runtime/" -Count 1
+Assert-SelfTestLineCount -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".agents/runtime/collaborators.jsonl" -Count 1
 Assert-SelfTestLineCount -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".agents/runtime/workflows/" -Count 1
 Assert-SelfTestLineCount -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".workflow/" -Count 1
 Assert-SelfTestLineCount -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".codex/config.toml" -Count 1
@@ -1267,6 +1278,7 @@ Set-Content -LiteralPath (Join-Path $ownedTarget ".codex/config.toml") -Value "l
 Set-Content -LiteralPath (Join-Path $ownedTarget ".codex/environments/environment.toml") -Value "runtime = true" -Encoding utf8
 Set-Content -LiteralPath (Join-Path $ownedTarget ".agents/runtime/agent-ledger.jsonl") -Value '{"local":true}' -Encoding utf8
 Set-Content -LiteralPath (Join-Path $ownedTarget ".agents/runtime/compact-events.jsonl") -Value '{"compact":true}' -Encoding utf8
+Set-Content -LiteralPath (Join-Path $ownedTarget ".agents/runtime/collaborators.jsonl") -Value '{"collaborator":true}' -Encoding utf8
 Set-Content -LiteralPath (Join-Path $ownedTarget ".agents/runtime/workflows/example/state.json") -Value '{"workflow":true}' -Encoding utf8
 Set-Content -LiteralPath (Join-Path $ownedTarget ".workflow/example/state.json") -Value '{"alias":true}' -Encoding utf8
 Set-Content -LiteralPath (Join-Path $ownedTarget ".git/HEAD") -Value "ref: refs/heads/main" -Encoding utf8
@@ -1277,11 +1289,13 @@ Assert-SelfTestContent -Path (Join-Path $ownedTarget ".codex/environments/enviro
 Assert-SelfTestMissing -Root $ownedTarget -RelativePath ".codex/environments/target-owned-state.toml"
 Assert-SelfTestContent -Path (Join-Path $ownedTarget ".agents/runtime/agent-ledger.jsonl") -Expected '{"local":true}'
 Assert-SelfTestContent -Path (Join-Path $ownedTarget ".agents/runtime/compact-events.jsonl") -Expected '{"compact":true}'
+Assert-SelfTestContent -Path (Join-Path $ownedTarget ".agents/runtime/collaborators.jsonl") -Expected '{"collaborator":true}'
 Assert-SelfTestContent -Path (Join-Path $ownedTarget ".agents/runtime/workflows/example/state.json") -Expected '{"workflow":true}'
 Assert-SelfTestContent -Path (Join-Path $ownedTarget ".workflow/example/state.json") -Expected '{"alias":true}'
 Assert-SelfTestContent -Path (Join-Path $ownedTarget ".git/HEAD") -Expected "ref: refs/heads/main"
 Assert-SelfTestContains -Path (Join-Path $ownedTarget ".gitignore") -Expected "target-local/"
 Assert-SelfTestContains -Path (Join-Path $ownedTarget ".gitignore") -Expected ".agents/runtime/"
+Assert-SelfTestContains -Path (Join-Path $ownedTarget ".gitignore") -Expected ".agents/runtime/collaborators.jsonl"
 Assert-SelfTestContains -Path (Join-Path $ownedTarget ".gitignore") -Expected ".agents/runtime/workflows/"
 Assert-SelfTestContains -Path (Join-Path $ownedTarget ".gitignore") -Expected ".workflow/"
 Assert-SelfTestContains -Path (Join-Path $ownedTarget ".gitignore") -Expected ".codex/config.toml"
@@ -1296,6 +1310,7 @@ Assert-SelfTestTextContains -Text $ownedPlan -Expected "[PROTECTED] .codex/envir
 Assert-SelfTestTextContains -Text $ownedPlan -Expected "[ENV] preserve: .codex/environments/environment.toml"
 Assert-SelfTestTextContains -Text $ownedPlan -Expected "[PROTECTED] .agents/runtime/agent-ledger.jsonl"
 Assert-SelfTestTextContains -Text $ownedPlan -Expected "[PROTECTED] .agents/runtime/compact-events.jsonl"
+Assert-SelfTestTextContains -Text $ownedPlan -Expected "[PROTECTED] .agents/runtime/collaborators.jsonl"
 Assert-SelfTestTextContains -Text $ownedPlan -Expected "[PROTECTED] .agents/runtime/workflows/example/state.json"
 Assert-SelfTestTextContains -Text $ownedPlan -Expected "[PROTECTED] .workflow/example/state.json"
 Assert-SelfTestTextContains -Text $ownedPlan -Expected "[PROTECTED] .git/HEAD"

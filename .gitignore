@@ -11,6 +11,7 @@ docs/agent-events/
 
 # Project-local agent ledger and runtime coordination state
 .agents/runtime/
+.agents/runtime/collaborators.jsonl
 .agents/runtime/workflows/
 .workflow/
 

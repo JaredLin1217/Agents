@@ -1,6 +1,6 @@
 schema: agents-schemas/v2
 purpose: "Fields for assignments, reports, status, evidence, memory, skills."
-owns: "Compact schemas for reports, runtime, recovery, evidence, memory, skills."
+owns: "Compact schemas for reports, runtime, recovery."
 assignment:
   required_fields:
     Agent: ""
@@ -45,6 +45,24 @@ model_tier:
 escalation_record:
   required_fields: ["escalation_id","assignment_id","department","reporter_role","reason","requested_decision","evidence","risk_level","model_tier_used","minimum_required_tier"]
   rule: "Direct worker-to-controller report requires escalation_record."
+collaborator_record:
+  use_when: "collaborator_window route."
+  location: ".agents/runtime/collaborators.jsonl"
+  required_fields: ["collaborator_id","display_name","thread_id","type","department","leader_role","objective","state","created_at","last_operation","last_verified_at"]
+  state_values: ["created","active","renamed","reporting","archived","closed","orphaned"]
+  storage_rule: "Runtime-local registry; never stage, commit, deploy, release, or copy."
+collaborator_assignment:
+  required_fields: ["collaborator_id","display_name","thread_id","type","department","leader_role","objective","authority","scope","model_tier","expected_report"]
+  target_rule: "Controller assigns only department_leader_window mapped to org.yaml leader_registry."
+  worker_window_rule: "Worker collaborator needs explicit override and escalation_record."
+collaborator_report:
+  required_fields: ["collaborator_id","display_name","department","leader_role","status","objective_result","summary","verification","risks","escalations","isolation"]
+  allowed_status: ["completed","partial","blocked","stopped","archived","closed"]
+  integration_rule: "Controller integrates collaborator_report, department_report, or escalation_record only; excludes raw worker chatter."
+thread_operation_record:
+  required_fields: ["operation_id","collaborator_id","operation","thread_id","thread_title_before","thread_title_after","requested_by","result","verified_active_state","evidence","created_at"]
+  operations: ["create","rename","send","read","archive","close","verify_inactive"]
+  storage_rule: "Thread ids and runtime capability evidence are never deployable."
 workflow_instance:
   use_when: "workflow_artifact route."
   required_fields: ["workflow_id","status","controller","created_at","route","storage_root","plan_path","packet_root","result_root","final_report_path"]
@@ -52,7 +70,6 @@ workflow_instance:
   storage_rule: "Live artifacts stay local under .agents/runtime/workflows/<workflow_id>/ or .workflow/<workflow_id>."
 workflow_state:
   required_fields: ["workflow_id","status","updated_at","approval_state","risk_level","active_departments","open_escalations"]
-  status_rule: "Must be workflow_instance.status_values."
 workflow_packet:
   required_fields: ["packet_id","workflow_id","type","owner","target","authority","scope","model_tier","expected_output"]
   packet_types: ["department_leader_assignment","worker_packet","verification_packet","escalation_packet"]
@@ -60,7 +77,7 @@ workflow_packet:
 workflow_result:
   required_fields: ["result_id","workflow_id","owner","target","status","summary","verification","risks","escalations"]
   forbidden_fields: ["raw_worker_chatter"]
-  integration_rule: "Controller integrates only department reports, collection reports, escalation records."
+  integration_rule: "Controller integrates department reports, collection reports, escalation records only."
 workflow_approval_gate:
   required_fields: ["gate_id","workflow_id","action","requested_by","decision","authority","evidence","expires_at"]
   gated_actions: ["write","deploy","external_read","external_write","destructive_action","model_tier_upgrade"]
@@ -84,32 +101,26 @@ context_compact_event:
   storage_rule: "Ignored runtime state; never stage, deploy, release, copy."
 explorer_brief_assignment:
   use_when: "session-managed read-only explorer; no edits/recovery"
-  fields: ["Agent","Mode","Role=explorer","Goal","Read scope","Forbidden scope","Edit permission=none","Verification","Final report requirements","Isolation requirements"]
+  fields: ["Agent","Mode","Role=explorer","Goal","Read scope","Forbidden scope","Edit permission=none","Verification","Report requirements","Isolation requirements"]
   preset_rule: "Default read-only/scoring explorers. Do not include ownership matrix, roster, runtime evidence, worker fields unless needed."
 explorer_final_report:
-  fields: ["Agent","Status","Task","Files inspected","Findings","Risks","Verification","Next action","Isolation line"]
-  rule: "Use employee_final_report for workers, detached/cloud, long, or recovery-sensitive work."
+  fields: ["Agent","Status","Task","Files inspected","Findings","Risks","Verification","Recommended next action","Isolation line"]
 scoring_explorer_report:
   use_when: "read-only scoring or review batches"
   fields: ["Agent","Overall score","Confidence","Top issues","Top fixes","Cap suggestion","Validity","Verification","Isolation line"]
-  optional_fields: ["Subscores","Evidence quality","Uncertainty reason","Duplicate of"]
-  rule: "Keep score, 3 issues/fixes, cap/risk note, isolation unless assigned."
 scoring_rollup_report:
   use_when: "controller aggregates scoring_explorer_report batches"
-  fields: ["Batch","Agents requested","Reports received","Reports accepted","Reports excluded","Raw scores","Mean score","Median score","Range","Confidence","Invalid reports","Final score","Top issues","Top fixes","Dissent","Cap applied","Verification","Isolation line"]
-  aggregation_rule: "Use median; report mean/range; exclude invalid/outliers; repeats raise confidence."
+  fields: ["Batch","Agents requested","Reports received","Reports accepted","Reports excluded","Median score","Range","Confidence","Invalid reports","Final score","Top issues","Top fixes","Verification","Isolation line"]
+  aggregation_rule: "Median primary; report mean/range; exclude invalid/outliers; repeats raise confidence."
 report_validation:
   scoring_required: ["Agent","Overall score","Top issues","Top fixes","Validity","Isolation line"]
   score_rule: "Overall score must be numeric 0-100."
   isolation_rule: "Isolation line includes GM, GS, XR, and XW; XR/XW none or exact paths."
   project_local_skill_rule: "Project-local .agents/skills/** is not GS; only global/system SKILL.md counts as GS used."
   validity_values: ["accepted","needs-revision","rejected","excluded"]
-  invalid_when: ["missing/non-numeric score","missing isolation","forbidden read/write","unsupported isolation claim","project-local skill as GS without global/system evidence"]
-  report_hash_fields: ["Agent","Runtime id","Task","Status","Overall score","Top issues","Top fixes","Validity"]
 ownership_matrix:
   use_when: "worker active, two employees active, or controller edits near employee scope"
   required_fields: ["Agent","Runtime id","Role","Status","Ownership","Normalized owned write scope","Scope type","Conflict status","Checked against","Last checked by","Last checked at"]
-  conflict_statuses: ["clear","conflict","unknown"]
   conflict_checks: ["same","containment","alias","controller-active-worker"]
 employee_final_report:
   statuses: ["completed","blocked","stopped"]
@@ -118,28 +129,19 @@ agent_status_snapshot:
   location: "%TEMP%/codex-agent-status/<project-id>/agent-status.md"
   statuses: ["prepared","active","completed","blocked","stopped","needs-review","closed","unknown"]
   required_fields: ["Snapshot version","Agent","Runtime id","Mode","Role","Status","Task","Ownership","Owned write scope","Normalized owned write scope","Ownership matrix status","Last known event","Runtime close result","History cleanup result","Project-external status path"]
-  explorer_queue_fields: ["Agent","Runtime id","Task","Read scope","Status","Needs review","Next action","Report hash"]
-  history_cleanup_values: ["not requested","not applicable","authorized","completed","failed"]
 agent_event:
   names: ["prepare","hired","started","poll","report","completed","blocked","stopped","close","history_cleanup","integrated","reconciled"]
-  explorer_event_fields: ["Agent","Runtime id","Event","Status","Summary","Next action","Report hash","Duplicate count"]
-  ownership_event_fields: ["Normalized owned write scope","Ownership matrix status","Checked against"]
   close_event_fields: ["Runtime close result","Closed at","History cleanup result","Desktop UI refresh result","Roster snapshot version"]
-  rule: "Report events preserve relevant fields; unavailable final fields may be not applicable."
+  rule: "Report events preserve relevant fields; unavailable fields may be not applicable."
 agent_ledger_event:
   location: ".agents/runtime/agent-ledger.jsonl"
-  format: "JSONL; one JSON object per event"
   status: "repo-local ignored runtime state; not Codex official runtime DB"
   names: ["initialized","hired","started","report","completed","blocked","stopped","closed","history_cleanup","integrated","reconciled"]
   canonical_fields: ["ts","event","agent_id","mode","role","task"]
-  optional_fields: ["status","nickname","read_scope","write_scope","ledger_version","report_hash","controller_id","source","official_list_result","history_cleanup_target_ids","history_cleanup_result","desktop_ui_refresh_result","notes","isolation"]
   compatibility_aliases: ["time -> ts","runtime_id -> agent_id","agent -> agent_id","controller -> controller_id","scope -> read_scope"]
-  canonical_write_rule: "New events use canonical_fields; readers may normalize aliases."
-  write_rule: "Controller appends; employees append only with exact ledger path and permission."
   storage_rule: "Never stage, commit, deploy, or copy .agents/runtime/**; rebuild from evidence."
 controller_lease:
   location: "%TEMP%/codex-agent-status/<project-id>/controller-lease.md"
-  statuses: ["active","released","expired","takeover-claimed","unknown"]
   required_fields: ["Controller id","Lease id","Lease status","Acquired at","Last heartbeat","Expires at","Current task","Snapshot version reviewed","Released at","Takeover reason"]
 hard_isolation_evidence:
   classifications: ["behavioral-only","tool-enforced","externally-enforced"]
@@ -268,10 +270,8 @@ runtime_multi_agent_validation:
     - "Controller conclusion"
   storage_rule: "Filled records are local scratch unless promoted."
 history_cleanup_evidence:
-  required_when_claimed: ["authorization","no_backup_authorization","official_close_result","parent_thread_id","repo_cwd","target_ids","target_counts","deleted_counts","sqlite_thread_state_result","global_unread_state_result","rollout_residue_result","parent_preserved","delayed_zero_residue","desktop_reload_or_restart_result"]
-  target_filter: "parent/cwd closed child subagent ids; delete thread_spawn_edges first"
-  no_backup_rule: "No backup; abort without inactive ids, scope, delay-zero."
-  forbidden_targets: ["parent/controller/user threads","unrelated cwd","unrelated subagents","ledger-only ids","non-subagent rollouts","backup/copy DB files"]
+  required_when_claimed: ["authorization","no_backup_authorization","official_close_result","parent_thread_id","repo_cwd","target_ids","target_counts","deleted_counts","sqlite_thread_state_result","session_index_result","global_unread_state_result","rollout_residue_result","parent_preserved","delayed_zero_residue","desktop_reload_or_restart_result"]
+  target_filter: "parent/cwd closed child subagent runtime ids, never sidebar nicknames; delete thread_spawn_edges first"
 memory_entry:
   draft_fields: ["Trigger","Context","Cause","Fix / Rule","Verification","Reuse when"]
   index_columns: ["ID","Date","Title","Trigger","Keywords","Summary","Entry","Verified"]

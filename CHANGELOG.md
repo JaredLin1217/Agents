@@ -1,6 +1,15 @@
 # Changelog
 All notable changes to this repository are documented here.
 ## Unreleased
+## 2.3.0 - 2026-06-03
+- Added the Collaborator Window Dispatch Layer for named, recoverable, and
+  archivable Codex department-leader work sessions.
+- Added collaborator canonical YAML, schema, template mirror, route, version,
+  MCP capability, dispatch, workflow, and verification coverage.
+- Blocked live thread ids, collaborator window state, and
+  `.agents/runtime/collaborators.jsonl` from deployable and releasable content.
+- Updated public documentation for collaborator commands, leader mapping,
+  runtime-only thread evidence, and token-saving cross-window handoff behavior.
 ## 2.2.1 - 2026-06-03
 - Added the Context Compact Layer with canonical auto-compaction, handoff,
   resume, and subagent closeout summary rules.
