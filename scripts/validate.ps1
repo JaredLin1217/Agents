@@ -937,6 +937,9 @@ $scriptModes = @([regex]::Matches($modeSetMatch.Groups[1].Value, '"([^"]+)"') | 
 else {
 Add-Failure "Deployment script mode ValidateSet is missing."
 }
+if (-not ($deploymentScriptContent.Contains("Add-DeployBundle") -and $deploymentScriptContent.Contains("schema_bundle") -and $deploymentScriptContent.Contains("script_bundle"))) {
+Add-Failure "Deployment script must support schema_bundle and script_bundle deployment entries."
+}
 $requiredBlocklist = @(
 @{ Manifest = ".agents/runtime/"; Script = ".agents/runtime/" },
 @{ Manifest = ".agents/runtime/compact-events.jsonl"; Script = ".agents/runtime/compact-events.jsonl" },
@@ -972,6 +975,12 @@ Add-Failure ("Deploy manifest has no top-level steps: {0}" -f $path)
 }
 if ($content | Where-Object { $_ -match "^  steps:" }) {
 Add-Failure ("Deploy manifest contains nested steps: {0}" -f $path)
+}
+if (-not ($content | Where-Object { $_ -match '^\s+schema_bundle:' })) {
+Add-Failure ("Deploy manifest must include schema_bundle for schema contract deployment: {0}" -f $path)
+}
+if (-not ($content | Where-Object { $_ -match '^\s+script_bundle:' })) {
+Add-Failure ("Deploy manifest must include script_bundle for validation/deployment entry points: {0}" -f $path)
 }
 $fromPaths = @()
 $toPaths = @()

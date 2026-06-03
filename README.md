@@ -3,319 +3,233 @@
 [![Checkpoint](https://github.com/JaredLin1217/Agents/actions/workflows/checkpoint.yml/badge.svg)](https://github.com/JaredLin1217/Agents/actions/workflows/checkpoint.yml)
 [![Public Updates](https://github.com/JaredLin1217/Agents/actions/workflows/public-updates.yml/badge.svg)](https://github.com/JaredLin1217/Agents/actions/workflows/public-updates.yml)
 
-Repo-local AI workflow core runtime system for Codex projects.
+Jared's AI Team 是一套 **repo-local AI 核心治理与 runtime 系统**。它的目标不是替客户项目增加一个新的应用框架，而是把 AI 协作时最容易失控的部分变成项目内部可读取、可验证、可部署、可恢复的工作规则。
 
-Jared's AI Team turns a repository into a self-describing AI work system. It
-defines how an AI coding session should route work, assign tasks, verify claims,
-deploy workflow files, export clean release packages, and keep local runtime
-state out of source control.
+当它部署到客户项目后，Codex 或其他 AI coding session 可以先读取项目本地规则，再依照当前任务只展开必要的治理文件、执行最小验证、记录 runtime evidence，并在结束时留下清楚的状态与风险。客户项目因此不需要依赖隐藏对话记忆、个人机器习惯或一次性的人工口头约定，也可以避免 AI 在长任务、多窗口、多员工派工、部署与发布流程中不断重复读取大量上下文。
 
-The project is not an application framework or hosted service. Its primary
-interface is the repository content: `AGENTS.md`, canonical YAML policies,
-project-local skills, validation scripts, deployment scripts, schemas, and
-runbooks that can be installed into another repository.
+## 它为客户项目带来的核心价值
 
-## Current Version
+### 1. 项目规则留在项目内
+
+每个客户项目都可以拥有自己的 AI 工作规则。AI 不需要猜测这个项目该怎么编辑、怎么部署、怎么验证、怎么交接，而是先读取 repo-local 规则，再按任务路由执行。
+
+这会带来三个直接好处：
+
+- 新的 Codex 工作阶段可以快速理解项目工作方式。
+- 不同项目之间不会因为全局记忆或个人偏好互相污染。
+- 项目交给其他人、其他机器或其他窗口时，规则仍然跟着 repo 走。
+
+### 2. 降低 token 与上下文消耗
+
+本系统采用 route-first 的读取方式。AI 不会每次都读取整套说明，而是先判断任务类型，再只展开该任务必要的最小文件集合。
+
+对客户项目的实际帮助是：
+
+- 简单问题不会触发大型规则读取。
+- 编辑、部署、派工、发布各自有独立读取路径。
+- 长任务可以用 compact summary 与 knowledge footprint 接续，不需要保留完整原始对话。
+- 多员工任务只整合部门报告，不把所有 worker chatter 都塞回主线。
+
+### 3. 把 AI 动作变成可验证流程
+
+AI 最危险的不是不会做事，而是做完后无法证明自己做对了什么。Jared's AI Team 把验证放进流程本身：编辑有编辑验证，部署有部署验证，发布有发布验证，runtime 执行有 evidence，异常有 escalation record。
+
+客户项目可以得到：
+
+- 明确的验证入口，而不是只听 AI 口头保证。
+- 每次部署、发布、派工都能留下结果摘要。
+- 高风险写入、部署、外部访问、模型升级必须经过 approval 或 escalation。
+- 失败时可以知道是规则失败、验证失败、权限失败还是 cleanup 失败。
+
+### 4. 支持多员工与企业式派工
+
+本系统把「主线 controller」和「部门领导」分开。主线默认只派任务给部门领导，部门领导可以自行决定是否拆给内部员工，最后只回报一个部门报告。
+
+这种模式适合客户项目中的复杂工作，例如：
+
+- 部署部门负责多项目部署。
+- QA 部门负责验收部署完整性。
+- 架构部门负责分析项目结构与风险。
+- 文档部门负责 README、runbook、公开说明。
+- Provider Management 负责模型等级、供应商与能力边界。
+
+好处是主线不会被大量子代理讯息淹没，也可以更容易追踪谁负责、谁验证、谁汇总、谁需要升级处理。
+
+### 5. 支持可恢复的协作者窗口
+
+协作者窗口可以把一个 Codex 工作阶段定义成可命名、可恢复的部门领导窗口。它适合长任务、跨窗口交接、主线上下文需要保持轻量的场景。
+
+客户项目可以用这种方式做到：
+
+- 新增一个协作者负责特定目标。
+- 把协作者窗口命名成业务上可理解的部门。
+- 让其他工作阶段透过共享状态、报告摘要与 evidence 接手。
+- 不需要把完整对话历史复制给每一个窗口。
+
+### 6. 让部署与发布更干净
+
+部署到客户项目时，本系统使用 allowlist 复制规则，只部署 AI workflow 需要的内容，并保护目标项目自己的 `.git`、`.codex`、runtime state、secrets、local environment、应用源码和目标专属记忆。
+
+这能降低两个常见风险：
+
+- 把本机运行状态、thread id、API key 或历史 evidence 误发布到 GitHub。
+- 覆盖客户项目本来就存在的本地配置或项目专属流程。
+
+## 适合的使用场景
+
+Jared's AI Team 适合这些客户项目：
+
+- 需要长期和 Codex 或多 AI agent 协作的代码库。
+- 需要把 AI 编辑、验证、部署、发布流程标准化的团队。
+- 需要多窗口、多员工、多部门派工，但又不想让主线上下文爆炸的项目。
+- 需要部署同一套 AI workflow 到多个项目，并保留各项目本地差异的工作室。
+- 需要公开 repo 说明、版本记录、授权声明和 release package 审计的项目。
+
+它不试图取代完整 SaaS、dashboard、数据库、provider gateway 或云端 agent 平台。它更像是项目内部的 AI runtime contract：把 AI 应该如何工作、如何证明、如何部署、如何交接写进 repo。
+
+## 核心能力
+
+| 能力 | 对客户项目的帮助 |
+|---|---|
+| Repo-local governance | 每个项目拥有自己的 AI 行为规则，减少全局习惯和隐藏记忆依赖。 |
+| Route-first runtime | AI 只读取当前任务必要规则，降低 token、上下文和误触发成本。 |
+| Runtime execution evidence | 记录 run、step、approval、tool evidence、result、cleanup，让动作可追溯。 |
+| Enterprise dispatch | 主线只对部门领导下令，部门内部自行拆工，最终回报部门报告。 |
+| Collaborator windows | 把 Codex 工作阶段变成可命名、可恢复、可封存的协作者窗口。 |
+| Context compact | 保留最新目标、变更、验证、风险和下一步，不保存完整原始对话。 |
+| Workflow artifacts | 用本地 runtime artifact 支撑派工、验证、收集与报告。 |
+| Provider adapters | 用模型 tier 管理能力边界，不把流程写死到单一模型名称。 |
+| Route packs | 产生 deterministic minimal read pack，方便低 token、可缓存的规则读取。 |
+| Clean deployment | 按 allowlist 部署 workflow，保护客户项目本地状态与既有配置。 |
+| Clean release export | 导出不含 runtime、secret、thread id、local config 的 release package。 |
+| Validation gates | 用脚本验证版本、模板、部署、发布、runtime、派工与安全边界。 |
+
+## 版本功能说明
+
+目前版本：`2.5.0 Core Runtime System`
+
 Current Agents workflow version: `2.5.0` (`core-runtime`).
 
-| Field | Value |
+Canonical version source：`docs/agents/version.yaml`
+
+| 版本 | 新增功能 |
 |---|---|
-| Canonical version source | `docs/agents/version.yaml` |
-| Public README source of truth | This section must match the canonical version metadata. |
-| Deployment alignment | Deployment reads the canonical version metadata, copies the matching version file into the deployed file set, and records the aligned version in the deployment report. |
-| Release alignment | Release export records the canonical version, source commit, included file list, file hashes, and package hash. |
+| `2.5.0` | 将项目定位升级为 Core Runtime System；整合 core system、runtime execution、provider adapters、route packs、knowledge footprint；强化 runtime blocklist、部署/发布审计、旧机制残留检查与版本对齐。 |
+| `2.3.0` | 新增 Collaborator Window Dispatch Layer；支持命名部门领导工作阶段、create/rename/report/archive/close 生命周期、worker window 阻挡、thread evidence runtime-local 化。 |
+| `2.2.1` | 新增 Context Compact Layer；记录 retained facts、dropped details、risk、resume pointer、changed files、subagent closeout counts，并排除 raw transcript。 |
+| `2.2.0` | 新增 Supervised Workflow Artifact Layer；支持本地 workflow state、department leader packet、worker packet、verification packet、escalation packet、approval gate、collect 与 normalized report。 |
+| `2.1.0` | 新增 Enterprise Dispatch Layer；定义组织部门、部门领导、允许员工角色、leader-only controller integration、model tier policy、escalation record 与 clean release package export。 |
+| `2.0.0` | 新增公开 workflow 版本源、README 版本对齐、部署时版本提取、Apache-2.0 授权声明、GitHub issue/PR template 与 public update automation。 |
+| Initial release | 建立 compact AI runtime route、repo-local project skill、template mirror、基础验证与部署规则。 |
 
-## What It Does
-- Gives Codex a repo-local operating model instead of relying on hidden session
-  habits, global memory, or private machine settings.
-- Keeps routine context small by loading `docs/agents/ai-runtime.yaml` first and
-  expanding only the named files required for the current route.
-- Separates deployable workflow content from `.git`, `.codex`, runtime state,
-  secrets, local evidence, and target-owned project files.
-- Supports simple single-agent edits, multi-agent workflows, and enterprise
-  dispatch where the controller assigns work to department leaders instead of
-  individual workers.
-- Uses runtime execution evidence as the shared source for runs, steps,
-  approvals, tool evidence, results, cleanup, and workflow artifacts.
-- Adds a context compact layer for safe resume, handoff, auto-compaction, and
-  employee closeout summaries without storing raw transcript.
-- Provides repeatable validation gates for edits, policy changes, commits,
-  deployments, release exports, and enterprise dispatch records.
-- Packages the workflow as a source-neutral template bundle that can be copied
-  into authorized target repositories.
+## 基本使用方法
 
-## Why It Saves Tokens And Context
-Jared's AI Team is designed as an LLM-readable operating layer, not a long-form
-manual. It reduces token use by making the model read less, infer less, and
-repeat less.
-- Route-first loading keeps each task scoped to the smallest canonical file set
-  needed for that route.
-- Canonical YAML uses stable keys and compact structures so the model can parse
-  policy by shape instead of re-reading long prose.
-- Template mirrors preserve deployability without duplicating divergent rules in
-  multiple places.
-- Validation scripts turn correctness checks into command output, reducing
-  repeated manual reasoning about repository state.
-- Department-level dispatch lets the controller integrate leader reports instead
-  of every raw worker message.
-- Runtime artifacts keep temporary packets, status, and evidence out of durable
-  documentation and release packages.
-- Context compact summaries preserve the latest request, route, changed files,
-  verification state, risks, employees, and next step without preserving raw
-  transcript.
-- Collaborator windows allow named, recoverable Codex work sessions to stand in
-  for department leaders without storing live thread ids in deployable files.
-- Verified employee closeout reduces stale sidebar or history residue that would
-  otherwise pollute later context.
+### 验证当前项目
 
-## Core Modules
-| Module | Added In | Main Files | What It Adds |
-|---|---|---|---|
-| Versioned public workflow | `2.0.0` | `docs/agents/version.yaml`, `README.md` | Canonical version metadata, README alignment, deployment version extraction, and public release identity. |
-| Route-minimal runtime | Initial release, strengthened through `2.5.0` | `docs/agents/ai-runtime.yaml` | A small route table that tells Codex exactly which canonical files to load for each task. |
-| Project-local operating rules | Initial release | `AGENTS.md`, `.agents/skills/project-isolation-workflow/` | Portable repo-local behavior for isolation, deployment, maintenance, multi-agent work, and closeout. |
-| Enterprise dispatch | `2.1.0` | `docs/agents/org.yaml`, `docs/agents/model-policy.yaml`, `docs/agents/dispatch.yaml` | Controller-to-department-leader assignment, leader-owned internal delegation, department reports, escalation records, and tier-first model selection. |
-| Workflow artifacts | `2.2.0` | `docs/agents/workflow-artifacts.yaml`, `scripts/agents-workflow.ps1` | Runtime-local workflow instances, packets, approval gates, collection reports, and artifact-backed dispatch simulations. |
-| Context compact | `2.2.1` | `docs/agents/context-compact.yaml` | Safe resume and handoff summaries that preserve current task state without storing raw transcript. |
-| Collaborator windows | `2.3.0` | `docs/agents/collaborators.yaml` | Named, recoverable Codex work sessions for department leaders, with create, rename, report, archive, and close evidence rules. |
-| Core runtime contract | `2.5.0` | `docs/agents/core-system.yaml` | System boundary, canonical file set, runtime-local blocklists, and deploy or release contract. |
-| Runtime execution evidence | `2.5.0` | `docs/agents/runtime-execution.yaml`, `scripts/agents-runtime.ps1` | Runs, steps, approvals, tool evidence, results, escalations, collection, verification, and cleanup proof. |
-| Provider adapters | `2.5.0` | `docs/agents/provider-adapters.yaml` | Provider capability boundaries and replaceable model tier mapping without hard-binding workflows to one model id. |
-| Route packs | `2.5.0` | `docs/agents/route-packs.yaml`, `scripts/export-route-pack.ps1` | Deterministic minimal read-pack manifests for cacheable, low-token route loading. |
-| Knowledge footprint | `2.5.0` | `docs/agents/knowledge-footprint.yaml` | Compact cross-window recovery evidence with scope, opened files, evidence refs, gaps, conclusion, and resume pointer. |
-| Validation profiles | Strengthened every release | `docs/agents/verify.yaml`, `scripts/validate.ps1` | Focused gates for edits, policy changes, deployment, release, enterprise dispatch, runtime execution, route packs, and public version alignment. |
-| Deployment provider mode | `2.1.0`, strengthened through `2.5.0` | `scripts/deploy-agents-workflow.ps1`, `docs/agents/deploy.yaml` | Allowlisted installation into target repositories while preserving `.git`, `.codex`, runtime state, secrets, and target-owned files. |
-| Release package export | `2.1.0`, strengthened through `2.5.0` | `scripts/export-release-package.ps1` | Clean package manifest with canonical version, source commit, file list, file hashes, package hash, and runtime blocklist checks. |
-| Public update automation | `2.0.0` | `.github/workflows/public-updates.yml`, `docs/github-updates.md` | GitHub Actions update log generated from recent public branch history after pushes. |
-
-## Version Feature History
-| Version | Added Functions |
-|---|---|
-| `2.5.0` | Core Runtime System positioning; core system policy; runtime execution policy and helper; provider adapter policy; route pack policy and exporter; knowledge footprint policy; stronger runtime blocklists; legacy residue checks; release and deployment package audits. |
-| `2.3.0` | Collaborator Window Dispatch Layer; named department-leader Codex sessions; create, rename, report, archive, and close lifecycle; worker-window blocking; runtime-local thread evidence exclusion. |
-| `2.2.1` | Context Compact Layer; auto-compaction and handoff rules; resume pointer; retained facts, dropped details, risks, changed files, subagent closeout counts, and raw transcript exclusion. |
-| `2.2.0` | Supervised Workflow Artifact Layer; local workflow state; department leader packets; worker packets; verification packets; escalation packets; approval gates; collect and normalize workflow reports. |
-| `2.1.0` | Enterprise Dispatch Layer; organization definition; department leaders; allowed worker roles; tier-first model policy; leader-only controller integration; escalation records; clean release package export. |
-| `2.0.0` | Public workflow version source; README version alignment; deployment-time version extraction; Apache-2.0 license and disclaimer; public issue and PR templates; GitHub update automation. |
-| Initial release | Compact AI runtime route file; deployable template mirror; validation and deployment rules for the first repo-local Agents workflow package. |
-
-## Common Usage
-### 1. Validate The Current Repository
-Run the default validation gate before making source-state claims:
 ```powershell
 .\scripts\validate.ps1
 ```
-Run the broader audit before deployment or release work:
+
+部署、发布或大范围规则修改前执行完整审计：
+
 ```powershell
 .\scripts\validate.ps1 -Full
 ```
-### 2. Use The Workflow In A Codex Session
-Start from the repo-local instructions:
-1. Read `AGENTS.md`.
-2. Read `docs/agents/ai-runtime.yaml`.
-3. Expand only the canonical files named by the selected route.
-4. Verify with the matching profile in `docs/agents/verify.yaml`.
-5. Close out with the required isolation report.
-Useful request styles:
+
+### 在 Codex 工作阶段中使用
+
+建议工作顺序：
+
+1. 读取 `AGENTS.md`。
+2. 读取 `docs/agents/ai-runtime.yaml`。
+3. 依照 route 只展开必要规则。
+4. 按 `docs/agents/verify.yaml` 的最小 profile 验证。
+5. 结束时回报 isolation、验证结果、风险与 cleanup 状态。
+
+常用请求范例：
+
 ```text
-Make a scoped documentation edit and verify it with the smallest profile.
+请用最小验证流程帮我完成这个 scoped edit。
 ```
+
 ```text
-Dispatch this task through the QA department leader and return one department report.
+请派 QA 部门领导验收这次部署，并只回报一份 department report。
 ```
+
 ```text
-Deploy this Agents workflow to D:\target\repo with a dry run first, then verify.
+请将本 Agents workflow 部署到 D:\target\repo，先 dry-run，再执行并验证。
 ```
-### 3. Record Runtime Execution Evidence
-Create, update, verify, collect, and clean a read-only runtime execution record
-without adding it to source control:
+
+### 部署到客户项目
+
+先 dry-run：
+
 ```powershell
-.\scripts\agents-runtime.ps1 -Action NewRun -RunId "example" -RuntimeRoot "$env:TEMP\codex-agent-status\jared-s-ai-team\runtime\example"
-.\scripts\agents-runtime.ps1 -Action AddStep -RunId "example" -RuntimeRoot "$env:TEMP\codex-agent-status\jared-s-ai-team\runtime\example" -Step "read_only"
-.\scripts\agents-runtime.ps1 -Action AddResult -RunId "example" -RuntimeRoot "$env:TEMP\codex-agent-status\jared-s-ai-team\runtime\example" -Result "completed" -Summary "read-only example completed"
-.\scripts\agents-runtime.ps1 -Action Verify -RunId "example" -RuntimeRoot "$env:TEMP\codex-agent-status\jared-s-ai-team\runtime\example"
-.\scripts\agents-runtime.ps1 -Action Cleanup -RunId "example" -RuntimeRoot "$env:TEMP\codex-agent-status\jared-s-ai-team\runtime\example"
+.\scripts\deploy-agents-workflow.ps1 -TargetPath "D:\target\repo" -Mode template_provider_mode -DryRun
 ```
-Runtime evidence belongs under `.agents/runtime/**` or an approved temporary
-status path. It is not deployable or releasable.
-### 4. Export A Route Pack
-Generate a deterministic minimal read pack for one route:
+
+确认计划后部署：
+
+```powershell
+.\scripts\deploy-agents-workflow.ps1 -TargetPath "D:\target\repo" -Mode template_provider_mode -Upgrade
+```
+
+部署原则：
+
+- 只复制 allowlist 中的 workflow 内容。
+- 保护目标项目自己的 `.git`、`.codex`、runtime state、secret、local environment 与目标专属记忆。
+- 如果目标项目已有本地 environment 配置，保留目标原状；不存在时才按目标项目名称建立。
+- 部署完成后必须验证版本、route、schema、script、template mirror 与 blocklist。
+
+### 记录 runtime execution evidence
+
+```powershell
+.\scripts\agents-runtime.ps1 -Action NewRun -RunId "example"
+.\scripts\agents-runtime.ps1 -Action AddStep -RunId "example" -Step "read_only"
+.\scripts\agents-runtime.ps1 -Action AddResult -RunId "example" -Result "completed" -Summary "read-only example completed"
+.\scripts\agents-runtime.ps1 -Action Verify -RunId "example"
+.\scripts\agents-runtime.ps1 -Action Cleanup -RunId "example"
+```
+
+Runtime evidence 属于本机运行状态，不进入正式源码、部署包或 release package。
+
+### 产生 route pack
+
 ```powershell
 .\scripts\export-route-pack.ps1 -RouteId core_system
 ```
-Route packs are manifests for cacheable route loading. They do not call a model
-and do not write live runtime state unless an explicit output path is supplied.
-### 5. Run An Artifact-Backed Workflow
-Create, simulate, verify, and collect a local workflow artifact without adding it
-to source control:
-```powershell
-.\scripts\agents-workflow.ps1 -Action New -WorkflowId "example"
-.\scripts\agents-workflow.ps1 -Action SimulateDispatch -WorkflowId "example" -Level 2
-.\scripts\agents-workflow.ps1 -Action Verify -WorkflowId "example"
-.\scripts\agents-workflow.ps1 -Action Collect -WorkflowId "example"
-```
-Live artifacts are local runtime state under `.agents/runtime/workflows/`.
-`.workflow/` is blocked from deployment and release packages. Neither location
-is deployable or releasable.
-### 6. Manage Collaborator Windows
-Collaborator windows are runtime Codex threads, not durable project files. The
-controller maps a user objective to a department leader, creates or names one
-leader window, sends a bounded assignment, and expects only a
-`department_report`, `collaborator_report`, or `escalation_record`.
 
-Example request styles:
-```text
-Create collaborator Greeting, responsible for greeting.
-```
-```text
-Rename Greeting window to Documentation Desk.
-```
-```text
-Dismiss Documentation Desk and verify it is no longer active.
-```
-Live thread ids, window titles, active lists, close evidence, and
-`.agents/runtime/collaborators.jsonl` stay local. They are not deployable,
-releasable, or public documentation content.
-### 7. Deploy Into Another Repository
-Always dry-run first against an exact authorized target path:
-```powershell
-.\scripts\deploy-agents-workflow.ps1 -TargetPath "D:\target\repo" -Mode core_bootstrap -DryRun
-```
-Upgrade an existing target after reviewing the dry-run plan:
-```powershell
-.\scripts\deploy-agents-workflow.ps1 -TargetPath "D:\target\repo" -Mode core_bootstrap -Upgrade
-```
-Deployment modes:
-| Mode | Includes |
-|---|---|
-| `core_bootstrap` | Root rules, canonical Agents YAML, project skill, gitignore fragment, and core runbooks. |
-| `full_workflow` | Core bootstrap plus assignment, status, evidence, feedback, memory starter, and maintenance templates. |
-| `template_provider_mode` | Full workflow plus the recursive template bundle so the target can redeploy the workflow. |
-Deployment is allowlist-based and preserves target app code, `.git`, `.codex`,
-runtime files, secrets, target-owned memory, and local environment state unless a
-narrower targeted action is explicitly authorized.
-### 8. Export A Clean Release Package
+Route pack 用于输出 deterministic minimal read manifest，帮助 AI 在相同 route 下重复读取更少、更稳定的上下文。
+
+### 导出干净 release package
+
 ```powershell
 .\scripts\export-release-package.ps1
 ```
-The release package excludes `.git/`, `.agents/runtime/`,
-`.agents/runtime/workflows/`, `.workflow/`, local Codex configuration, local
-environment configuration, local status records, and other machine-owned state.
-The generated manifest records workflow version, source commit, included files,
-file hashes, and package hash.
-## Core Runtime System
-Jared's AI Team 2.5.0 is a core runtime system for repo-local AI work. It unifies
-route selection, enterprise dispatch, collaborator windows, context compact,
-workflow artifacts, runtime evidence, deployment, validation, and release export
-into one verifiable architecture.
-Default departments:
-- Executive Office
-- PMO
-- Architecture
-- Engineering
-- DevOps
-- QA
-- Security
-- Documentation
-- Provider Management
-Operating model:
-- The controller assigns work to department leaders.
-- Department leaders may split work internally to allowed worker roles.
-- Workers report to their leader, not directly to the controller.
-- Leaders return one department report with verification, risks, escalations,
-  isolation details, and optional execution run references.
-- Collaborator windows expose department leaders as named Codex work sessions;
-  worker windows remain blocked unless an explicit override and escalation
-  record exist.
-- Invalid routing, authority violations, failed verification, or unsuitable model
-  tiers must produce an escalation record.
-The canonical files are:
-- `docs/agents/core-system.yaml`
-- `docs/agents/runtime-execution.yaml`
-- `docs/agents/provider-adapters.yaml`
-- `docs/agents/route-packs.yaml`
-- `docs/agents/knowledge-footprint.yaml`
-- `docs/agents/org.yaml`
-- `docs/agents/model-policy.yaml`
-- `docs/agents/dispatch.yaml`
-- `docs/agents/workflow-artifacts.yaml`
-- `docs/agents/context-compact.yaml`
-- `docs/agents/collaborators.yaml`
-- `docs/agents/workflows.yaml`
-- `docs/agents/schemas.yaml`
-- `docs/agents/verify.yaml`
-## Validation Model
-Validation is selected by claim scope:
-| Scope | Expected Gate |
-|---|---|
-| Answer-only with no current-state claim | No command required. |
-| Current state claim | Named state check from `docs/agents/verify.yaml`. |
-| Scoped edit | Fast status, diff, and focused validation. |
-| Policy or template edit | Mirror-pair, schema, and durable-rule checks. |
-| Commit, tag, or push checkpoint | Staged hygiene, placeholder, runtime, and local-state checks. |
-| Deployment or release | Deployment self-test, template integrity, schema coverage, package exclusions, and handoff checks. |
-| Enterprise dispatch | Department leader references, model tier references, report routing, and escalation records. |
-| Runtime execution | Run records, step status, approval gates, result collection, escalations, and cleanup evidence. |
-| Workflow artifacts | Local workflow state, packet ownership, approval gates, route guardrails, collection reports, and runtime blocklists. |
-| Context compact | Required summary fields, raw transcript exclusion, subagent closeout counts, and runtime compact event boundary. |
-| Collaborator windows | Department leader window mapping, thread operation evidence, worker window blocking, and runtime thread id exclusions. |
-| Route pack | Deterministic route file selection, stable hashes, schema hash, cache key fields, and tool surface. |
-The source of truth for these gates is `docs/agents/verify.yaml`.
-## Repository Map
-| Path | Purpose |
-|---|---|
-| `AGENTS.md` | Entry-point operating rules for Codex sessions. |
-| `docs/agents/*.yaml` | Canonical core system, route, workflow, runtime execution, provider, deployment, verification, schema, MCP, dispatch, model, context compact, collaborator, and version rules. |
-| `.agents/skills/project-isolation-workflow/` | Project-local Codex skill for isolation, deployment, memory, maintenance, and multi-agent work. |
-| `docs/templates/agents/` | Source-neutral deployable template bundle. |
-| `docs/runbooks/` | Operational procedures for deployment, closeout, audits, skills, sessions, and maintenance. |
-| `scripts/validate.ps1` | Main local and CI validation entry point. |
-| `scripts/agents-runtime.ps1` | Local runtime execution helper for run, step, approval, result, escalation, collect, verify, and cleanup actions. |
-| `scripts/agents-workflow.ps1` | Local workflow artifact helper for new, verify, collect, simulate, and normalize actions. |
-| `scripts/export-route-pack.ps1` | Deterministic route pack manifest exporter. |
-| `scripts/deploy-agents-workflow.ps1` | Allowlisted deployment entry point for target repositories. |
-| `scripts/export-release-package.ps1` | Clean release package exporter. |
-| `scripts/update-github-updates.ps1` | Public GitHub update log generator. |
-| `schemas/` | JSON Schema contracts used by validation. |
-| `.github/workflows/` | GitHub Actions checkpoint and public update automation. |
 
-For a detailed file-role matrix, see `docs/project-structure.md`.
+Release package 会排除 `.git/`、`.codex/`、`.agents/runtime/`、`.workflow/`、local environment、thread id、runtime evidence、secrets 与本机状态，并记录 version、commit、file list、file hashes 与 package hash。
 
-## Documentation
-- `docs/runbooks/agents-deployment.md`
-- `docs/runbooks/multi-agent-workflow.md`
-- `docs/runbooks/repository-maintenance.md`
-- `docs/runbooks/task-closeout.md`
-- `docs/github-updates.md`
-- `scripts/README.md`
-- `schemas/README.md`
-- `mcp/README.md`
-## Project Boundaries
-- Global Memory is not used unless the user explicitly requests it.
-- Global/system skills are not used by default.
-- Project-local skills under `.agents/skills/` are part of this repository.
-- `.agents/runtime/`, `.agents/runtime/workflows/`,
-  `.agents/runtime/executions/`, `.agents/runtime/knowledge/`,
-  `.agents/runtime/route-packs/`, `.agents/runtime/tool-evidence/`,
-  `.agents/runtime/deployments/`,
-  `.agents/runtime/compact-events.jsonl`,
-  `.agents/runtime/collaborators.jsonl`, `.workflow/`, `.codex/`, status
-  records, evidence records, live thread ids, window state, secrets, and local
-  environment state are not deployable workflow content.
-- Deployment reports target-owned historical Agents files separately instead of
-  treating a dirty target repository as a failed deployment.
-## Contributing
-See `CONTRIBUTING.md` for local workflow rules, validation expectations, and
-content that should not be committed.
-See `CODE_OF_CONDUCT.md` for participation expectations.
-## Security
-See `SECURITY.md` for reporting guidance. Do not publish secrets, local Codex
-configuration, target credentials, private deployment evidence, or machine-local
-runtime data in issues.
-## License
+## 项目边界与安全原则
+
+- Global Memory 默认不使用，除非使用者明确要求。
+- Global/system skills 默认不使用。
+- Project-local skills 是项目内容的一部分，不等同全局技能。
+- 不把 live runtime state、thread id、API key、provider session、本机部署历史或 Codex local config 放入部署或 release。
+- 不宣称硬隔离，除非当前 runtime、工具、OS、账号或云端环境真的提供并已验证隔离证据。
+- 高风险写入、部署、外部访问、破坏性操作、模型 tier upgrade 需要 approval gate 或 escalation record。
+- 员工与协作者结束时必须留下 closeout evidence；无法验证硬删除时，只能声明 archive/close requested 或已关闭，不宣称完全删除。
+
+## 对外公开资讯
+
+- Update log：`docs/github-updates.md`
+- Contribution guide：`CONTRIBUTING.md`
+- Security policy：`SECURITY.md`
+- Code of conduct：`CODE_OF_CONDUCT.md`
+
+## 授权
+
 Copyright 2026 Yu-Jie, Lin.
-Licensed under the Apache License, Version 2.0. See `LICENSE` for the full
-license text and `NOTICE` for the project notice and additional disclaimer.
-Unless required by applicable law or agreed to in writing, this repository is
-provided on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
-either express or implied.
+
+Licensed under the Apache License, Version 2.0. See `LICENSE` for the full license text and `NOTICE` for the project notice and additional disclaimer.
+
+Unless required by applicable law or agreed to in writing, this repository is provided on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.

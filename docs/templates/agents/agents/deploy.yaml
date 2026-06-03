@@ -158,6 +158,8 @@ deployable_by_mode:
       to: "docs/runbooks/skill-authoring.md"
     - from: "docs/templates/agents/project-structure.md"
       to: "docs/project-structure.md"
+    schema_bundle: "Copy schemas/README.md and schemas/*.schema.json to schemas/."
+    script_bundle: "Copy scripts/README.md and scripts/*.ps1 to scripts/."
   template_provider_additions:
     recursive_template_bundle: "Copy/adapt docs/templates/agents/** only when the target should redeploy this workflow later."
 do_not_deploy:

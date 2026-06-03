@@ -528,6 +528,24 @@ $entries = New-Object System.Collections.Generic.List[object]
 $currentGroup = $null
 $currentFrom = $null
 $insideDeployable = $false
+function Add-DeployBundle {
+param(
+[string] $Group,
+[string] $Directory,
+[string[]] $Filters
+)
+foreach ($filter in $Filters) {
+$bundleFiles = Get-ChildItem -LiteralPath (Join-Path $RepoRoot $Directory) -Filter $filter -File | Sort-Object FullName
+foreach ($file in $bundleFiles) {
+$relative = Normalize-RepoPath ($file.FullName.Substring($RepoRoot.Path.Length).TrimStart("\", "/"))
+$entries.Add([pscustomobject]@{
+Group = $Group
+From = $relative
+To = $relative
+}) | Out-Null
+}
+}
+}
 foreach ($line in Get-Content -LiteralPath $DeployManifestPath) {
 if ($line -match "^deployable_by_mode:") {
 $insideDeployable = $true
@@ -546,6 +564,16 @@ continue
 }
 if ($line -match '^\s+- from: "([^"]+)"') {
 $currentFrom = $Matches[1]
+continue
+}
+if (($Groups -contains $currentGroup) -and $line -match '^\s+schema_bundle:') {
+Add-DeployBundle -Group $currentGroup -Directory "schemas" -Filters @("README.md", "*.schema.json")
+$currentFrom = $null
+continue
+}
+if (($Groups -contains $currentGroup) -and $line -match '^\s+script_bundle:') {
+Add-DeployBundle -Group $currentGroup -Directory "scripts" -Filters @("README.md", "*.ps1")
+$currentFrom = $null
 continue
 }
 if ($line -match '^\s+to: "([^"]+)"') {
