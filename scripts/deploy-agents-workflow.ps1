@@ -20,6 +20,7 @@ $ProtectedExisting = New-Object System.Collections.Generic.List[string]
 $UnchangedExisting = New-Object System.Collections.Generic.List[string]
 $TargetLegacyAgents = New-Object System.Collections.Generic.List[string]
 $ProtectedDirty = New-Object System.Collections.Generic.List[string]
+$TargetLocalEnvironment = New-Object System.Collections.Generic.List[string]
 function Test-SameDirectory {
 param(
 [string] $Left,
@@ -193,6 +194,85 @@ $rootFull = [System.IO.Path]::GetFullPath($Root).TrimEnd("\", "/")
 $pathFull = [System.IO.Path]::GetFullPath($Path)
 return Normalize-RepoPath ($pathFull.Substring($rootFull.Length).TrimStart("\", "/"))
 }
+function Add-UniqueListItem {
+param(
+[object] $List,
+[string] $Value
+)
+if (-not $List.Contains($Value)) {
+$List.Add($Value) | Out-Null
+}
+}
+function Get-SafeEnvironmentName {
+param([string] $Root)
+$leaf = Split-Path -Leaf $Root
+if ([string]::IsNullOrWhiteSpace($leaf)) {
+$leaf = "project"
+}
+$safe = ($leaf -replace '[\\/:*?"<>|]+', "-").Trim().Trim(".")
+if ([string]::IsNullOrWhiteSpace($safe)) {
+return "project"
+}
+return $safe
+}
+function ConvertTo-TomlBasicString {
+param([string] $Value)
+if ($null -eq $Value) {
+return ""
+}
+$backslash = [string][char] 92
+$escaped = $Value.Replace($backslash, ($backslash + $backslash))
+return $escaped.Replace('"', '\"')
+}
+function Get-TargetEnvironmentFiles {
+param([string] $Root)
+$envDir = Join-TargetPath -Root $Root -RelativePath ".codex/environments"
+if (-not (Test-Path -LiteralPath $envDir -PathType Container)) {
+return @()
+}
+return @(Get-ChildItem -LiteralPath $envDir -Filter "*.toml" -File -Force | Sort-Object Name)
+}
+function Initialize-TargetLocalEnvironment {
+param(
+[string] $Root,
+[switch] $PlanOnly
+)
+$existing = @(Get-TargetEnvironmentFiles -Root $Root)
+if ($existing.Count -gt 0) {
+foreach ($file in $existing) {
+$relative = Get-RelativeTargetPath -Root $Root -Path $file.FullName
+Add-UniqueListItem -List $TargetLocalEnvironment -Value ("preserve: {0}" -f $relative)
+Add-UniqueListItem -List $ProtectedDirty -Value $relative
+}
+return
+}
+$name = Get-SafeEnvironmentName -Root $Root
+$relative = Normalize-RepoPath (".codex/environments/{0}.toml" -f $name)
+if ($PlanOnly) {
+Add-UniqueListItem -List $TargetLocalEnvironment -Value ("planned: {0}" -f $relative)
+return
+}
+$path = Join-TargetPath -Root $Root -RelativePath $relative
+$dir = Split-Path -Parent $path
+if (-not (Test-Path -LiteralPath $dir -PathType Container)) {
+New-Item -ItemType Directory -Path $dir | Out-Null
+}
+$projectName = ConvertTo-TomlBasicString (Split-Path -Leaf $Root)
+$content = (@(
+"# Target-local Codex environment. Generated only when no environment config exists.",
+"version = 1",
+("name = ""{0}""" -f $projectName),
+"",
+"[setup]",
+"script = '''",
+'cd "$env:CODEX_WORKTREE_PATH"',
+"git status -sb",
+"'''"
+) -join [System.Environment]::NewLine) + [System.Environment]::NewLine
+Set-Content -LiteralPath $path -Value $content -NoNewline -Encoding utf8
+Add-UniqueListItem -List $TargetLocalEnvironment -Value ("created: {0}" -f $relative)
+Add-UniqueListItem -List $ProtectedDirty -Value $relative
+}
 function Test-DeployPathAllowed {
 param([string] $RelativePath)
 $normalized = Normalize-RepoPath $RelativePath
@@ -282,10 +362,14 @@ $TargetLegacyAgents.Add($itemRelative) | Out-Null
 }
 }
 }
-foreach ($relative in @(".codex/config.toml", ".codex/environments/environment.toml", ".agents/runtime/agent-ledger.jsonl", ".agents/runtime/compact-events.jsonl", ".agents/runtime/workflows/example/state.json", ".workflow/example/state.json", ".git/HEAD")) {
+foreach ($file in (Get-TargetEnvironmentFiles -Root $Root)) {
+$relative = Get-RelativeTargetPath -Root $Root -Path $file.FullName
+Add-UniqueListItem -List $ProtectedDirty -Value $relative
+}
+foreach ($relative in @(".codex/config.toml", ".agents/runtime/agent-ledger.jsonl", ".agents/runtime/compact-events.jsonl", ".agents/runtime/workflows/example/state.json", ".workflow/example/state.json", ".git/HEAD")) {
 $candidate = Join-TargetPath -Root $Root -RelativePath $relative
 if (Test-Path -LiteralPath $candidate) {
-$ProtectedDirty.Add($relative) | Out-Null
+Add-UniqueListItem -List $ProtectedDirty -Value $relative
 }
 }
 }
@@ -696,10 +780,23 @@ $reportLines += "- none observed"
 }
 $reportLines += @(
 "",
+"Target-local Codex environment bootstrap:"
+)
+if ($TargetLocalEnvironment.Count -gt 0) {
+foreach ($file in ($TargetLocalEnvironment | Sort-Object -Unique)) {
+$reportLines += ("- {0}" -f $file)
+}
+}
+else {
+$reportLines += "- none observed"
+}
+$reportLines += @(
+"",
 "## What Was Intentionally Not Touched",
 "",
 "- Target app/source files outside deployed_file_set.",
 "- Runtime/local Codex config, agent status, ledger, evidence records, and Git metadata.",
+"- Existing .codex/environments/*.toml files; target-local bootstrap creates a project-named file only when none exists.",
 "- Target-owned legacy Agents files outside deployed_file_set.",
 "",
 "## Target Owner Next Actions",
@@ -742,10 +839,12 @@ $reportLines += @(
 "- Deployment path blocklist: enforced.",
 ("- Deployed file set validation: {0}." -f $deployedValidationState),
 "- Target-owned runtime/local state: classified outside deployed file set.",
+"- Target-local Codex environment bootstrap: checked outside deployed file set.",
 "",
 "## Notes",
 "",
 "- Runtime, local Codex config, Git metadata, status, event, and filled evidence files are not deployed.",
+"- Provider environment templates are never deployed; target environments stay local.",
 "- Target-owned legacy Agents files are reported separately and remain target-owned."
 )
 $reportContent = ($reportLines -join [System.Environment]::NewLine) + [System.Environment]::NewLine
@@ -797,7 +896,17 @@ Write-Step "WRITE" "none observed"
 Write-Step "INFO" "What was intentionally not touched:"
 Write-Step "SKIP" "Target app/source files outside deployed_file_set."
 Write-Step "SKIP" "Runtime/local Codex config, agent status, ledger, evidence records, and Git metadata."
+Write-Step "SKIP" "Existing .codex/environments/*.toml files are preserved; project-named environment is created only when absent."
 Write-Step "SKIP" "Target-owned legacy Agents files outside deployed_file_set."
+Write-Step "INFO" "Target-local Codex environment bootstrap:"
+if ($TargetLocalEnvironment.Count -gt 0) {
+foreach ($file in ($TargetLocalEnvironment | Sort-Object -Unique)) {
+Write-Step "ENV" $file
+}
+}
+else {
+Write-Step "ENV" "none observed"
+}
 Write-Step "INFO" "Target owner next actions:"
 Write-Step "NEXT" "Review deployment report and target git status."
 Write-Step "NEXT" "Run target handoff check: AGENTS route, project skill path, runbook links, protected runtime/local paths, and git status summary."
@@ -960,6 +1069,8 @@ foreach ($blockedPath in @(
 ".git/HEAD",
 ".codex/config.toml",
 ".codex/environments/environment.toml",
+".codex/environments/environment.template.toml",
+".codex/environments/project.toml",
 ".agents/runtime/agent-ledger.jsonl",
 ".agents/runtime/compact-events.jsonl",
 ".agents/runtime/workflows/example/state.json",
@@ -986,10 +1097,13 @@ Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents/workflow-artifa
 Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents/context-compact.yaml"
 Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/deployment-feedback.template.md"
 Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents-workflow-deployment.md"
+Assert-SelfTestFile -Root $rootTarget -RelativePath ".codex/environments/root-docs.toml"
 Assert-SelfTestContains -Path (Join-Path $rootTarget "docs/agents-workflow-deployment.md") -Expected "- docs/agents/workflows.yaml"
 Assert-SelfTestContains -Path (Join-Path $rootTarget "docs/agents-workflow-deployment.md") -Expected "## What Changed"
 Assert-SelfTestContains -Path (Join-Path $rootTarget "docs/agents-workflow-deployment.md") -Expected "## What Was Intentionally Not Touched"
 Assert-SelfTestContains -Path (Join-Path $rootTarget "docs/agents-workflow-deployment.md") -Expected "## Target Owner Next Actions"
+Assert-SelfTestContains -Path (Join-Path $rootTarget "docs/agents-workflow-deployment.md") -Expected "Target-local Codex environment bootstrap:"
+Assert-SelfTestContains -Path (Join-Path $rootTarget "docs/agents-workflow-deployment.md") -Expected "- created: .codex/environments/root-docs.toml"
 Assert-SelfTestContains -Path (Join-Path $rootTarget "docs/agents-workflow-deployment.md") -Expected "target handoff check"
 Assert-SelfTestContains -Path (Join-Path $rootTarget "docs/agents-workflow-deployment.md") -Expected "## Validation Summary"
 Assert-SelfTestContains -Path (Join-Path $rootTarget "docs/agents-workflow-deployment.md") -Expected "- Deployment path blocklist: enforced."
@@ -1003,6 +1117,8 @@ $currentPlan = Invoke-ChildDeploymentOutput -CommandArgs @{ TargetPath = $rootTa
 Assert-SelfTestTextContains -Text $currentPlan -Expected "Existing target files already current:"
 Assert-SelfTestTextContains -Text $currentPlan -Expected ("Workflow version: {0} ({1})" -f $WorkflowVersion.Version, $WorkflowVersion.Channel)
 Assert-SelfTestTextContains -Text $currentPlan -Expected "[CURRENT] AGENTS.md"
+Assert-SelfTestTextContains -Text $currentPlan -Expected "Target-local Codex environment bootstrap:"
+Assert-SelfTestTextContains -Text $currentPlan -Expected "[ENV] preserve: .codex/environments/root-docs.toml"
 $templateProviderTarget = Join-Path $selfTestRoot "template-provider"
 Invoke-ChildDeployment -CommandArgs @{ TargetPath = $templateProviderTarget; Mode = "template_provider_mode"; CreateTarget = $true; Quiet = $true }
 Assert-SelfTestFile -Root $templateProviderTarget -RelativePath "docs/templates/agents/AGENTS.md"
@@ -1062,6 +1178,7 @@ New-Item -ItemType Directory -Path $dryRunTarget | Out-Null
 Invoke-ChildDeployment -CommandArgs @{ TargetPath = $dryRunTarget; Mode = "core_bootstrap"; DryRun = $true; Quiet = $true }
 Assert-SelfTestMissing -Root $dryRunTarget -RelativePath "AGENTS.md"
 Assert-SelfTestMissing -Root $dryRunTarget -RelativePath "docs/agents/workflows.yaml"
+Assert-SelfTestMissing -Root $dryRunTarget -RelativePath ".codex/environments/dry-run.toml"
 $foreignTarget = Join-Path $selfTestRoot "git-backed-foreign-project"
 New-Item -ItemType Directory -Path (Join-Path $foreignTarget "src") -Force | Out-Null
 Set-Content -LiteralPath (Join-Path $foreignTarget "README.md") -Value "# Foreign Project" -Encoding utf8
@@ -1084,6 +1201,12 @@ Assert-SelfTestContains -Path (Join-Path $foreignTarget ".gitignore") -Expected 
 Assert-SelfTestContains -Path (Join-Path $foreignTarget ".gitignore") -Expected ".workflow/"
 Assert-SelfTestContains -Path (Join-Path $foreignTarget ".gitignore") -Expected ".codex/config.toml"
 Assert-SelfTestContains -Path (Join-Path $foreignTarget ".gitignore") -Expected ".codex/environments/environment.toml"
+Assert-SelfTestContains -Path (Join-Path $foreignTarget ".gitignore") -Expected ".codex/environments/*.toml"
+Assert-SelfTestFile -Root $foreignTarget -RelativePath ".codex/environments/git-backed-foreign-project.toml"
+$envStatus = Invoke-SelfTestGit -Root $foreignTarget -Arguments @("status", "--porcelain", "--", ".codex/environments/git-backed-foreign-project.toml")
+if (@($envStatus).Count -gt 0) {
+throw "Deployment self-test expected target-local environment to stay ignored: $($envStatus -join '; ')"
+}
 Invoke-SelfTestGit -Root $foreignTarget -Arguments @("add", "--", "AGENTS.md", "docs/agents", "docs/runbooks", ".agents/skills", "docs/agents-workflow-deployment.md", ".gitignore") | Out-Null
 Invoke-SelfTestGit -Root $foreignTarget -Arguments @("-c", "user.name=Agents Self Test", "-c", "user.email=agents-selftest@example.invalid", "commit", "-m", "Deploy agents workflow") | Out-Null
 $rollbackScope = Invoke-SelfTestGit -Root $foreignTarget -Arguments @("diff", "--name-only", "HEAD~1..HEAD", "--")
@@ -1104,16 +1227,19 @@ Assert-SelfTestContains -Path (Join-Path $partialGitignoreTarget ".gitignore") -
 Assert-SelfTestContains -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".workflow/"
 Assert-SelfTestContains -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".codex/config.toml"
 Assert-SelfTestContains -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".codex/environments/environment.toml"
+Assert-SelfTestContains -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".codex/environments/*.toml"
 Assert-SelfTestLineCount -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".agents/runtime/" -Count 1
 Assert-SelfTestLineCount -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".agents/runtime/workflows/" -Count 1
 Assert-SelfTestLineCount -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".workflow/" -Count 1
 Assert-SelfTestLineCount -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".codex/config.toml" -Count 1
+Assert-SelfTestLineCount -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".codex/environments/*.toml" -Count 1
 Invoke-ChildDeployment -CommandArgs @{ TargetPath = $partialGitignoreTarget; Mode = "core_bootstrap"; Quiet = $true }
 Assert-SelfTestLineCount -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".agents/runtime/" -Count 1
 Assert-SelfTestLineCount -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".agents/runtime/workflows/" -Count 1
 Assert-SelfTestLineCount -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".workflow/" -Count 1
 Assert-SelfTestLineCount -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".codex/config.toml" -Count 1
 Assert-SelfTestLineCount -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".codex/environments/environment.toml" -Count 1
+Assert-SelfTestLineCount -Path (Join-Path $partialGitignoreTarget ".gitignore") -Expected ".codex/environments/*.toml" -Count 1
 $missingTarget = Join-Path $selfTestRoot "missing-target"
 foreach ($args in @(
 @{ TargetPath = $missingTarget; Mode = "core_bootstrap"; DryRun = $true; Quiet = $true },
@@ -1148,6 +1274,7 @@ Set-Content -LiteralPath (Join-Path $ownedTarget ".gitignore") -Value "target-lo
 Invoke-ChildDeployment -CommandArgs @{ TargetPath = $ownedTarget; Mode = "core_bootstrap"; Quiet = $true }
 Assert-SelfTestContent -Path (Join-Path $ownedTarget ".codex/config.toml") -Expected "local = true"
 Assert-SelfTestContent -Path (Join-Path $ownedTarget ".codex/environments/environment.toml") -Expected "runtime = true"
+Assert-SelfTestMissing -Root $ownedTarget -RelativePath ".codex/environments/target-owned-state.toml"
 Assert-SelfTestContent -Path (Join-Path $ownedTarget ".agents/runtime/agent-ledger.jsonl") -Expected '{"local":true}'
 Assert-SelfTestContent -Path (Join-Path $ownedTarget ".agents/runtime/compact-events.jsonl") -Expected '{"compact":true}'
 Assert-SelfTestContent -Path (Join-Path $ownedTarget ".agents/runtime/workflows/example/state.json") -Expected '{"workflow":true}'
@@ -1159,11 +1286,14 @@ Assert-SelfTestContains -Path (Join-Path $ownedTarget ".gitignore") -Expected ".
 Assert-SelfTestContains -Path (Join-Path $ownedTarget ".gitignore") -Expected ".workflow/"
 Assert-SelfTestContains -Path (Join-Path $ownedTarget ".gitignore") -Expected ".codex/config.toml"
 Assert-SelfTestContains -Path (Join-Path $ownedTarget ".gitignore") -Expected ".codex/environments/environment.toml"
+Assert-SelfTestContains -Path (Join-Path $ownedTarget ".gitignore") -Expected ".codex/environments/*.toml"
+Assert-SelfTestContains -Path (Join-Path $ownedTarget "docs/agents-workflow-deployment.md") -Expected "Target-local Codex environment bootstrap:"
 Assert-SelfTestContains -Path (Join-Path $ownedTarget "docs/agents-workflow-deployment.md") -Expected "Protected dirty/local state:"
 $ownedPlan = Invoke-ChildDeploymentOutput -CommandArgs @{ TargetPath = $ownedTarget; Mode = "core_bootstrap"; DryRun = $true }
 Assert-SelfTestTextContains -Text $ownedPlan -Expected "Protected dirty/local target state observed:"
 Assert-SelfTestTextContains -Text $ownedPlan -Expected "[PROTECTED] .codex/config.toml"
 Assert-SelfTestTextContains -Text $ownedPlan -Expected "[PROTECTED] .codex/environments/environment.toml"
+Assert-SelfTestTextContains -Text $ownedPlan -Expected "[ENV] preserve: .codex/environments/environment.toml"
 Assert-SelfTestTextContains -Text $ownedPlan -Expected "[PROTECTED] .agents/runtime/agent-ledger.jsonl"
 Assert-SelfTestTextContains -Text $ownedPlan -Expected "[PROTECTED] .agents/runtime/compact-events.jsonl"
 Assert-SelfTestTextContains -Text $ownedPlan -Expected "[PROTECTED] .agents/runtime/workflows/example/state.json"
@@ -1247,6 +1377,7 @@ Write-Step "INFO" ("Dry run: {0}" -f [bool] $DryRun)
 foreach ($entry in $entries) {
 Copy-DeployEntry -Entry $entry -Root $targetRoot -Layout $layout -PlanOnly:$DryRun
 }
+Initialize-TargetLocalEnvironment -Root $targetRoot -PlanOnly:$DryRun
 Update-TargetStateClassification -Root $targetRoot -Layout $layout
 Write-DeploymentReport -Root $targetRoot -Layout $layout -PlanOnly:$DryRun
 Test-DeployedFileSet -Root $targetRoot -PlanOnly:$DryRun

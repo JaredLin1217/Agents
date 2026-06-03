@@ -14,6 +14,7 @@ docs/runtime-multi-agent-validation/
 .agents/docs/runtime-multi-agent-validation/
 .codex/config.toml
 .codex/environments/environment.toml
+.codex/environments/*.toml
 
 # Optional local OS/editor noise
 .DS_Store

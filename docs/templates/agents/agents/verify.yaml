@@ -20,7 +20,7 @@ file_classes:
   runbooks: ["docs/runbooks/*.md"]
   deploy_templates: ["docs/templates/agents/**"]
   memory_docs: ["docs/project-memory.md","docs/memory/**","docs/memory-entry.template.md"]
-  runtime_local: [".agents/runtime/**",".agents/runtime/workflows/**",".workflow/**",".codex/config.toml",".codex/environments/environment.toml","docs/{agent-status.md,agent-events/**,tmp-approval-*/**,runtime-multi-agent-validation/**,hard-isolation-evidence/**}",".agents/docs/{agent-status.md,agent-events/**,tmp-approval-*/**,runtime-multi-agent-validation/**,hard-isolation-evidence/**}"]
+  runtime_local: [".agents/runtime/**",".agents/runtime/workflows/**",".workflow/**",".codex/config.toml",".codex/environments/*.toml","docs/{agent-status.md,agent-events/**,tmp-approval-*/**,runtime-multi-agent-validation/**,hard-isolation-evidence/**}",".agents/docs/{agent-status.md,agent-events/**,tmp-approval-*/**,runtime-multi-agent-validation/**,hard-isolation-evidence/**}"]
   generated_or_cache: ["generated output","cache","build output","vendor"]
 gate_matrix:
   durable_prose_changed: ["changed English-only","changed placeholder check"]
@@ -55,7 +55,7 @@ commands:
   deploy_manifest_unique: "deployable_by_mode paths unique; non-append paths unique."
   deploy_blocklist_required_paths: "do_not_deploy includes runtime, scratch, Codex runtime, and .git paths."
   deployment_script_safety: "scripts/deploy-agents-workflow.ps1 keeps path-containment gates, blocklist sync, no admin elevation, OS permission, ACL, ownership, .git repair."
-  deployment_script_selftest: "SelfTest: root_docs template-provider dot_agents_docs dry-run protected-existing git-backed foreign project missing-target target-owned-state target-owned state preservation routed-legacy ambiguous-layout app-file preservation partial-gitignore gitignore duplicate avoidance target git rollback scope."
+  deployment_script_selftest: "SelfTest: root_docs template-provider dot_agents_docs dry-run protected-existing git-backed foreign project missing-target target-owned-state target-owned state preservation routed-legacy ambiguous-layout target-local environment bootstrap app-file preservation partial-gitignore gitignore duplicate avoidance target git rollback scope."
   target_handoff_check: "Inspect target AGENTS route, skill path, report, runbooks, protected runtime/local paths, and target git status."
   multi_agent_workflow_integrity: "scripts/validate.ps1 checks lifecycle, ownership, roster/ledger recovery, report dedupe, scoring, batch ack, delegated deployment, cleanup, runtime fields."
   evidence_template_schema_coverage: "scripts/validate.ps1 checks hard-isolation/runtime multi-agent evidence fields."

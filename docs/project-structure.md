@@ -34,7 +34,7 @@ gates, deployment templates, and extension points.
 | `.codex/`, status, validation records | local/runtime state | never deploy |
 Do not deploy source `.agents/runtime/`, `.agents/runtime/workflows/`,
 `.workflow/`, `.codex/config.toml`,
-`.codex/environments/environment.toml`, source memory rows, decisions, status,
+`.codex/environments/*.toml`, source memory rows, decisions, status,
 or validation history by default.
 ## V2 Structure Rule
 V2 structure changes must preserve mirror pairs and deployment rules until drift

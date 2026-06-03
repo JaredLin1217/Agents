@@ -44,11 +44,13 @@ $rel = (Convert-ToRepoRelative $Path).ToLowerInvariant()
 $exact = @(
 ".codex/config.toml",
 ".codex/environments/environment.toml",
+".codex/environments/environment.template.toml",
 "docs/agent-status.md",
 ".agents/docs/agent-status.md"
 )
 $prefix = @(
 ".git/",
+".codex/environments/",
 ".agents/runtime/workflows/",
 ".agents/runtime/",
 ".workflow/",

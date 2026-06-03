@@ -432,6 +432,8 @@ $ignoredRuntimePaths = @(
 ".agents/runtime/agent-ledger.jsonl",
 ".codex/config.toml",
 ".codex/environments/environment.toml",
+".codex/environments/example-project.toml",
+".codex/environments/environment.template.toml",
 "docs/agent-status.md",
 "docs/agent-events/example.jsonl",
 ".agents/docs/agent-status.md",
@@ -464,6 +466,7 @@ $requiredFragmentEntries = @(
 ".agents/runtime/",
 ".codex/config.toml",
 ".codex/environments/environment.toml",
+".codex/environments/*.toml",
 "docs/agent-status.md",
 "docs/agent-events/",
 ".agents/docs/agent-status.md",
@@ -867,6 +870,8 @@ $requiredBlocklist = @(
 @{ Manifest = ".agents/docs/runtime-multi-agent-validation/"; Script = ".agents/docs/runtime-multi-agent-validation/" },
 @{ Manifest = ".codex/config.toml"; Script = ".codex/config.toml" },
 @{ Manifest = ".codex/environments/environment.toml"; Script = ".codex/environments/environment.toml" },
+@{ Manifest = ".codex/environments/*.toml"; Script = ".codex/environments/" },
+@{ Manifest = ".codex/environments/environment.template.toml"; Script = ".codex/environments/environment.template.toml" },
 @{ Manifest = ".git/"; Script = ".git/" }
 )
 foreach ($path in $deployPaths) {
@@ -1538,7 +1543,10 @@ $requiredMarkers = @(
 "Target Owner Next Actions",
 "Target files planned for create/update",
 "Existing target files already current",
-"Refusing to write into the provider/source repo"
+"Refusing to write into the provider/source repo",
+"Initialize-TargetLocalEnvironment",
+"Get-SafeEnvironmentName",
+"Target-local Codex environment bootstrap"
 )
 foreach ($marker in $requiredMarkers) {
 if (-not $content.Contains($marker)) {
@@ -1589,7 +1597,8 @@ $selfTestDocumentationMarkers = @(
 "partial-gitignore",
 "gitignore duplicate avoidance",
 "target handoff check",
-"target git rollback scope"
+"target git rollback scope",
+"target-local environment bootstrap"
 )
 foreach ($docPath in $documentationPaths) {
 $docFullPath = Get-RepoPath $docPath
@@ -2165,11 +2174,13 @@ Add-Failure ("Release package physical file is missing: {0}" -f $requiredFile)
 $blockedExact = @(
 ".codex/config.toml",
 ".codex/environments/environment.toml",
+".codex/environments/environment.template.toml",
 "docs/agent-status.md",
 ".agents/docs/agent-status.md"
 )
 $blockedPrefix = @(
 ".git/",
+".codex/environments/",
 ".agents/runtime/",
 ".agents/runtime/workflows/",
 ".workflow/",
@@ -2199,7 +2210,8 @@ $blockedPhysical = @(
 ".agents/runtime/workflows",
 ".workflow",
 ".codex/config.toml",
-".codex/environments/environment.toml"
+".codex/environments/environment.toml",
+".codex/environments"
 )
 foreach ($blocked in $blockedPhysical) {
 $fullPath = Join-Path $packageRoot ($blocked -replace "/", [System.IO.Path]::DirectorySeparatorChar)
