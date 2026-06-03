@@ -4,11 +4,36 @@ This file is generated from git history after public branch pushes.
 Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` instead.
 
 - Source branch: `main`
-- Source commit analyzed: `707c8da`
-- Source commit date: `2026-06-03T01:06:15+08:00`
+- Source commit analyzed: `53bf8c8`
+- Source commit date: `2026-06-03T11:27:00+08:00`
 - Commit window: latest 12 non-merge commits
 
 ## Recent Commits
+
+### 2026-06-03 - `53bf8c8`
+
+docs: tighten subagent cleanup workflow
+
+- Author: `JaredLin1217`
+- Shortstat: `10 files changed, 125 insertions(+), 72 deletions(-)`
+- Files:
+  - `README.md`
+  - `docs/agents/schemas.yaml`
+  - `docs/agents/workflows.yaml`
+  - `docs/runbooks/multi-agent-workflow.md`
+  - `docs/runtime-multi-agent-validation.template.md`
+  - `docs/templates/agents/agents/schemas.yaml`
+  - `docs/templates/agents/agents/workflows.yaml`
+  - `docs/templates/agents/multi-agent-workflow.md`
+
+### 2026-06-02 - `ec7288c`
+
+docs: update GitHub update log [skip ci]
+
+- Author: `github-actions[bot]`
+- Shortstat: `1 file changed, 18 insertions(+), 14 deletions(-)`
+- Files:
+  - `docs/github-updates.md`
 
 ### 2026-06-03 - `707c8da`
 
@@ -128,29 +153,5 @@ docs: update GitHub update log [skip ci]
 
 - Author: `github-actions[bot]`
 - Shortstat: `1 file changed, 26 insertions(+), 20 deletions(-)`
-- Files:
-  - `docs/github-updates.md`
-
-### 2026-06-01 - `cbc0172`
-
-docs: harden multi-agent cleanup workflow
-
-- Author: `JaredLin1217`
-- Shortstat: `7 files changed, 194 insertions(+), 216 deletions(-)`
-- Files:
-  - `docs/agents/workflows.yaml`
-  - `docs/runtime-multi-agent-validation.template.md`
-  - `docs/templates/agents/agents/schemas.yaml`
-  - `docs/templates/agents/agents/verify.yaml`
-  - `docs/templates/agents/agents/workflows.yaml`
-  - `docs/templates/agents/runtime-multi-agent-validation.template.md`
-  - `docs/templates/agents/skills/project-isolation-workflow/SKILL.md`
-
-### 2026-06-01 - `174fa7a`
-
-docs: update GitHub update log [skip ci]
-
-- Author: `github-actions[bot]`
-- Shortstat: `1 file changed, 23 insertions(+), 23 deletions(-)`
 - Files:
   - `docs/github-updates.md`
