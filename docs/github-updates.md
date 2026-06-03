@@ -4,11 +4,36 @@ This file is generated from git history after public branch pushes.
 Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` instead.
 
 - Source branch: `main`
-- Source commit analyzed: `53bf8c8`
-- Source commit date: `2026-06-03T11:27:00+08:00`
+- Source commit analyzed: `7cdf0fc`
+- Source commit date: `2026-06-03T13:19:12+08:00`
 - Commit window: latest 12 non-merge commits
 
 ## Recent Commits
+
+### 2026-06-03 - `7cdf0fc`
+
+Add v2.2.1 context compact layer
+
+- Author: `JaredLin1217`
+- Shortstat: `26 files changed, 725 insertions(+), 423 deletions(-)`
+- Files:
+  - `CHANGELOG.md`
+  - `README.md`
+  - `docs/agents/ai-runtime.yaml`
+  - `docs/agents/context-compact.yaml`
+  - `docs/agents/deploy.yaml`
+  - `docs/agents/schemas.yaml`
+  - `docs/agents/verify.yaml`
+  - `docs/agents/version.yaml`
+
+### 2026-06-03 - `a020590`
+
+docs: update GitHub update log [skip ci]
+
+- Author: `github-actions[bot]`
+- Shortstat: `1 file changed, 27 insertions(+), 26 deletions(-)`
+- Files:
+  - `docs/github-updates.md`
 
 ### 2026-06-03 - `53bf8c8`
 
@@ -132,26 +157,5 @@ docs: update GitHub update log [skip ci]
 
 - Author: `github-actions[bot]`
 - Shortstat: `1 file changed, 14 insertions(+), 18 deletions(-)`
-- Files:
-  - `docs/github-updates.md`
-
-### 2026-06-01 - `7d8cc09`
-
-docs: compact workflow update path
-
-- Author: `JaredLin1217`
-- Shortstat: `4 files changed, 50 insertions(+), 178 deletions(-)`
-- Files:
-  - `docs/agents/workflows.yaml`
-  - `docs/github-updates.md`
-  - `docs/templates/agents/agents/workflows.yaml`
-  - `scripts/update-github-updates.ps1`
-
-### 2026-06-01 - `b839548`
-
-docs: update GitHub update log [skip ci]
-
-- Author: `github-actions[bot]`
-- Shortstat: `1 file changed, 26 insertions(+), 20 deletions(-)`
 - Files:
   - `docs/github-updates.md`
