@@ -4,29 +4,42 @@ This file is generated from git history after public branch pushes.
 Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` instead.
 
 - Source branch: `main`
-- Source commit analyzed: `pending local update`
-- Source commit date: `2026-06-05T00:00:00+08:00`
+- Source commit analyzed: `378aed3`
+- Source commit date: `2026-06-05T23:10:03+08:00`
 - Commit window: latest 12 non-merge commits
 
 ## Current Project Version
 
 - Version: `2.5.1`
 - Channel: `core-runtime`
-- Positioning: Core Runtime System with cross-project runtime resilience for recoverable windows, layout-aware deployment, target dirty guards, isolated batch validation, and mandatory cleanup capability.
-
-## Pending Local Update
-
-### 2026-06-05 - local
-
-Add 2.5.1 cross-project runtime resilience patch
-
-- Strengthens deployment layout profiles for root and dot-agents targets.
-- Adds target dirty snapshot evidence and unexpected file guards.
-- Adds per-project/per-run temp roots for validation and route-pack export.
-- Makes cleanup capability mandatory in deployed core workflow files.
-- Refreshes the public README around repo-local governance and customer project benefits.
+- Positioning: Core Runtime System unifies routing, dispatch, collaborator windows, compaction, workflow artifacts, runtime evidence, deploy, verify, and release packaging.
 
 ## Recent Commits
+
+### 2026-06-05 - `378aed3`
+
+Add 2.5.1 cross-project runtime resilience
+
+- Author: `JaredLin1217`
+- Shortstat: `31 files changed, 2310 insertions(+), 344 deletions(-)`
+- Files:
+  - `.agents/skills/project-isolation-workflow/SKILL.md`
+  - `CHANGELOG.md`
+  - `README.md`
+  - `docs/agents/deploy.yaml`
+  - `docs/agents/runtime-execution.yaml`
+  - `docs/agents/schemas.yaml`
+  - `docs/agents/verify.yaml`
+  - `docs/agents/version.yaml`
+
+### 2026-06-03 - `4997195`
+
+docs: update GitHub update log [skip ci]
+
+- Author: `github-actions[bot]`
+- Shortstat: `1 file changed, 24 insertions(+), 27 deletions(-)`
+- Files:
+  - `docs/github-updates.md`
 
 ### 2026-06-04 - `9c9fde0`
 
@@ -155,28 +168,3 @@ Add 2.2.1 context compact layer
   - `docs/agents/schemas.yaml`
   - `docs/agents/verify.yaml`
   - `docs/agents/version.yaml`
-
-### 2026-06-03 - `a020590`
-
-docs: update GitHub update log [skip ci]
-
-- Author: `github-actions[bot]`
-- Shortstat: `1 file changed, 27 insertions(+), 26 deletions(-)`
-- Files:
-  - `docs/github-updates.md`
-
-### 2026-06-03 - `53bf8c8`
-
-docs: tighten subagent cleanup workflow
-
-- Author: `JaredLin1217`
-- Shortstat: `10 files changed, 125 insertions(+), 72 deletions(-)`
-- Files:
-  - `README.md`
-  - `docs/agents/schemas.yaml`
-  - `docs/agents/workflows.yaml`
-  - `docs/runbooks/multi-agent-workflow.md`
-  - `docs/runtime-multi-agent-validation.template.md`
-  - `docs/templates/agents/agents/schemas.yaml`
-  - `docs/templates/agents/agents/workflows.yaml`
-  - `docs/templates/agents/multi-agent-workflow.md`
