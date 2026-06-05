@@ -132,7 +132,11 @@ import sqlite3
 def norm_path(value):
     if not value:
         return ""
-    return os.path.normcase(os.path.abspath(str(value).rstrip("\\/")))
+    text = os.path.normcase(os.path.abspath(str(value).rstrip(chr(92) + "/")))
+    win_long_prefix = chr(92) + chr(92) + "?" + chr(92)
+    if text.startswith(win_long_prefix):
+        text = text[len(win_long_prefix):]
+    return text
 
 def table_names(conn):
     return {row[0] for row in conn.execute("select name from sqlite_master where type='table'")}
@@ -277,7 +281,7 @@ for db in payload.get("dbs", []):
 print(json.dumps({"databases": results}, separators=(",", ":")))
 '@
     try {
-        $output = & $python "-c" $pythonCode
+        $output = $pythonCode | & $python "-"
         if ($LASTEXITCODE -ne 0) {
             throw "SQLite helper failed with exit code $LASTEXITCODE."
         }
@@ -391,6 +395,21 @@ function Remove-IdsFromJsonValue {
     return $Value
 }
 
+function Remove-ExactJsonStringFallback {
+    param(
+        [string] $Text,
+        [string[]] $Ids
+    )
+    $newText = $Text
+    foreach ($id in $Ids) {
+        $quotedPattern = '"' + [regex]::Escape($id) + '"'
+        $newText = [regex]::Replace($newText, $quotedPattern + '\s*,\s*', "")
+        $newText = [regex]::Replace($newText, ',\s*' + $quotedPattern, "")
+        $newText = [regex]::Replace($newText, $quotedPattern, "")
+    }
+    return $newText
+}
+
 function Invoke-GlobalStateCleanup {
     param(
         [string[]] $Ids,
@@ -406,16 +425,26 @@ function Invoke-GlobalStateCleanup {
         $text = Get-Content -LiteralPath $file.FullName -Raw
         $before = Get-IdHitCount -Text $text -Ids $Ids
         $deleted = 0
+        $fallbackUsed = $false
+        $parseError = ""
         if ($ActionName -eq "Cleanup" -and $before -gt 0) {
             try {
                 $json = $text | ConvertFrom-Json
                 $clean = Remove-IdsFromJsonValue -Value $json -Ids $Ids
                 $newText = $clean | ConvertTo-Json -Depth 80 -Compress
                 [System.IO.File]::WriteAllText($file.FullName, $newText, [System.Text.UTF8Encoding]::new($false))
-                $deleted = $before
+                $afterText = Get-Content -LiteralPath $file.FullName -Raw
+                $deleted = $before - (Get-IdHitCount -Text $afterText -Ids $Ids)
             }
             catch {
-                $deleted = 0
+                $parseError = $_.Exception.Message
+                $fallbackText = Remove-ExactJsonStringFallback -Text $text -Ids $Ids
+                $fallbackAfter = Get-IdHitCount -Text $fallbackText -Ids $Ids
+                if ($fallbackAfter -lt $before) {
+                    [System.IO.File]::WriteAllText($file.FullName, $fallbackText, [System.Text.UTF8Encoding]::new($false))
+                    $deleted = $before - $fallbackAfter
+                    $fallbackUsed = $true
+                }
             }
         }
         $afterText = Get-Content -LiteralPath $file.FullName -Raw
@@ -424,6 +453,8 @@ function Invoke-GlobalStateCleanup {
             before = $before
             deleted = $deleted
             after = (Get-IdHitCount -Text $afterText -Ids $Ids)
+            fallback_used = $fallbackUsed
+            parse_error = $parseError
         }
     }
     return $results
@@ -445,6 +476,7 @@ function Invoke-RolloutCleanup {
     $before = 0
     $deleted = 0
     $blocked = 0
+    $ignoredParentRefs = 0
     foreach ($root in $roots) {
         if (-not (Test-Path -LiteralPath $root -PathType Container)) {
             continue
@@ -452,12 +484,18 @@ function Invoke-RolloutCleanup {
         $files = @(Get-ChildItem -LiteralPath $root -Recurse -File -ErrorAction SilentlyContinue)
         foreach ($file in $files) {
             $text = Get-Content -LiteralPath $file.FullName -Raw -ErrorAction SilentlyContinue
-            if ((Get-IdHitCount -Text $text -Ids $Ids) -eq 0) {
+            $nameHit = Get-IdHitCount -Text $file.FullName -Ids $Ids
+            $contentHit = Get-IdHitCount -Text $text -Ids $Ids
+            if (($nameHit + $contentHit) -eq 0) {
+                continue
+            }
+            if ($nameHit -eq 0) {
+                $ignoredParentRefs++
                 continue
             }
             $before++
             $lower = $text.ToLowerInvariant()
-            $safe = ($lower.Contains("subagent") -and ($lower.Contains($repoLower) -or $lower.Contains($repoEscaped)))
+            $safe = ($file.Name.StartsWith("rollout-") -and $file.Extension -eq ".jsonl") -or ($lower.Contains("subagent") -and ($lower.Contains($repoLower) -or $lower.Contains($repoEscaped)))
             if ($ActionName -eq "Cleanup") {
                 if ($safe) {
                     Remove-Item -LiteralPath $file.FullName -Force
@@ -475,8 +513,7 @@ function Invoke-RolloutCleanup {
             continue
         }
         foreach ($file in @(Get-ChildItem -LiteralPath $root -Recurse -File -ErrorAction SilentlyContinue)) {
-            $text = Get-Content -LiteralPath $file.FullName -Raw -ErrorAction SilentlyContinue
-            if ((Get-IdHitCount -Text $text -Ids $Ids) -gt 0) {
+            if ((Get-IdHitCount -Text $file.FullName -Ids $Ids) -gt 0) {
                 $after++
             }
         }
@@ -486,6 +523,7 @@ function Invoke-RolloutCleanup {
         deleted = $deleted
         blocked = $blocked
         after = $after
+        ignored_parent_refs = $ignoredParentRefs
     }
 }
 
