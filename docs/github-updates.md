@@ -4,8 +4,8 @@ This file is generated from git history after public branch pushes.
 Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` instead.
 
 - Source branch: `main`
-- Source commit analyzed: `378aed3`
-- Source commit date: `2026-06-05T23:10:03+08:00`
+- Source commit analyzed: `298142b`
+- Source commit date: `2026-06-05T23:27:07+08:00`
 - Commit window: latest 12 non-merge commits
 
 ## Current Project Version
@@ -15,6 +15,24 @@ Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` ins
 - Positioning: Core Runtime System unifies routing, dispatch, collaborator windows, compaction, workflow artifacts, runtime evidence, deploy, verify, and release packaging.
 
 ## Recent Commits
+
+### 2026-06-05 - `298142b`
+
+Harden subagent cleanup residue removal
+
+- Author: `JaredLin1217`
+- Shortstat: `1 file changed, 46 insertions(+), 8 deletions(-)`
+- Files:
+  - `scripts/agents-cleanup.ps1`
+
+### 2026-06-05 - `1a60c5b`
+
+docs: update GitHub update log [skip ci]
+
+- Author: `github-actions[bot]`
+- Shortstat: `1 file changed, 25 insertions(+), 37 deletions(-)`
+- Files:
+  - `docs/github-updates.md`
 
 ### 2026-06-05 - `378aed3`
 
@@ -143,28 +161,3 @@ Prevent deploying target-local Codex environment templates
   - `docs/project-structure.md`
   - `docs/templates/agents/agents/deploy.yaml`
   - `docs/templates/agents/agents/policy.yaml`
-
-### 2026-06-03 - `bb25403`
-
-docs: update GitHub update log [skip ci]
-
-- Author: `github-actions[bot]`
-- Shortstat: `1 file changed, 27 insertions(+), 23 deletions(-)`
-- Files:
-  - `docs/github-updates.md`
-
-### 2026-06-03 - `7cdf0fc`
-
-Add 2.2.1 context compact layer
-
-- Author: `JaredLin1217`
-- Shortstat: `26 files changed, 725 insertions(+), 423 deletions(-)`
-- Files:
-  - `CHANGELOG.md`
-  - `README.md`
-  - `docs/agents/ai-runtime.yaml`
-  - `docs/agents/context-compact.yaml`
-  - `docs/agents/deploy.yaml`
-  - `docs/agents/schemas.yaml`
-  - `docs/agents/verify.yaml`
-  - `docs/agents/version.yaml`
