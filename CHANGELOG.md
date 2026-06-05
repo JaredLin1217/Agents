@@ -1,6 +1,20 @@
 # Changelog
 All notable changes to this repository are documented here.
 ## Unreleased
+## 2.5.1 - 2026-06-05
+- Added cross-project runtime resilience for deployment and verification across
+  multiple target repositories without sharing temp locks or route-pack output.
+- Added deployment layout profiles for `root-layout`, `dot-agents-layout`, and
+  `auto` detection, with mixed canonical path detection.
+- Added target dirty snapshot protection so deployments only change the
+  allowlisted Agents file set, target-local environment bootstrap, and
+  deployment report.
+- Made `scripts/agents-cleanup.ps1` part of the mandatory core deployment set
+  and added cleanup capability checks to deployment reports and validation.
+- Updated runtime execution evidence with deployment evidence, event summaries,
+  verification refs, risk lists, and resume pointers for cross-window recovery.
+- Updated route-pack and validation temp output to use per-project and per-run
+  status roots while keeping deterministic route-pack hashes stable.
 ## 2.5.0 - 2026-06-03
 - Repositioned the project as `2.5.0 Core Runtime System` for repo-local AI
   workflow routing, dispatch, collaborator windows, context compact, workflow

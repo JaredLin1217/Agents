@@ -26,6 +26,8 @@ multi_agent_runtime:
     queue_rule: "Fixture queue rule."
     close_rule: "Fixture close rule."
     ledger_rule: "Fixture ledger rule."
+  runtime:
+    cleanup_helper: "Use scripts/agents-cleanup.ps1 for exact runtime id Verify/Cleanup evidence; never sidebar nicknames."
   lifecycle_checks:
     before: []
     during: []

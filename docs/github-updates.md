@@ -4,15 +4,27 @@ This file is generated from git history after public branch pushes.
 Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` instead.
 
 - Source branch: `main`
-- Source commit analyzed: `9c9fde0`
-- Source commit date: `2026-06-04T07:13:56+08:00`
+- Source commit analyzed: `pending local update`
+- Source commit date: `2026-06-05T00:00:00+08:00`
 - Commit window: latest 12 non-merge commits
 
 ## Current Project Version
 
-- Version: `2.5.0`
+- Version: `2.5.1`
 - Channel: `core-runtime`
-- Positioning: Core Runtime System unifies routing, dispatch, collaborator windows, compaction, workflow artifacts, runtime evidence, deploy, verify, and release packaging.
+- Positioning: Core Runtime System with cross-project runtime resilience for recoverable windows, layout-aware deployment, target dirty guards, isolated batch validation, and mandatory cleanup capability.
+
+## Pending Local Update
+
+### 2026-06-05 - local
+
+Add 2.5.1 cross-project runtime resilience patch
+
+- Strengthens deployment layout profiles for root and dot-agents targets.
+- Adds target dirty snapshot evidence and unexpected file guards.
+- Adds per-project/per-run temp roots for validation and route-pack export.
+- Makes cleanup capability mandatory in deployed core workflow files.
+- Refreshes the public README around repo-local governance and customer project benefits.
 
 ## Recent Commits
 
