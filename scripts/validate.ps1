@@ -1253,6 +1253,13 @@ if (-not $content.Contains("docs/agents/ai-runtime.yaml")) {
 Add-Failure ("AI runtime compact route is not referenced by {0}" -f $path)
 }
 }
+foreach ($path in @("docs/agents/ai-runtime.yaml", "docs/templates/agents/agents/ai-runtime.yaml", "docs/agents/verify.yaml", "docs/agents/provider-adapters.yaml")) {
+$fullPath = Get-RepoPath $path
+$content = Get-Content -LiteralPath $fullPath -Raw
+if ($content -match '\bprovider_adapters\b') {
+Add-Failure ("Legacy provider naming token provider_adapters is present in {0}" -f $path)
+}
+}
 if ($Failures.Count -eq $startFailureCount) {
 Add-Pass "AI runtime compact route checks passed."
 }
@@ -2880,7 +2887,7 @@ if (-not [bool] $manifest.blocklist_result.checked) {
 Add-Failure "Release package manifest blocklist_result.checked must be true."
 }
 $policy = @($manifest.blocklist_result.policy | ForEach-Object { [string] $_ })
-foreach ($requiredPolicy in @(".agents/runtime/**", ".workflow/**", ".codex/config.toml", "API keys", "provider sessions")) {
+foreach ($requiredPolicy in @(".agents/runtime/**", ".workflow/**", ".agents/runtime/agent-ledger.jsonl", ".codex/config.toml", "API keys", "provider sessions")) {
 if ($policy -notcontains $requiredPolicy) {
 Add-Failure ("Release package manifest blocklist policy is missing: {0}" -f $requiredPolicy)
 }
@@ -2913,6 +2920,7 @@ $blockedExact = @(
 ".codex/environments/environment.toml",
 ".codex/environments/environment.template.toml",
 ".agents/runtime/collaborators.jsonl",
+".agents/runtime/agent-ledger.jsonl",
 "docs/agent-status.md",
 ".agents/docs/agent-status.md"
 )
@@ -2955,7 +2963,8 @@ $blockedPhysical = @(
 ".codex/config.toml",
 ".codex/environments/environment.toml",
 ".codex/environments",
-".agents/runtime/collaborators.jsonl"
+".agents/runtime/collaborators.jsonl",
+".agents/runtime/agent-ledger.jsonl"
 )
 foreach ($blocked in $blockedPhysical) {
 $fullPath = Join-Path $packageRoot ($blocked -replace "/", [System.IO.Path]::DirectorySeparatorChar)
