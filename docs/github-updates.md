@@ -3,9 +3,9 @@
 This file is generated from git history after public branch pushes.
 Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` instead.
 
-- Source branch: `main`
-- Source commit analyzed: `298142b`
-- Source commit date: `2026-06-05T23:27:07+08:00`
+- Source branch: `master`
+- Source commit analyzed: `5f7316f`
+- Source commit date: `2026-06-09T06:15:46+08:00`
 - Commit window: latest 12 non-merge commits
 
 ## Current Project Version
@@ -15,6 +15,43 @@ Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` ins
 - Positioning: Core Runtime System unifies routing, dispatch, collaborator windows, compaction, workflow artifacts, runtime evidence, deploy, verify, and release packaging.
 
 ## Recent Commits
+
+### 2026-06-09 - `5f7316f`
+
+Harden runtime boundary rules
+
+- Author: `JaredLin1217`
+- Shortstat: `8 files changed, 38 insertions(+), 14 deletions(-)`
+- Files:
+  - `docs/agents/collaborators.yaml`
+  - `docs/agents/deploy.yaml`
+  - `docs/agents/provider-adapters.yaml`
+  - `docs/agents/workflows.yaml`
+  - `docs/templates/agents/agents/collaborators.yaml`
+  - `docs/templates/agents/agents/deploy.yaml`
+  - `docs/templates/agents/agents/provider-adapters.yaml`
+  - `docs/templates/agents/agents/workflows.yaml`
+
+### 2026-06-09 - `268298c`
+
+Fix ai-runtime provider naming drift and release artifact blocklist
+
+- Author: `JaredLin1217`
+- Shortstat: `4 files changed, 17 insertions(+), 6 deletions(-)`
+- Files:
+  - `docs/agents/verify.yaml`
+  - `docs/templates/agents/agents/verify.yaml`
+  - `scripts/export-release-package.ps1`
+  - `scripts/validate.ps1`
+
+### 2026-06-05 - `96d057b`
+
+docs: update GitHub update log [skip ci]
+
+- Author: `github-actions[bot]`
+- Shortstat: `1 file changed, 20 insertions(+), 27 deletions(-)`
+- Files:
+  - `docs/github-updates.md`
 
 ### 2026-06-05 - `298142b`
 
@@ -120,44 +157,3 @@ Add 2.5.0 core runtime system
   - `docs/agents/collaborators.yaml`
   - `docs/agents/context-compact.yaml`
   - `docs/agents/core-system.yaml`
-
-### 2026-06-03 - `ca7f5cf`
-
-docs: update GitHub update log [skip ci]
-
-- Author: `github-actions[bot]`
-- Shortstat: `1 file changed, 43 insertions(+), 36 deletions(-)`
-- Files:
-  - `docs/github-updates.md`
-
-### 2026-06-03 - `019f3a7`
-
-Add 2.3.0 collaborator window dispatch layer
-
-- Author: `JaredLin1217`
-- Shortstat: `38 files changed, 1368 insertions(+), 356 deletions(-)`
-- Files:
-  - `.agents/skills/project-isolation-workflow/SKILL.md`
-  - `.gitignore`
-  - `CHANGELOG.md`
-  - `README.md`
-  - `docs/agents/ai-runtime.yaml`
-  - `docs/agents/collaborators.yaml`
-  - `docs/agents/deploy.yaml`
-  - `docs/agents/dispatch.yaml`
-
-### 2026-06-03 - `aef5f67`
-
-Prevent deploying target-local Codex environment templates
-
-- Author: `JaredLin1217`
-- Shortstat: `14 files changed, 179 insertions(+), 34 deletions(-)`
-- Files:
-  - `.codex/environments/environment.template.toml`
-  - `.gitignore`
-  - `docs/agents/deploy.yaml`
-  - `docs/agents/policy.yaml`
-  - `docs/agents/verify.yaml`
-  - `docs/project-structure.md`
-  - `docs/templates/agents/agents/deploy.yaml`
-  - `docs/templates/agents/agents/policy.yaml`
