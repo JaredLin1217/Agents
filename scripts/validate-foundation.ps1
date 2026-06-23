@@ -34,10 +34,33 @@ foreach ($marker in @(
 "subagents",
 "prompt_caching",
 "predicted_outputs",
+"evaluations",
 "evaluation"
 )) {
 if (-not $foundationText.Contains($marker)) {
 Add-Failure ("Foundation creation canonical is missing marker: {0}" -f $marker)
+}
+foreach ($marker in @("source_matrix:", "checked:", "capability:", "url:", "boundary:", "drift_risk:", "2026-06-23")) {
+if (-not $foundationText.Contains($marker)) {
+Add-Failure ("Foundation source matrix is missing field or value: {0}" -f $marker)
+}
+}
+$sourceMatrix = @(
+@("structured_outputs", "Structured Outputs", "https://developers.openai.com/api/docs/guides/structured-outputs"),
+@("conversation_state", "conversation state", "https://developers.openai.com/api/docs/guides/conversation-state"),
+@("agents_sdk", "Agents SDK", "https://openai.github.io/openai-agents-python/"),
+@("codex_skills", "Codex skills", "https://developers.openai.com/codex/skills"),
+@("subagents", "subagents", "https://developers.openai.com/codex/subagents"),
+@("prompt_caching", "prompt caching", "https://developers.openai.com/api/docs/guides/prompt-caching"),
+@("predicted_outputs", "predicted outputs", "https://developers.openai.com/api/docs/guides/predicted-outputs"),
+@("evaluations", "evaluations", "https://developers.openai.com/api/docs/guides/evals")
+)
+foreach ($source in $sourceMatrix) {
+foreach ($marker in $source) {
+if (-not $foundationText.Contains($marker)) {
+Add-Failure ("Foundation source matrix is missing marker: {0}" -f $marker)
+}
+}
 }
 }
 foreach ($marker in @("foundation_creation", "docs/agents/openai-foundations.yaml")) {

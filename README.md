@@ -16,14 +16,13 @@ repo history.
 
 ## Current Version
 
-Current Agents workflow version: `2.6.0` (`foundation-creation`).
+Current Agents workflow version: `2.6.1` (`foundation-creation`).
 
 Canonical version source: `docs/agents/version.yaml`
 
-Version positioning: Foundation Creation Layer turns official OpenAI guidance
-into scoped repo-local AI Agents features with schema-first outputs, explicit
-state ownership, tool boundaries, latency controls, evaluation gates, and clean
-release packaging.
+Version positioning: 2.6.1 stabilizes the foundation-creation workflow with
+official source traceability, runtime dry-run evidence boundaries, and added
+size headroom without changing core workflow semantics.
 
 ## What This Project Provides
 

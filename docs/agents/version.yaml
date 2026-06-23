@@ -2,9 +2,9 @@ schema: agents-version/v2
 purpose: "Foundation creation version metadata for provider and target deployments."
 owns: "Foundation creation version, deployment contract, and upgrade expectations."
 workflow:
-  version: "2.6.0"
+  version: "2.6.1"
   channel: "foundation-creation"
-  positioning: "Foundation Creation Layer unifies routing, dispatch, collaborator windows, compaction, workflow artifacts, runtime evidence, official OpenAI capability creation, deploy, verify, and release packaging."
+  positioning: "Stabilization release preserving foundation creation semantics while adding source traceability, runtime dry-run evidence boundaries, and size headroom."
   root_principle: "One repo-local operating standard, official-docs-first capability creation, source-neutral deployment, runtime-local evidence, project-owned knowledge, and repeatable task flow across growing projects."
 readiness_ladder:
   P0: "Validation entry point, canonical contracts, English-only durable rules, ignored runtime and local state, and no local permission repair."

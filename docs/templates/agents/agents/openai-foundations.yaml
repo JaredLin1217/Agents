@@ -29,6 +29,48 @@ latency_and_cost:
 evaluation:
   dataset_first: "Use focused datasets and task outputs for new evaluations; do not depend on retiring platform-only flows."
   score_rule: "Every foundation feature needs pass/fail evidence, risk, and rollback notes before release."
+source_matrix:
+  checked: "2026-06-23"
+  structured_outputs:
+    capability: "Structured Outputs"
+    url: "https://developers.openai.com/api/docs/guides/structured-outputs"
+    boundary: "schema-bound machine output"
+    drift_risk: "model or API schema support can change"
+  conversation_state:
+    capability: "conversation state"
+    url: "https://developers.openai.com/api/docs/guides/conversation-state"
+    boundary: "model-side continuity and resume scope"
+    drift_risk: "state APIs and retention rules can change"
+  agents_sdk:
+    capability: "Agents SDK"
+    url: "https://openai.github.io/openai-agents-python/"
+    boundary: "handoffs, guardrails, tracing, agent loops"
+    drift_risk: "SDK interfaces and defaults can change"
+  codex_skills:
+    capability: "Codex skills"
+    url: "https://developers.openai.com/codex/skills"
+    boundary: "scoped repeatable instructions"
+    drift_risk: "Codex skill packaging rules can change"
+  subagents:
+    capability: "subagents"
+    url: "https://developers.openai.com/codex/subagents"
+    boundary: "parallel delegated work with controller integration"
+    drift_risk: "runtime delegation behavior can change"
+  prompt_caching:
+    capability: "prompt caching"
+    url: "https://developers.openai.com/api/docs/guides/prompt-caching"
+    boundary: "stable prompt prefix optimization"
+    drift_risk: "cache eligibility and pricing can change"
+  predicted_outputs:
+    capability: "predicted outputs"
+    url: "https://developers.openai.com/api/docs/guides/predicted-outputs"
+    boundary: "known-output edit acceleration"
+    drift_risk: "parameter compatibility can change"
+  evaluations:
+    capability: "evaluations"
+    url: "https://developers.openai.com/api/docs/guides/evals"
+    boundary: "dataset-backed pass/fail release evidence"
+    drift_risk: "evaluation tooling and flows can change"
 creation_patterns:
   assistant_feature:
     route: "foundation_creation"
@@ -41,5 +83,5 @@ creation_patterns:
     minimum_contract: ["user journey","agent role","handoff boundary","guardrail","eval sample","release gate"]
 verification:
   profile: "foundation_creation"
-  required_markers: ["structured_outputs","conversation_state","agents_sdk","codex_skills","subagents","prompt_caching","predicted_outputs"]
+  required_markers: ["structured_outputs","conversation_state","agents_sdk","codex_skills","subagents","prompt_caching","predicted_outputs","evaluations"]
   failure_modes: ["schema-free machine output","implicit state owner","unbounded tool authority","parallel write conflict","cost or latency control absent","retiring eval flow dependency"]

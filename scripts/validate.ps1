@@ -54,6 +54,15 @@ function Test-LegacyResidue {
 Add-Failure "Residue validation helper missing: scripts/validate-residue.ps1"
 }
 }
+$EvidenceTemplateValidationHelper = Join-Path $PSScriptRoot "validate-evidence-templates.ps1"
+if (Test-Path -LiteralPath $EvidenceTemplateValidationHelper -PathType Leaf) {
+. $EvidenceTemplateValidationHelper
+}
+else {
+function Test-EvidenceTemplateSchemaCoverage {
+Add-Failure "Evidence template validation helper missing: scripts/validate-evidence-templates.ps1"
+}
+}
 function Get-RepoPathHash {
 param([string] $Path)
 $normalized = [System.IO.Path]::GetFullPath($Path).TrimEnd([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar).ToLowerInvariant()
@@ -214,6 +223,7 @@ $required = @(
 "scripts/agents-workflow.ps1",
 "scripts/agents-runtime.ps1",
 "scripts/agents-cleanup.ps1",
+"scripts/validate-evidence-templates.ps1",
 "scripts/validate-foundation.ps1",
 "scripts/validate-residue.ps1",
 "scripts/export-route-pack.ps1"
@@ -852,6 +862,7 @@ $pairs = @(
 @("docs/controller-lease.template.md", "docs/templates/agents/controller-lease.template.md"),
 @("docs/hard-isolation-evidence.template.md", "docs/templates/agents/hard-isolation-evidence.template.md"),
 @("docs/runtime-multi-agent-validation.template.md", "docs/templates/agents/runtime-multi-agent-validation.template.md"),
+@("docs/runtime-dry-run-evidence.template.md", "docs/templates/agents/runtime-dry-run-evidence.template.md"),
 @("docs/deployment-feedback.template.md", "docs/templates/agents/deployment-feedback.template.md"),
 @("docs/memory-entry.template.md", "docs/templates/agents/memory-entry.template.md"),
 @("docs/memory/entries/README.md", "docs/templates/agents/memory-entries-README.md"),
@@ -916,6 +927,7 @@ $allowedItems = @(
 "docs/templates/agents/controller-lease.template.md",
 "docs/templates/agents/hard-isolation-evidence.template.md",
 "docs/templates/agents/runtime-multi-agent-validation.template.md",
+"docs/templates/agents/runtime-dry-run-evidence.template.md",
 "docs/templates/agents/deployment-feedback.template.md",
 "docs/templates/agents/memory-entry.template.md",
 "docs/templates/agents/memory-entries-README.md",
@@ -2213,97 +2225,6 @@ if ($Failures.Count -eq $startFailureCount) {
 Add-Pass "Agent cleanup helper integrity checks passed."
 }
 }
-function Test-EvidenceTemplateSchemaCoverage {
-$startFailureCount = $Failures.Count
-$schemaContent = Get-Content -LiteralPath (Get-RepoPath "docs/agents/schemas.yaml") -Raw
-function Get-RequiredFields {
-param(
-[string] $Section,
-[string] $NextSection
-)
-$sectionStart = $schemaContent.IndexOf(("{0}:" -f $Section))
-$sectionEnd = $schemaContent.IndexOf(("{0}:" -f $NextSection), $sectionStart + 1)
-if ($sectionStart -lt 0 -or $sectionEnd -lt 0) {
-Add-Failure ("Schema section boundary is missing: {0} -> {1}" -f $Section, $NextSection)
-return @()
-}
-$sectionText = $schemaContent.Substring($sectionStart, $sectionEnd - $sectionStart)
-return [regex]::Matches($sectionText, '^\s*-\s+"([^"]+)"', [System.Text.RegularExpressions.RegexOptions]::Multiline) |
-ForEach-Object { $_.Groups[1].Value }
-}
-function Get-TemplateEvidenceFields {
-param([string] $Path)
-$groupPrefixes = @(
-"Scope",
-"Runtime",
-"Live evidence",
-"Ledger/roster/lease",
-"Assignment proof",
-"Ownership",
-"Final report",
-"Batch proof",
-"Boundary",
-"Work result",
-"Events",
-"Close/cleanup",
-"Result"
-)
-$fields = New-Object 'System.Collections.Generic.HashSet[string]'
-$content = Get-Content -LiteralPath (Get-RepoPath $Path)
-foreach ($line in $content) {
-if ($line -notmatch "^\s*-\s+(.+)$") {
-continue
-}
-foreach ($part in ($Matches[1] -split "\|")) {
-$field = $part.Trim()
-if ([string]::IsNullOrWhiteSpace($field)) {
-continue
-}
-if ($field -match "^([^:]+):\s*(.+)$") {
-if ($groupPrefixes -contains $Matches[1].Trim()) {
-$field = $Matches[2].Trim()
-}
-else {
-$field = $Matches[1].Trim()
-}
-}
-$field = $field.TrimEnd(":")
-[void] $fields.Add($field)
-}
-}
-return @($fields)
-}
-$checks = @(
-@{
-Name = "hard-isolation evidence"
-Paths = @("docs/hard-isolation-evidence.template.md", "docs/templates/agents/hard-isolation-evidence.template.md")
-Markers = Get-RequiredFields "hard_isolation_evidence" "runtime_multi_agent_validation"
-},
-@{
-Name = "runtime multi-agent validation"
-Paths = @("docs/runtime-multi-agent-validation.template.md", "docs/templates/agents/runtime-multi-agent-validation.template.md")
-Markers = Get-RequiredFields "runtime_multi_agent_validation" "memory_entry"
-}
-)
-foreach ($check in $checks) {
-foreach ($path in $check.Paths) {
-$content = Get-Content -LiteralPath (Get-RepoPath $path) -Raw
-foreach ($marker in $check.Markers) {
-if (-not $content.Contains($marker)) {
-Add-Failure ("{0} template is missing schema marker in {1}: {2}" -f $check.Name, $path, $marker)
-}
-}
-foreach ($field in Get-TemplateEvidenceFields -Path $path) {
-if ($check.Markers -notcontains $field) {
-Add-Failure ("{0} schema is missing template field from {1}: {2}" -f $check.Name, $path, $field)
-}
-}
-}
-}
-if ($Failures.Count -eq $startFailureCount) {
-Add-Pass "Evidence template schema coverage checks passed."
-}
-}
 function Test-CIWorkflowStability {
 $startFailureCount = $Failures.Count
 $path = ".github/workflows/checkpoint.yml"
@@ -2408,7 +2329,7 @@ Evidence = @(
 @("scripts/export-release-package.ps1", "release-manifest.json"),
 @("scripts/validate.ps1", "Test-ReleasePackageExport"),
 @("scripts/validate.ps1", "Test-SizeGates"),
-@("scripts/validate.ps1", "Test-EvidenceTemplateSchemaCoverage"),
+@("scripts/validate-evidence-templates.ps1", "Test-EvidenceTemplateSchemaCoverage"),
 @("scripts/validate.ps1", "Test-CIWorkflowStability"),
 @("scripts/validate.ps1", "Full release audit gates passed")
 )

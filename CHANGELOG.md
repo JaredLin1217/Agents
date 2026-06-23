@@ -1,6 +1,15 @@
 # Changelog
 All notable changes to this repository are documented here.
 ## Unreleased
+## 2.6.1 - 2026-06-23
+- Stabilized the 2.6 foundation creation release without changing the core
+  workflow contract.
+- Added the OpenAI source matrix for official capability boundaries and drift
+  risk.
+- Split evidence template coverage into a helper and added runtime dry-run
+  evidence templates.
+- Tightened size gates for rule, skill, canonical YAML, and validation script
+  headroom.
 ## 2.6.0 - 2026-06-23
 - Added the Foundation Creation Layer for official-docs-first OpenAI capability
   design, schema-first outputs, explicit state ownership, tool boundaries,

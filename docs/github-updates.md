@@ -10,9 +10,9 @@ Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` ins
 
 ## Current Project Version
 
-- Version: `2.6.0`
+- Version: `2.6.1`
 - Channel: `foundation-creation`
-- Positioning: Foundation Creation Layer turns official OpenAI guidance into scoped repo-local AI Agents features with schema-first outputs, explicit state ownership, tool boundaries, latency controls, evaluation gates, and clean release packaging.
+- Positioning: 2.6.1 stabilizes the foundation-creation workflow with official source traceability, runtime dry-run evidence boundaries, and size headroom without changing core workflow semantics.
 
 ## Recent Commits
 

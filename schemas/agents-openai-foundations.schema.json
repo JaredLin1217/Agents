@@ -3,7 +3,7 @@
   "$id": "agents-openai-foundations.schema.json",
   "title": "Agents OpenAI foundation creation policy",
   "type": "object",
-  "required": ["schema", "purpose", "owns", "principles", "creation_primitives", "latency_and_cost", "evaluation", "creation_patterns", "verification"],
+  "required": ["schema", "purpose", "owns", "principles", "creation_primitives", "latency_and_cost", "evaluation", "source_matrix", "creation_patterns", "verification"],
   "properties": {
     "schema": {
       "const": "agents-openai-foundations/v1"
@@ -24,6 +24,39 @@
     "latency_and_cost.predicted_outputs",
     "evaluation.dataset_first",
     "evaluation.score_rule",
+    "source_matrix.checked",
+    "source_matrix.structured_outputs.capability",
+    "source_matrix.structured_outputs.url",
+    "source_matrix.structured_outputs.boundary",
+    "source_matrix.structured_outputs.drift_risk",
+    "source_matrix.conversation_state.capability",
+    "source_matrix.conversation_state.url",
+    "source_matrix.conversation_state.boundary",
+    "source_matrix.conversation_state.drift_risk",
+    "source_matrix.agents_sdk.capability",
+    "source_matrix.agents_sdk.url",
+    "source_matrix.agents_sdk.boundary",
+    "source_matrix.agents_sdk.drift_risk",
+    "source_matrix.codex_skills.capability",
+    "source_matrix.codex_skills.url",
+    "source_matrix.codex_skills.boundary",
+    "source_matrix.codex_skills.drift_risk",
+    "source_matrix.subagents.capability",
+    "source_matrix.subagents.url",
+    "source_matrix.subagents.boundary",
+    "source_matrix.subagents.drift_risk",
+    "source_matrix.prompt_caching.capability",
+    "source_matrix.prompt_caching.url",
+    "source_matrix.prompt_caching.boundary",
+    "source_matrix.prompt_caching.drift_risk",
+    "source_matrix.predicted_outputs.capability",
+    "source_matrix.predicted_outputs.url",
+    "source_matrix.predicted_outputs.boundary",
+    "source_matrix.predicted_outputs.drift_risk",
+    "source_matrix.evaluations.capability",
+    "source_matrix.evaluations.url",
+    "source_matrix.evaluations.boundary",
+    "source_matrix.evaluations.drift_risk",
     "creation_patterns.assistant_feature.minimum_contract",
     "creation_patterns.coding_agent_feature.minimum_contract",
     "creation_patterns.product_workflow.minimum_contract",
@@ -83,8 +116,44 @@
       "contains": ["pass/fail evidence", "rollback"]
     },
     {
+      "path": "source_matrix.checked",
+      "contains": ["2026-06-23"]
+    },
+    {
+      "path": "source_matrix.structured_outputs.url",
+      "contains": ["structured-outputs"]
+    },
+    {
+      "path": "source_matrix.conversation_state.url",
+      "contains": ["conversation-state"]
+    },
+    {
+      "path": "source_matrix.agents_sdk.url",
+      "contains": ["openai-agents-python"]
+    },
+    {
+      "path": "source_matrix.codex_skills.url",
+      "contains": ["codex/skills"]
+    },
+    {
+      "path": "source_matrix.subagents.url",
+      "contains": ["codex/subagents"]
+    },
+    {
+      "path": "source_matrix.prompt_caching.url",
+      "contains": ["prompt-caching"]
+    },
+    {
+      "path": "source_matrix.predicted_outputs.url",
+      "contains": ["predicted-outputs"]
+    },
+    {
+      "path": "source_matrix.evaluations.url",
+      "contains": ["evals"]
+    },
+    {
       "path": "verification.required_markers",
-      "contains": ["structured_outputs", "conversation_state", "agents_sdk", "codex_skills", "subagents", "prompt_caching", "predicted_outputs"]
+      "contains": ["structured_outputs", "conversation_state", "agents_sdk", "codex_skills", "subagents", "prompt_caching", "predicted_outputs", "evaluations"]
     }
   ]
 }
