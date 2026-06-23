@@ -3,18 +3,59 @@
 This file is generated from git history after public branch pushes.
 Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` instead.
 
-- Source branch: `master`
-- Source commit analyzed: `5f7316f`
-- Source commit date: `2026-06-09T06:15:46+08:00`
+- Source branch: `main`
+- Source commit analyzed: `e558aef`
+- Source commit date: `2026-06-23T17:25:02+08:00`
 - Commit window: latest 12 non-merge commits
 
 ## Current Project Version
 
 - Version: `2.6.1`
 - Channel: `foundation-creation`
-- Positioning: 2.6.1 stabilizes the foundation-creation workflow with official source traceability, runtime dry-run evidence boundaries, and size headroom without changing core workflow semantics.
+- Positioning: Stabilization release preserving foundation creation semantics while adding source traceability, runtime dry-run evidence boundaries, and size headroom.
 
 ## Recent Commits
+
+### 2026-06-23 - `e558aef`
+
+chore: stabilize agents workflow 2.6.1
+
+- Author: `JaredLin1217`
+- Shortstat: `23 files changed, 643 insertions(+), 611 deletions(-)`
+- Files:
+  - `.agents/skills/project-isolation-workflow/SKILL.md`
+  - `AGENTS.md`
+  - `CHANGELOG.md`
+  - `README.md`
+  - `docs/agents/deploy.yaml`
+  - `docs/agents/openai-foundations.yaml`
+  - `docs/agents/schemas.yaml`
+  - `docs/agents/verify.yaml`
+
+### 2026-06-23 - `ca454cb`
+
+chore: checkpoint agents workflow 2.6.0
+
+- Author: `JaredLin1217`
+- Shortstat: `41 files changed, 995 insertions(+), 441 deletions(-)`
+- Files:
+  - `AGENTS.md`
+  - `CHANGELOG.md`
+  - `README.md`
+  - `docs/agents/ai-runtime.yaml`
+  - `docs/agents/core-system.yaml`
+  - `docs/agents/decisions/v2-checkpoint-package.md`
+  - `docs/agents/decisions/v2-structure-roadmap.md`
+  - `docs/agents/deploy.yaml`
+
+### 2026-06-09 - `986c98d`
+
+docs: update GitHub update log [skip ci]
+
+- Author: `JaredLin1217`
+- Shortstat: `1 file changed, 40 insertions(+), 44 deletions(-)`
+- Files:
+  - `docs/github-updates.md`
 
 ### 2026-06-09 - `5f7316f`
 
@@ -117,43 +158,3 @@ docs: update GitHub update log [skip ci]
 - Shortstat: `1 file changed, 26 insertions(+), 27 deletions(-)`
 - Files:
   - `docs/github-updates.md`
-
-### 2026-06-04 - `e6d2543`
-
-Add AI runtime schema validation
-
-- Author: `JaredLin1217`
-- Shortstat: `7 files changed, 43 insertions(+), 5 deletions(-)`
-- Files:
-  - `docs/agents/ai-runtime.yaml`
-  - `docs/agents/provider-adapters.yaml`
-  - `docs/templates/agents/agents/ai-runtime.yaml`
-  - `docs/templates/agents/agents/provider-adapters.yaml`
-  - `schemas/agents-ai-runtime.schema.json`
-  - `schemas/agents-provider-adapters.schema.json`
-  - `scripts/validate.ps1`
-
-### 2026-06-03 - `cde5335`
-
-docs: update GitHub update log [skip ci]
-
-- Author: `github-actions[bot]`
-- Shortstat: `1 file changed, 27 insertions(+), 27 deletions(-)`
-- Files:
-  - `docs/github-updates.md`
-
-### 2026-06-04 - `5a59786`
-
-Add 2.5.0 core runtime system
-
-- Author: `JaredLin1217`
-- Shortstat: `58 files changed, 2763 insertions(+), 1186 deletions(-)`
-- Files:
-  - `.agents/skills/project-isolation-workflow/SKILL.md`
-  - `.gitignore`
-  - `CHANGELOG.md`
-  - `README.md`
-  - `docs/agents/ai-runtime.yaml`
-  - `docs/agents/collaborators.yaml`
-  - `docs/agents/context-compact.yaml`
-  - `docs/agents/core-system.yaml`
