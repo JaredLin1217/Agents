@@ -1,6 +1,17 @@
 # Changelog
 All notable changes to this repository are documented here.
 ## Unreleased
+## 2.6.0 - 2026-06-23
+- Added the Foundation Creation Layer for official-docs-first OpenAI capability
+  design, schema-first outputs, explicit state ownership, tool boundaries,
+  latency controls, evaluation gates, fallback plans, and cleanup rules.
+- Added canonical and template `docs/agents/openai-foundations.yaml` contracts
+  with schema validation and route-level verification.
+- Removed the retired optional external connector layer from canonical docs,
+  template mirrors, schemas, public README, structure maps, and validation
+  gates.
+- Updated scoring and readiness checks so foundation creation is validated as a
+  first-class route instead of passive documentation.
 ## 2.5.1 - 2026-06-05
 - Added cross-project runtime resilience for deployment and verification across
   multiple target repositories without sharing temp locks or route-pack output.
@@ -35,7 +46,7 @@ All notable changes to this repository are documented here.
 - Added the Collaborator Window Dispatch Layer for named, recoverable, and
   archivable Codex department-leader work sessions.
 - Added collaborator canonical YAML, schema, template mirror, route, version,
-  MCP capability, dispatch, workflow, and verification coverage.
+  capability boundary, dispatch, workflow, and verification coverage.
 - Blocked live thread ids, collaborator window state, and
   `.agents/runtime/collaborators.jsonl` from deployable and releasable content.
 - Updated public documentation for collaborator commands, leader mapping,

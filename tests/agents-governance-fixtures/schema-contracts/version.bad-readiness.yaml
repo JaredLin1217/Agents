@@ -11,7 +11,7 @@ readiness_ladder:
   P2: "Source-neutral template bundle with exact-pair drift checks and root intent preservation."
   P3: "Delegated deployment worker with ownership boundaries and before/during/after lifecycle checks."
   P4: "Release audit profile with hard-isolation claim boundaries and size gates."
-  P5: "Long-term core-runtime governance with target-owned state preservation and compact workflow growth controls."
+  P5: "Long-term foundation-creation governance with target-owned state preservation and compact workflow growth controls."
 upgrade_policy:
   core_contract_rule: "Core runtime contract is incomplete."
   breaking_change_rule: "Breaking changes require explicit opt-in."

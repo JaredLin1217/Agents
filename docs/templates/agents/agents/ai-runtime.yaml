@@ -15,6 +15,7 @@ route:
   core_system: {f: ["docs/agents/core-system.yaml","docs/agents/verify.yaml"], v: core_system}
   runtime_execution: {f: ["docs/agents/runtime-execution.yaml","docs/agents/verify.yaml"], v: runtime_execution}
   provider_adapter: {f: ["docs/agents/provider-adapters.yaml","docs/agents/model-policy.yaml","docs/agents/verify.yaml"], v: provider_adapter}
+  foundation_creation: {f: ["docs/agents/openai-foundations.yaml","docs/agents/schemas.yaml","docs/agents/verify.yaml"], v: foundation_creation}
   route_pack: {f: ["docs/agents/route-packs.yaml","docs/agents/ai-runtime.yaml"], v: route_pack}
   knowledge_footprint: {f: ["docs/agents/knowledge-footprint.yaml","docs/agents/context-compact.yaml","docs/agents/verify.yaml"], v: knowledge_footprint}
   hard_isolation: {f: ["docs/agents/policy.yaml","docs/agents/verify.yaml"], v: hard_isolation}

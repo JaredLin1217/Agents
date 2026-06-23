@@ -38,10 +38,12 @@
     "file_classes.workflow_artifact_canonical",
     "file_classes.context_compact_canonical",
     "file_classes.runtime_local",
+    "file_classes.foundation_creation_canonical",
     "commands.full_audit_bundle",
     "commands.enterprise_dispatch_integrity",
     "commands.workflow_artifact_integrity",
     "commands.context_compact_integrity",
+    "commands.foundation_creation_integrity",
     "commands.release_package_export",
     "commands.deployment_script_safety",
     "commands.deployment_script_selftest",
@@ -54,6 +56,7 @@
     "profiles.enterprise_dispatch",
     "profiles.workflow_artifact",
     "profiles.context_compact",
+    "profiles.foundation_creation",
     "profiles.runtime_multi_agent",
     "profiles.hard_isolation",
     "size_gates.targets.tracked_repo_kib",
@@ -65,6 +68,7 @@
     "minimum_evidence.deploy_clean",
     "minimum_evidence.workflow_artifact",
     "minimum_evidence.context_compact",
+    "minimum_evidence.foundation_creation",
     "live_employee_validation.required",
     "batch_employee_validation.required",
     "drift_checks.exact_pairs",
@@ -118,6 +122,26 @@
         "context-compact route",
         "raw transcript",
         "runtime event boundary"
+      ]
+    },
+    {
+      "path": "commands.foundation_creation_integrity",
+      "contains": [
+        "official docs first",
+        "structured outputs",
+        "state owner",
+        "latency controls",
+        "evaluation gate"
+      ]
+    },
+    {
+      "path": "profiles.foundation_creation",
+      "contains": [
+        "schema-first outputs",
+        "state owner",
+        "tool boundary",
+        "latency control",
+        "evaluation gate"
       ]
     },
     {
@@ -177,6 +201,16 @@
       "contains": [
         "latest_user_request",
         "open_risks"
+      ]
+    },
+    {
+      "path": "minimum_evidence.foundation_creation",
+      "contains": [
+        "official docs source checked",
+        "schema contract present",
+        "state owner named",
+        "latency control chosen",
+        "evaluation evidence planned"
       ]
     },
     {

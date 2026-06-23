@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "agents-openai-foundations.schema.json",
+  "title": "Agents OpenAI foundation creation policy",
+  "type": "object",
+  "required": ["schema", "purpose", "owns", "principles", "creation_primitives", "latency_and_cost", "evaluation", "creation_patterns", "verification"],
+  "properties": {
+    "schema": {
+      "const": "agents-openai-foundations/v1"
+    }
+  },
+  "x-required-paths": [
+    "principles.official_docs_first",
+    "principles.structured_outputs_first",
+    "principles.stateless_by_default",
+    "principles.cache_static_prefix",
+    "principles.predicted_output_fit",
+    "creation_primitives.structured_outputs.gate",
+    "creation_primitives.conversation_state.gate",
+    "creation_primitives.agents_sdk.gate",
+    "creation_primitives.codex_skills.gate",
+    "creation_primitives.subagents.gate",
+    "latency_and_cost.prompt_caching",
+    "latency_and_cost.predicted_outputs",
+    "evaluation.dataset_first",
+    "evaluation.score_rule",
+    "creation_patterns.assistant_feature.minimum_contract",
+    "creation_patterns.coding_agent_feature.minimum_contract",
+    "creation_patterns.product_workflow.minimum_contract",
+    "verification.profile",
+    "verification.required_markers",
+    "verification.failure_modes"
+  ],
+  "x-required-values": [
+    {
+      "path": "verification.profile",
+      "value": "foundation_creation"
+    }
+  ],
+  "x-required-contains": [
+    {
+      "path": "principles.official_docs_first",
+      "contains": ["official OpenAI developer documentation"]
+    },
+    {
+      "path": "principles.structured_outputs_first",
+      "contains": ["Structured Outputs", "schema guarantee"]
+    },
+    {
+      "path": "principles.stateless_by_default",
+      "contains": ["stateless", "conversation state"]
+    },
+    {
+      "path": "creation_primitives.structured_outputs.gate",
+      "contains": ["schema", "reject"]
+    },
+    {
+      "path": "creation_primitives.conversation_state.gate",
+      "contains": ["state owner", "resume pointer"]
+    },
+    {
+      "path": "creation_primitives.agents_sdk.gate",
+      "contains": ["handoffs", "guardrails", "tracing"]
+    },
+    {
+      "path": "creation_primitives.codex_skills.gate",
+      "contains": ["skills scoped", "compact"]
+    },
+    {
+      "path": "creation_primitives.subagents.gate",
+      "contains": ["parallel", "writes"]
+    },
+    {
+      "path": "latency_and_cost.prompt_caching",
+      "contains": ["stable prompt", "volatile"]
+    },
+    {
+      "path": "latency_and_cost.predicted_outputs",
+      "contains": ["known text", "rejected prediction tokens"]
+    },
+    {
+      "path": "evaluation.score_rule",
+      "contains": ["pass/fail evidence", "rollback"]
+    },
+    {
+      "path": "verification.required_markers",
+      "contains": ["structured_outputs", "conversation_state", "agents_sdk", "codex_skills", "subagents", "prompt_caching", "predicted_outputs"]
+    }
+  ]
+}

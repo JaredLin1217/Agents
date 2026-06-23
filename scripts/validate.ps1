@@ -32,30 +32,27 @@ function Add-Pass {
 param([string] $Message)
 Write-Check "PASS" $Message
 }
-function Convert-AgentLedgerEventForValidation {
-param([pscustomobject] $Event)
-$normalized = [ordered]@{}
-foreach ($property in $Event.PSObject.Properties) {
-$normalized[$property.Name] = $property.Value
-}
-$aliases = @{
-time       = "ts"
-runtime_id = "agent_id"
-agent      = "agent_id"
-controller = "controller_id"
-scope      = "read_scope"
-}
-foreach ($alias in $aliases.Keys) {
-$canonical = $aliases[$alias]
-if ($normalized.Contains($alias) -and -not $normalized.Contains($canonical)) {
-$normalized[$canonical] = $normalized[$alias]
-}
-}
-return [pscustomobject]$normalized
-}
 function Get-RepoPath {
 param([string] $Path)
 return Join-Path $RepoRoot $Path
+}
+$FoundationValidationHelper = Join-Path $PSScriptRoot "validate-foundation.ps1"
+if (Test-Path -LiteralPath $FoundationValidationHelper -PathType Leaf) {
+. $FoundationValidationHelper
+}
+else {
+function Test-FoundationCreationIntegrity {
+Add-Failure "Foundation validation helper missing: scripts/validate-foundation.ps1"
+}
+}
+$ResidueValidationHelper = Join-Path $PSScriptRoot "validate-residue.ps1"
+if (Test-Path -LiteralPath $ResidueValidationHelper -PathType Leaf) {
+. $ResidueValidationHelper
+}
+else {
+function Test-LegacyResidue {
+Add-Failure "Residue validation helper missing: scripts/validate-residue.ps1"
+}
 }
 function Get-RepoPathHash {
 param([string] $Path)
@@ -175,9 +172,10 @@ $required = @(
 "docs/agents/verify.yaml",
 "docs/agents/schemas.yaml",
 "docs/agents/deploy.yaml",
-"docs/agents/mcp.yaml",
+"docs/agents/openai-foundations.yaml",
 "docs/agents/version.yaml",
 "schemas/agents-ai-runtime.schema.json",
+"schemas/agents-openai-foundations.schema.json",
 "docs/agents/org.yaml",
 "docs/agents/model-policy.yaml",
 "docs/agents/dispatch.yaml",
@@ -205,6 +203,7 @@ $required = @(
 "docs/templates/agents/agents/provider-adapters.yaml",
 "docs/templates/agents/agents/route-packs.yaml",
 "docs/templates/agents/agents/knowledge-footprint.yaml",
+"docs/templates/agents/agents/openai-foundations.yaml",
 "docs/agents/context-compact.yaml",
 "schemas/agents-context-compact.schema.json",
 "docs/templates/agents/agents/context-compact.yaml",
@@ -215,6 +214,8 @@ $required = @(
 "scripts/agents-workflow.ps1",
 "scripts/agents-runtime.ps1",
 "scripts/agents-cleanup.ps1",
+"scripts/validate-foundation.ps1",
+"scripts/validate-residue.ps1",
 "scripts/export-route-pack.ps1"
 )
 foreach ($path in $required) {
@@ -387,7 +388,7 @@ $contracts = @(
 @{ Yaml = "docs/agents/policy.yaml"; Schema = "schemas/agents-policy.schema.json" },
 @{ Yaml = "docs/agents/schemas.yaml"; Schema = "schemas/agents-schemas.schema.json" },
 @{ Yaml = "docs/agents/deploy.yaml"; Schema = "schemas/agents-deploy.schema.json" },
-@{ Yaml = "docs/agents/mcp.yaml"; Schema = "schemas/agents-mcp.schema.json" },
+@{ Yaml = "docs/agents/openai-foundations.yaml"; Schema = "schemas/agents-openai-foundations.schema.json" },
 @{ Yaml = "docs/agents/version.yaml"; Schema = "schemas/agents-version.schema.json" },
 @{ Yaml = "docs/agents/org.yaml"; Schema = "schemas/agents-org.schema.json" },
 @{ Yaml = "docs/agents/model-policy.yaml"; Schema = "schemas/agents-model-policy.schema.json" },
@@ -624,7 +625,6 @@ $textFiles = @(Get-TextFiles -Roots @(
 "schemas",
 "scripts",
 "tests",
-"mcp",
 "artifacts",
 ".github/workflows"
 ))
@@ -646,7 +646,7 @@ $files = @(
 & git -C $RepoRoot ls-files
 & git -C $RepoRoot ls-files --others --exclude-standard
 ) | Where-Object { $_ } | Sort-Object -Unique
-return @($files)
+return @($files | Where-Object { Test-Path -LiteralPath (Get-RepoPath $_) -PathType Leaf })
 }
 function Get-RepoFilesSize {
 param([string[]] $Paths)
@@ -661,12 +661,12 @@ return $total
 }
 function Write-AgentQualityScore {
 $aiRuntimePath = Get-RepoPath "docs/agents/ai-runtime.yaml"
-$mcpPath = Get-RepoPath "docs/agents/mcp.yaml"
+$foundationPath = Get-RepoPath "docs/agents/openai-foundations.yaml"
 $deployPath = Get-RepoPath "docs/agents/deploy.yaml"
 $verifyPath = Get-RepoPath "docs/agents/verify.yaml"
 $exportPath = Get-RepoPath "scripts/export-release-package.ps1"
 $aiRuntimeText = Get-Content -LiteralPath $aiRuntimePath -Raw
-$mcpText = Get-Content -LiteralPath $mcpPath -Raw
+$foundationText = Get-Content -LiteralPath $foundationPath -Raw
 $deployText = Get-Content -LiteralPath $deployPath -Raw
 $verifyText = Get-Content -LiteralPath $verifyPath -Raw
 $aiRuntimeBytes = (Get-Item -LiteralPath $aiRuntimePath).Length
@@ -705,7 +705,21 @@ $aiRuntimeText -match 'route_pack:\s*\{\s*f:\s*\[[^\]]*"docs/agents/route-packs\
 $knowledgeFootprintRouteMinimal = (
 $aiRuntimeText -match 'knowledge_footprint:\s*\{\s*f:\s*\[[^\]]*"docs/agents/knowledge-footprint\.yaml"[^\]]*"docs/agents/context-compact\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]'
 )
-$officialDocsFirst = ($mcpText -match 'OpenAI developer documentation' -and $mcpText -match 'official OpenAI docs')
+$foundationCreationRouteMinimal = (
+$aiRuntimeText -match 'foundation_creation:\s*\{\s*f:\s*\[[^\]]*"docs/agents/openai-foundations\.yaml"[^\]]*"docs/agents/schemas\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]' -and
+$aiRuntimeText -notmatch 'foundation_creation:\s*\{[^\r\n]*(org|dispatch|workflows|deploy|runtime-execution|collaborators)\.yaml'
+)
+$officialDocsFirst = ($foundationText -match 'official OpenAI developer documentation' -and $foundationText -match 'official_docs_first')
+$foundationCapabilityReady = (
+$foundationText -match 'structured_outputs' -and
+$foundationText -match 'conversation_state' -and
+$foundationText -match 'agents_sdk' -and
+$foundationText -match 'codex_skills' -and
+$foundationText -match 'subagents' -and
+$foundationText -match 'prompt_caching' -and
+$foundationText -match 'predicted_outputs' -and
+$foundationText -match 'evaluation'
+)
 $releaseExportReady = (
 (Test-Path -LiteralPath $exportPath -PathType Leaf) -and
 $deployText -match 'do_not_deploy' -and
@@ -721,6 +735,8 @@ $runtimeExecutionRouteMinimal -and
 $providerAdapterRouteMinimal -and
 $routePackRouteMinimal -and
 $knowledgeFootprintRouteMinimal -and
+$foundationCreationRouteMinimal -and
+$foundationCapabilityReady -and
 $aiRuntimeText -match 'expand_only' -and
 $aiRuntimeText -match 'canonical YAML wins' -and
 $aiRuntimeText -match 'Do not load docs/templates/agents/\*\*' -and
@@ -758,12 +774,17 @@ $items = @(
 [pscustomobject]@{
 Name = "llm_rule_fit"
 Score = if ($llmRuleComplete) { 100.0 } elseif ($aiRuntimeText -match 'expand_only') { 96.0 } else { 84.0 }
-Evidence = if ($llmRuleComplete) { "minimal enterprise, artifact, collaborator, core runtime, provider, route pack, and knowledge footprint routes, expand-only router, canonical priority, template skip, and runtime-local block" } else { "router present; LLM rule fit is incomplete" }
+Evidence = if ($llmRuleComplete) { "minimal enterprise, artifact, collaborator, core runtime, provider, route pack, knowledge footprint, and foundation creation routes, expand-only router, canonical priority, template skip, and runtime-local block" } else { "router present; LLM rule fit is incomplete" }
 },
 [pscustomobject]@{
 Name = "official_guidance_path"
 Score = if ($officialDocsFirst) { 100.0 } else { 84.0 }
 Evidence = if ($officialDocsFirst) { "OpenAI developer docs first path retained" } else { "official guidance path missing or weak" }
+},
+[pscustomobject]@{
+Name = "foundation_capability_fit"
+Score = if ($foundationCapabilityReady) { 100.0 } else { 84.0 }
+Evidence = if ($foundationCapabilityReady) { "foundation creation covers schema-first output, state, agents, skills, subagents, latency controls, and evaluation gates" } else { "foundation creation capability map is incomplete" }
 },
 [pscustomobject]@{
 Name = "token_economy"
@@ -842,7 +863,7 @@ $pairs = @(
 @("docs/agents/workflows.yaml", "docs/templates/agents/agents/workflows.yaml"),
 @("docs/agents/schemas.yaml", "docs/templates/agents/agents/schemas.yaml"),
 @("docs/agents/deploy.yaml", "docs/templates/agents/agents/deploy.yaml"),
-@("docs/agents/mcp.yaml", "docs/templates/agents/agents/mcp.yaml"),
+@("docs/agents/openai-foundations.yaml", "docs/templates/agents/agents/openai-foundations.yaml"),
 @("docs/agents/version.yaml", "docs/templates/agents/agents/version.yaml"),
 @("docs/agents/verify.yaml", "docs/templates/agents/agents/verify.yaml"),
 @("docs/agents/org.yaml", "docs/templates/agents/agents/org.yaml"),
@@ -906,7 +927,7 @@ $allowedItems = @(
 "docs/templates/agents/agents/workflows.yaml",
 "docs/templates/agents/agents/schemas.yaml",
 "docs/templates/agents/agents/deploy.yaml",
-"docs/templates/agents/agents/mcp.yaml",
+"docs/templates/agents/agents/openai-foundations.yaml",
 "docs/templates/agents/agents/version.yaml",
 "docs/templates/agents/agents/verify.yaml",
 "docs/templates/agents/agents/org.yaml",
@@ -1166,6 +1187,7 @@ $requiredNeedles = @(
 "provider_adapter",
 "route_pack",
 "knowledge_footprint",
+"foundation_creation",
 "docs/agents/org.yaml",
 "docs/agents/model-policy.yaml",
 "docs/agents/dispatch.yaml",
@@ -1177,6 +1199,7 @@ $requiredNeedles = @(
 "docs/agents/provider-adapters.yaml",
 "docs/agents/route-packs.yaml",
 "docs/agents/knowledge-footprint.yaml",
+"docs/agents/openai-foundations.yaml",
 "hard_isolation",
 "Do not load docs/templates/agents/**",
 "Never stage, deploy, or copy runtime_local"
@@ -1229,6 +1252,9 @@ Add-Failure ("AI runtime route pack route must load route-packs and ai-runtime: 
 }
 if ($content -notmatch 'knowledge_footprint:\s*\{\s*f:\s*\[[^\]]*"docs/agents/knowledge-footprint\.yaml"[^\]]*"docs/agents/context-compact\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]') {
 Add-Failure ("AI runtime knowledge footprint route must load knowledge-footprint, context-compact, and verify: {0}" -f $path)
+}
+if ($content -notmatch 'foundation_creation:\s*\{\s*f:\s*\[[^\]]*"docs/agents/openai-foundations\.yaml"[^\]]*"docs/agents/schemas\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]' -or $content -match 'foundation_creation:\s*\{[^\r\n]*(org|dispatch|workflows|deploy|runtime-execution|collaborators)\.yaml') {
+Add-Failure ("AI runtime foundation creation route must load only openai-foundations, schemas, and verify: {0}" -f $path)
 }
 $routeMatches = [regex]::Matches($content, '(?m)^\s+([A-Za-z0-9_]+):\s*\{[^\r\n]*\bv:\s*([A-Za-z0-9_]+|none)\s*\}')
 foreach ($match in $routeMatches) {
@@ -1865,9 +1891,6 @@ $routeChecks = @(
 @("docs/agents/workflows.yaml", "collaborator_window_runtime"),
 @("docs/agents/workflows.yaml", "close_rule"),
 @("docs/agents/workflows.yaml", "runtime_rule"),
-@("docs/agents/mcp.yaml", "thread_management"),
-@("docs/agents/mcp.yaml", ".agents/runtime/collaborators.jsonl"),
-@("docs/agents/mcp.yaml", "live thread ids"),
 @("docs/agents/deploy.yaml", "docs/templates/agents/agents/collaborators.yaml"),
 @("docs/agents/deploy.yaml", ".agents/runtime/collaborators.jsonl"),
 @("docs/agents/deploy.yaml", "live thread ids"),
@@ -2094,7 +2117,6 @@ $schemaMarkers = @(
 "agent_event:",
 "agent_ledger_event:",
 "canonical_fields:",
-"compatibility_aliases:",
 "controller_lease:",
 "runtime_multi_agent_validation:",
 "Expected id set",
@@ -2189,34 +2211,6 @@ Add-Failure ("Agent cleanup helper Verify failed: {0}" -f $_.Exception.Message)
 }
 if ($Failures.Count -eq $startFailureCount) {
 Add-Pass "Agent cleanup helper integrity checks passed."
-}
-}
-function Test-AgentLedgerCompatibility {
-$startFailureCount = $Failures.Count
-$samples = @(
-'{"ts":"2026-05-31T00:00:00Z","event":"completed","agent_id":"agent-1","mode":"session-managed","role":"explorer","task":"audit","status":"completed"}',
-'{"time":"2026-05-31T00:00:00Z","event":"completed","runtime_id":"agent-2","mode":"session-managed","role":"explorer","task":"audit","status":"completed"}',
-'{"ts":"2026-05-31T00:00:00Z","event":"closed","agent":"agent-3","controller":"codex","scope":"read-only audit","mode":"session-managed","role":"explorer","task":"audit"}'
-)
-$requiredFields = @("ts", "event", "agent_id", "mode", "role", "task")
-foreach ($sample in $samples) {
-try {
-$event = $sample | ConvertFrom-Json
-}
-catch {
-Add-Failure ("Agent ledger sample is invalid JSON: {0}" -f $sample)
-continue
-}
-$normalized = Convert-AgentLedgerEventForValidation -Event $event
-foreach ($field in $requiredFields) {
-$property = $normalized.PSObject.Properties[$field]
-if ($null -eq $property -or [string]::IsNullOrWhiteSpace([string]$property.Value)) {
-Add-Failure ("Agent ledger compatibility sample is missing canonical field after normalization: {0}" -f $field)
-}
-}
-}
-if ($Failures.Count -eq $startFailureCount) {
-Add-Pass "Agent ledger compatibility checks passed."
 }
 }
 function Test-EvidenceTemplateSchemaCoverage {
@@ -2392,8 +2386,7 @@ Evidence = @(
 @("scripts/validate.ps1", "Test-ContextCompactIntegrity"),
 @("scripts/validate.ps1", "Test-CollaboratorWindowIntegrity"),
 @("scripts/validate.ps1", "Test-MultiAgentWorkflowIntegrity"),
-@("scripts/validate.ps1", "Test-AgentCleanupHelperIntegrity"),
-@("scripts/validate.ps1", "Test-AgentLedgerCompatibility")
+@("scripts/validate.ps1", "Test-AgentCleanupHelperIntegrity")
 )
 },
 @{
@@ -2411,6 +2404,7 @@ Evidence = @(
 @("docs/agents/verify.yaml", "provider_adapter"),
 @("docs/agents/verify.yaml", "route_pack"),
 @("docs/agents/verify.yaml", "knowledge_footprint"),
+@("docs/agents/verify.yaml", "foundation_creation"),
 @("scripts/export-release-package.ps1", "release-manifest.json"),
 @("scripts/validate.ps1", "Test-ReleasePackageExport"),
 @("scripts/validate.ps1", "Test-SizeGates"),
@@ -2424,9 +2418,12 @@ Level = "P5"
 Evidence = @(
 @("docs/agents/version.yaml", "P5:"),
 @("docs/agents/version.yaml", "core_contract_rule"),
+@("docs/agents/version.yaml", "foundation_creation_rule"),
 @("docs/agents/version.yaml", "workflow_artifact"),
 @("docs/agents/version.yaml", "context_compact"),
 @("docs/agents/version.yaml", "rollback"),
+@("docs/agents/openai-foundations.yaml", "structured_outputs"),
+@("scripts/validate-foundation.ps1", "Test-FoundationCreationIntegrity"),
 @("docs/agents/verify.yaml", "stale_literal_rule"),
 @("docs/agents/verify.yaml", "batch_rule"),
 @("docs/agents/verify.yaml", "target-owned state preservation"),
@@ -2559,7 +2556,8 @@ $mirrorPairs = @(
 @("docs/agents/runtime-execution.yaml", "docs/templates/agents/agents/runtime-execution.yaml"),
 @("docs/agents/provider-adapters.yaml", "docs/templates/agents/agents/provider-adapters.yaml"),
 @("docs/agents/route-packs.yaml", "docs/templates/agents/agents/route-packs.yaml"),
-@("docs/agents/knowledge-footprint.yaml", "docs/templates/agents/agents/knowledge-footprint.yaml")
+@("docs/agents/knowledge-footprint.yaml", "docs/templates/agents/agents/knowledge-footprint.yaml"),
+@("docs/agents/openai-foundations.yaml", "docs/templates/agents/agents/openai-foundations.yaml")
 )
 foreach ($pair in $mirrorPairs) {
 $source = Get-RepoPath $pair[0]
@@ -2575,13 +2573,13 @@ Add-Failure ("Core runtime template mirror drift: {0} <-> {1}" -f $pair[0], $pai
 }
 }
 $markerChecks = @(
-@("docs/agents/ai-runtime.yaml", @("core_system", "runtime_execution", "provider_adapter", "route_pack", "knowledge_footprint")),
+@("docs/agents/ai-runtime.yaml", @("core_system", "runtime_execution", "provider_adapter", "route_pack", "knowledge_footprint", "foundation_creation")),
 @("docs/agents/workflows.yaml", @("core_system_runtime", "runtime_execution_runtime", "provider_adapter_runtime", "route_pack_runtime", "knowledge_footprint_runtime")),
-@("docs/agents/deploy.yaml", @("docs/agents/core-system.yaml", "docs/agents/runtime-execution.yaml", "docs/agents/provider-adapters.yaml", "docs/agents/route-packs.yaml", "docs/agents/knowledge-footprint.yaml", ".agents/runtime/executions/", ".agents/runtime/tool-evidence/", ".agents/runtime/deployments/", ".agents/runtime/route-packs/", ".agents/runtime/knowledge/")),
-@("docs/agents/verify.yaml", @("core_system", "runtime_execution", "provider_adapter", "route_pack", "knowledge_footprint", "core_system_integrity", "runtime_execution_integrity", "provider_adapter_integrity", "route_pack_integrity", "knowledge_footprint_integrity", "route_pack_export", "runtime_helper")),
+@("docs/agents/deploy.yaml", @("docs/agents/core-system.yaml", "docs/agents/runtime-execution.yaml", "docs/agents/provider-adapters.yaml", "docs/agents/route-packs.yaml", "docs/agents/knowledge-footprint.yaml", "docs/agents/openai-foundations.yaml", ".agents/runtime/executions/", ".agents/runtime/tool-evidence/", ".agents/runtime/deployments/", ".agents/runtime/route-packs/", ".agents/runtime/knowledge/")),
+@("docs/agents/verify.yaml", @("core_system", "runtime_execution", "provider_adapter", "route_pack", "knowledge_footprint", "foundation_creation", "core_system_integrity", "runtime_execution_integrity", "provider_adapter_integrity", "route_pack_integrity", "knowledge_footprint_integrity", "foundation_creation_integrity", "route_pack_export", "runtime_helper")),
 @("docs/agents/route-packs.yaml", @("answer_only", "no_read_default", "no_file_read", "manifest_hash")),
-@("docs/agents/version.yaml", @($expectedWorkflowVersion, "core-runtime", "core_contract_rule", "runtime_execution_rule", "knowledge_footprint_rule")),
-@("docs/agents/schemas.yaml", @("core_system", "runtime_execution", "provider_adapter", "route_pack", "knowledge_footprint")),
+@("docs/agents/version.yaml", @($expectedWorkflowVersion, "foundation-creation", "core_contract_rule", "runtime_execution_rule", "knowledge_footprint_rule", "foundation_creation_rule")),
+@("docs/agents/schemas.yaml", @("core_system", "runtime_execution", "provider_adapter", "route_pack", "knowledge_footprint", "foundation_creation")),
 @("docs/agents/collaborators.yaml", @("thread_operation_record", "execution_run_ref")),
 @("docs/agents/context-compact.yaml", @("retained_facts", "dropped_details", "resume_pointer")),
 @("docs/agents/dispatch.yaml", @("execution_run_ref")),
@@ -2761,75 +2759,6 @@ if ($Failures.Count -eq $startFailureCount) {
     Add-Pass "Cross-project ok."
 }
 }
-function Test-LegacyResidue {
-$startFailureCount = $Failures.Count
-$roots = @(
-"README.md",
-"docs/agents",
-"docs/project-structure.md",
-"docs/templates/agents",
-"docs/runbooks",
-"schemas",
-"scripts",
-".agents/skills",
-"tests/agents-governance-fixtures"
-)
-$excluded = @(
-"CHANGELOG.md",
-"docs/github-updates.md",
-"docs/templates/agents/github-updates.md"
-)
-$files = @()
-foreach ($root in $roots) {
-$fullRoot = Get-RepoPath $root
-if (-not (Test-Path -LiteralPath $fullRoot)) {
-continue
-}
-if (Test-Path -LiteralPath $fullRoot -PathType Leaf) {
-$files += Get-Item -LiteralPath $fullRoot
-}
-else {
-$files += Get-ChildItem -LiteralPath $fullRoot -Recurse -File | Where-Object { @(".md", ".yaml", ".yml", ".json", ".ps1", ".toml", ".txt").Contains($_.Extension.ToLowerInvariant()) }
-}
-}
-$files = @($files | Sort-Object FullName -Unique | Where-Object {
-$rel = ($_.FullName.Substring($RepoRoot.Path.Length).TrimStart("\") -replace "\\", "/")
-$excluded -notcontains $rel
-})
-$bannedPatterns = @(
-"v2 compat" + "ible",
-"v2-" + "compatible",
-"legacy " + "v2",
-"optional " + "overlay",
-"compatible " + "overlay",
-"within " + "v2",
-"target_" + "legacy_agents",
-"routed-" + "legacy",
-"workflow compat" + "ibility",
-"legacy target " + "docs",
-"v1_" + "preservation",
-"compatibility_" + "rule",
-"2\." + "2\.0",
-"2\." + "3\.0",
-"Target" + "Legacy",
-"legacy" + "Candidates",
-"\[" + "LEGACY\]",
-"target-owned " + "legacy",
-"legacy " + "Agents"
-)
-foreach ($file in $files) {
-foreach ($pattern in $bannedPatterns) {
-$matches = Select-String -LiteralPath $file.FullName -Pattern $pattern -AllMatches
-foreach ($match in $matches) {
-$relative = ($file.FullName.Substring($RepoRoot.Path.Length).TrimStart("\") -replace "\\", "/")
-Add-Failure ("Retired positioning residue remains in {0}:{1}: {2}" -f $relative, $match.LineNumber, $match.Line.Trim())
-}
-}
-}
-if ($Failures.Count -eq $startFailureCount) {
-Add-Pass "Legacy residue scan passed."
-}
-}
 function Test-ReleasePackageExport {
 $startFailureCount = $Failures.Count
 $validationRoot = Get-ValidationTempRoot -Purpose "release-export-validation"
@@ -2904,7 +2833,8 @@ $requiredFiles = @(
 "docs/agents/runtime-execution.yaml",
 "docs/agents/provider-adapters.yaml",
 "docs/agents/route-packs.yaml",
-"docs/agents/knowledge-footprint.yaml"
+"docs/agents/knowledge-footprint.yaml",
+"docs/agents/openai-foundations.yaml"
 )
 $manifestPaths = @($manifest.files | ForEach-Object { [string] $_.path })
 foreach ($requiredFile in $requiredFiles) {
@@ -2994,7 +2924,7 @@ Test-CollaboratorWindowIntegrity
 Test-CoreRuntimeSystemIntegrity
 Test-CrossProjectRuntimeResilienceIntegrity
 Test-LegacyResidue
-Test-AgentLedgerCompatibility
+Test-FoundationCreationIntegrity
 Test-EvidenceTemplateSchemaCoverage
 Test-CIWorkflowStability
 Test-ReadinessLadderEvidence
@@ -3036,6 +2966,7 @@ Test-WorkflowArtifactIntegrity
 Test-ContextCompactIntegrity
 Test-CollaboratorWindowIntegrity
 Test-CoreRuntimeSystemIntegrity
+Test-FoundationCreationIntegrity
 Test-AgentCleanupHelperIntegrity
 Test-CrossProjectRuntimeResilienceIntegrity
 Test-LegacyResidue
@@ -3055,7 +2986,6 @@ $scanRoots = @(
 "schemas",
 "scripts",
 "tests",
-"mcp",
 "artifacts",
 ".github/workflows"
 )

@@ -8,7 +8,7 @@ Repo-local rules for isolated deployable Agents workflow. Durable rules/docs/ski
 - Before edits, git/deploy, or current-state claims: inspect needed state and protect existing changes.
 - Verify with the smallest `docs/agents/verify.yaml` profile; commit/tag/branch-push use fast checkpoint gates.
 - Use `.agents/skills/project-isolation-workflow/SKILL.md` for isolation, memory, deployment, multi-agent, skill, or maintenance work.
-- OpenAI API/Apps SDK/Codex/Agents SDK/MCP/model/tool guidance: official OpenAI developer docs first.
+- OpenAI API/Apps SDK/Codex/Agents SDK/model/tool guidance: official OpenAI developer docs first.
 ## Boundaries
 - GM off unless explicitly requested.
 - GS means intentional global/system `SKILL.md`; `.agents/skills/**/SKILL.md` is project-local, not GS.

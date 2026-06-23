@@ -43,6 +43,7 @@
     "collaborator_report",
     "thread_operation_record",
     "core_system",
+    "foundation_creation",
     "runtime_execution",
     "provider_adapter",
     "route_pack",
@@ -135,6 +136,13 @@
     "core_system.required_fields",
     "core_system.runtime_blocklist",
     "core_system.release_contract",
+    "foundation_creation.required_fields",
+    "foundation_creation.schema_rule",
+    "foundation_creation.state_rule",
+    "foundation_creation.creation_rule",
+    "foundation_creation.tool_boundary_rule",
+    "foundation_creation.latency_rule",
+    "foundation_creation.evaluation_rule",
     "runtime_execution.required_fields",
     "runtime_execution.status_values",
     "runtime_execution.cleanup_evidence",
@@ -380,6 +388,59 @@
         "commit",
         "hash",
         "blocklist result"
+      ]
+    },
+    {
+      "path": "foundation_creation.required_fields",
+      "contains": [
+        "official_docs_refs",
+        "output_schema",
+        "state_owner",
+        "latency_control",
+        "evaluation_gate"
+      ]
+    },
+    {
+      "path": "foundation_creation.schema_rule",
+      "contains": [
+        "Structured Outputs",
+        "reject"
+      ]
+    },
+    {
+      "path": "foundation_creation.state_rule",
+      "contains": [
+        "state owner",
+        "multi-turn"
+      ]
+    },
+    {
+      "path": "foundation_creation.creation_rule",
+      "contains": [
+        "official OpenAI developer documentation",
+        "scoped repo-local features"
+      ]
+    },
+    {
+      "path": "foundation_creation.tool_boundary_rule",
+      "contains": [
+        "allowed tools",
+        "handoff boundary",
+        "subagent write ownership"
+      ]
+    },
+    {
+      "path": "foundation_creation.latency_rule",
+      "contains": [
+        "prompt_caching",
+        "predicted_outputs"
+      ]
+    },
+    {
+      "path": "foundation_creation.evaluation_rule",
+      "contains": [
+        "pass/fail evidence",
+        "rollback"
       ]
     },
     {

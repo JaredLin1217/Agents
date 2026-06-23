@@ -10,9 +10,9 @@ Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` ins
 
 ## Current Project Version
 
-- Version: `2.5.1`
-- Channel: `core-runtime`
-- Positioning: Core Runtime System unifies routing, dispatch, collaborator windows, compaction, workflow artifacts, runtime evidence, deploy, verify, and release packaging.
+- Version: `2.6.0`
+- Channel: `foundation-creation`
+- Positioning: Foundation Creation Layer turns official OpenAI guidance into scoped repo-local AI Agents features with schema-first outputs, explicit state ownership, tool boundaries, latency controls, evaluation gates, and clean release packaging.
 
 ## Recent Commits
 
