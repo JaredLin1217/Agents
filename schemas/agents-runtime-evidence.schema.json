@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "agents-runtime-evidence.schema.json",
+  "title": "Agents runtime release evidence",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "workflow_version",
+    "repo_commit",
+    "run_started_utc",
+    "run_finished_utc",
+    "duration_ms",
+    "commands",
+    "claims",
+    "scope",
+    "xr_xw"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "agents-runtime-evidence/v1"
+    },
+    "workflow_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "repo_commit": {
+      "type": "string",
+      "minLength": 1
+    },
+    "run_started_utc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "run_finished_utc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "duration_ms": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "commands": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "command",
+          "result",
+          "exit_code",
+          "duration_ms",
+          "retry_count",
+          "raw_output_ref"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "command": {
+            "type": "string",
+            "minLength": 1
+          },
+          "result": {
+            "enum": [
+              "passed",
+              "failed"
+            ]
+          },
+          "exit_code": {
+            "type": "integer"
+          },
+          "duration_ms": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "retry_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "raw_output_ref": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "claims": {
+      "type": "object"
+    },
+    "scope": {
+      "type": "object"
+    },
+    "xr_xw": {
+      "type": "object",
+      "required": [
+        "external_reads",
+        "external_writes"
+      ],
+      "properties": {
+        "external_reads": {
+          "type": "array"
+        },
+        "external_writes": {
+          "type": "array"
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

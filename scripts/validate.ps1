@@ -63,6 +63,36 @@ function Test-EvidenceTemplateSchemaCoverage {
 Add-Failure "Evidence template validation helper missing: scripts/validate-evidence-templates.ps1"
 }
 }
+$SizeGateValidationHelper = Join-Path $PSScriptRoot "validate-size-gates.ps1"
+if (Test-Path -LiteralPath $SizeGateValidationHelper -PathType Leaf) {
+. $SizeGateValidationHelper
+}
+else {
+function Test-SizeGates {
+Add-Failure "Size gate validation helper missing: scripts/validate-size-gates.ps1"
+}
+}
+$ReleaseEvidenceValidationHelper = Join-Path $PSScriptRoot "validate-release-evidence.ps1"
+if (Test-Path -LiteralPath $ReleaseEvidenceValidationHelper -PathType Leaf) {
+. $ReleaseEvidenceValidationHelper
+}
+else {
+function Test-ReleasePackageExport {
+Add-Failure "Release evidence validation helper missing: scripts/validate-release-evidence.ps1"
+}
+function Test-RuntimeReleaseEvidence {
+Add-Failure "Release evidence validation helper missing: scripts/validate-release-evidence.ps1"
+}
+}
+$RequiredFilesValidationHelper = Join-Path $PSScriptRoot "validate-required-files.ps1"
+if (Test-Path -LiteralPath $RequiredFilesValidationHelper -PathType Leaf) {
+. $RequiredFilesValidationHelper
+}
+else {
+function Test-RequiredFiles {
+Add-Failure "Required files validation helper missing: scripts/validate-required-files.ps1"
+}
+}
 function Get-RepoPathHash {
 param([string] $Path)
 $normalized = [System.IO.Path]::GetFullPath($Path).TrimEnd([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar).ToLowerInvariant()
@@ -169,68 +199,6 @@ $openSquare = ([regex]::Matches($trimmed, "\[")).Count
 $closeSquare = ([regex]::Matches($trimmed, "\]")).Count
 if ($openSquare -ne $closeSquare) {
 Add-Failure ("{0}:{1} has unbalanced square brackets." -f $File.FullName, $lineNumber)
-}
-}
-}
-function Test-RequiredFiles {
-$required = @(
-"AGENTS.md",
-"docs/agents/ai-runtime.yaml",
-"docs/agents/workflows.yaml",
-"docs/agents/policy.yaml",
-"docs/agents/verify.yaml",
-"docs/agents/schemas.yaml",
-"docs/agents/deploy.yaml",
-"docs/agents/openai-foundations.yaml",
-"docs/agents/version.yaml",
-"schemas/agents-ai-runtime.schema.json",
-"schemas/agents-openai-foundations.schema.json",
-"docs/agents/org.yaml",
-"docs/agents/model-policy.yaml",
-"docs/agents/dispatch.yaml",
-"docs/agents/workflow-artifacts.yaml",
-"docs/agents/collaborators.yaml",
-"docs/agents/core-system.yaml",
-"docs/agents/runtime-execution.yaml",
-"docs/agents/provider-adapters.yaml",
-"docs/agents/route-packs.yaml",
-"docs/agents/knowledge-footprint.yaml",
-"schemas/agents-org.schema.json",
-"schemas/agents-model-policy.schema.json",
-"schemas/agents-dispatch.schema.json",
-"schemas/agents-workflow-artifacts.schema.json",
-"schemas/agents-collaborators.schema.json",
-"schemas/agents-core-system.schema.json",
-"schemas/agents-runtime-execution.schema.json",
-"schemas/agents-provider-adapters.schema.json",
-"schemas/agents-route-packs.schema.json",
-"schemas/agents-knowledge-footprint.schema.json",
-"docs/templates/agents/agents/workflow-artifacts.yaml",
-"docs/templates/agents/agents/collaborators.yaml",
-"docs/templates/agents/agents/core-system.yaml",
-"docs/templates/agents/agents/runtime-execution.yaml",
-"docs/templates/agents/agents/provider-adapters.yaml",
-"docs/templates/agents/agents/route-packs.yaml",
-"docs/templates/agents/agents/knowledge-footprint.yaml",
-"docs/templates/agents/agents/openai-foundations.yaml",
-"docs/agents/context-compact.yaml",
-"schemas/agents-context-compact.schema.json",
-"docs/templates/agents/agents/context-compact.yaml",
-".agents/skills/project-isolation-workflow/SKILL.md",
-"docs/project-structure.md",
-"scripts/deploy-agents-workflow.ps1",
-"scripts/export-release-package.ps1",
-"scripts/agents-workflow.ps1",
-"scripts/agents-runtime.ps1",
-"scripts/agents-cleanup.ps1",
-"scripts/validate-evidence-templates.ps1",
-"scripts/validate-foundation.ps1",
-"scripts/validate-residue.ps1",
-"scripts/export-route-pack.ps1"
-)
-foreach ($path in $required) {
-if (-not (Test-Path -LiteralPath (Get-RepoPath $path) -PathType Leaf)) {
-Add-Failure ("Required file is missing: {0}" -f $path)
 }
 }
 }
@@ -2327,8 +2295,9 @@ Evidence = @(
 @("docs/agents/verify.yaml", "knowledge_footprint"),
 @("docs/agents/verify.yaml", "foundation_creation"),
 @("scripts/export-release-package.ps1", "release-manifest.json"),
-@("scripts/validate.ps1", "Test-ReleasePackageExport"),
-@("scripts/validate.ps1", "Test-SizeGates"),
+@("scripts/validate-release-evidence.ps1", "Test-ReleasePackageExport"),
+@("scripts/validate-release-evidence.ps1", "Test-RuntimeReleaseEvidence"),
+@("scripts/validate-size-gates.ps1", "Test-SizeGates"),
 @("scripts/validate-evidence-templates.ps1", "Test-EvidenceTemplateSchemaCoverage"),
 @("scripts/validate.ps1", "Test-CIWorkflowStability"),
 @("scripts/validate.ps1", "Full release audit gates passed")
@@ -2354,7 +2323,7 @@ Evidence = @(
 @("docs/agents/deploy.yaml", ".workflow/"),
 @("docs/agents/workflows.yaml", "compact_output"),
 @("docs/agents/context-compact.yaml", "raw transcript"),
-@("scripts/validate.ps1", "Test-SizeGates"),
+@("scripts/validate-size-gates.ps1", "Test-SizeGates"),
 @("scripts/deploy-agents-workflow.ps1", "target git rollback scope"),
 @("scripts/deploy-agents-workflow.ps1", "Update-TargetStateClassification"),
 @("scripts/deploy-agents-workflow.ps1", "Protected dirty/local target state observed"),
@@ -2408,65 +2377,6 @@ Add-Failure ("Agent skill metadata is missing default_prompt: {0}" -f $path)
 }
 if ($Failures.Count -eq $startFailureCount) {
 Add-Pass "Skill metadata checks passed."
-}
-}
-function Test-SizeGates {
-$startFailureCount = $Failures.Count
-$verifyContent = Get-Content -LiteralPath (Get-RepoPath "docs/agents/verify.yaml") -Raw
-function Get-SizeGateLimit {
-param([string] $Name)
-$match = [regex]::Match($verifyContent, ("(?m)^\s*{0}:\s*(\d+)\s*$" -f [regex]::Escape($Name)))
-if (-not $match.Success) {
-Add-Failure ("Size gate config is missing or non-numeric: {0}" -f $Name)
-return $null
-}
-return [int] $match.Groups[1].Value
-}
-$agentsLimit = Get-SizeGateLimit "AGENTS.md"
-$skillLimit = Get-SizeGateLimit "project_skill"
-$canonicalYamlLimit = Get-SizeGateLimit "canonical_agents_yaml"
-$scriptLimit = Get-SizeGateLimit "script_ps1"
-$repoLimitKiB = Get-SizeGateLimit "tracked_repo_kib"
-if ($null -in @($agentsLimit, $skillLimit, $canonicalYamlLimit, $scriptLimit, $repoLimitKiB)) {
-return
-}
-$agentsSize = (Get-Item -LiteralPath (Get-RepoPath "AGENTS.md")).Length
-if ($agentsSize -gt $agentsLimit) {
-Add-Failure ("AGENTS.md exceeds {0} bytes: {1}" -f $agentsLimit, $agentsSize)
-}
-$skillSize = (Get-Item -LiteralPath (Get-RepoPath ".agents/skills/project-isolation-workflow/SKILL.md")).Length
-if ($skillSize -gt $skillLimit) {
-Add-Failure ("Project skill exceeds {0} bytes: {1}" -f $skillLimit, $skillSize)
-}
-$maxYamlSize = 0
-foreach ($file in Get-ChildItem -LiteralPath (Get-RepoPath "docs/agents") -Filter "*.yaml") {
-if ($file.Length -gt $maxYamlSize) {
-$maxYamlSize = $file.Length
-}
-if ($file.Length -gt $canonicalYamlLimit) {
-Add-Failure ("Canonical Agents YAML exceeds {0} bytes: {1} ({2} bytes)" -f $canonicalYamlLimit, $file.FullName, $file.Length)
-}
-}
-$maxScriptSize = 0
-foreach ($file in Get-ChildItem -LiteralPath (Get-RepoPath "scripts") -Filter "*.ps1") {
-if ($file.Length -gt $maxScriptSize) {
-$maxScriptSize = $file.Length
-}
-if ($file.Length -gt $scriptLimit) {
-Add-Failure ("PowerShell script exceeds {0} bytes: {1} ({2} bytes)" -f $scriptLimit, $file.FullName, $file.Length)
-}
-}
-$trackedTotal = Get-RepoFilesSize -Paths @(& git -C $RepoRoot ls-files)
-$intendedTotal = Get-RepoFilesSize -Paths (Get-IntendedRepoFiles)
-$limit = $repoLimitKiB * 1024
-if ($trackedTotal -gt $limit) {
-Add-Failure ("Tracked repo size exceeds {0} KiB: {1} bytes" -f $repoLimitKiB, $trackedTotal)
-}
-if ($intendedTotal -gt $limit) {
-Add-Failure ("Intended repo size exceeds {0} KiB: {1} bytes" -f $repoLimitKiB, $intendedTotal)
-}
-if ($Failures.Count -eq $startFailureCount) {
-Add-Pass ("Size gates passed: AGENTS.md {0} bytes; project skill {1} bytes; max yaml {2} bytes; max ps1 {3} bytes; tracked repo {4} bytes; intended repo {5} bytes." -f $agentsSize, $skillSize, $maxYamlSize, $maxScriptSize, $trackedTotal, $intendedTotal)
 }
 }
 function Test-CoreRuntimeSystemIntegrity {
@@ -2680,153 +2590,6 @@ if ($Failures.Count -eq $startFailureCount) {
     Add-Pass "Cross-project ok."
 }
 }
-function Test-ReleasePackageExport {
-$startFailureCount = $Failures.Count
-$validationRoot = Get-ValidationTempRoot -Purpose "release-export-validation"
-$previousErrorActionPreference = $ErrorActionPreference
-$ErrorActionPreference = "Continue"
-try {
-$output = & (Get-RepoPath "scripts/export-release-package.ps1") -OutputPath $validationRoot -Quiet 2>&1
-$exitCode = if ($null -eq $LASTEXITCODE) { 0 } else { $LASTEXITCODE }
-}
-finally {
-$ErrorActionPreference = $previousErrorActionPreference
-}
-if ($exitCode -ne 0) {
-Add-Failure "Release package export failed."
-foreach ($line in $output) {
-Add-Failure ("Release package export detail: {0}" -f $line)
-}
-return
-}
-if (@($output).Count -gt 0) {
-Add-Failure "Release package export quiet mode produced output."
-foreach ($line in $output) {
-Add-Failure ("Release package export quiet output: {0}" -f $line)
-}
-}
-$versionValues = Get-LightweightYamlPathValues -File (Get-Item -LiteralPath (Get-RepoPath "docs/agents/version.yaml"))
-$version = [string] $versionValues["workflow.version"]
-$packageRoot = Join-Path $validationRoot ("jared-ai-team-v{0}" -f $version)
-$manifestPath = Join-Path $packageRoot "release-manifest.json"
-if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
-Add-Failure "Release package manifest is missing."
-return
-}
-try {
-$manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
-}
-catch {
-Add-Failure "Release package manifest is not valid JSON."
-return
-}
-if ([string] $manifest.version -ne $version) {
-Add-Failure ("Release package manifest version mismatch. Expected {0}; found {1}." -f $version, $manifest.version)
-}
-if ([string]::IsNullOrWhiteSpace([string] $manifest.package_hash)) {
-Add-Failure "Release package manifest package_hash is empty."
-}
-if ([int] $manifest.file_count -le 0) {
-Add-Failure "Release package manifest file_count must be positive."
-}
-if ($null -eq $manifest.PSObject.Properties["blocklist_result"]) {
-Add-Failure "Release package manifest blocklist_result is missing."
-}
-else {
-if (-not [bool] $manifest.blocklist_result.checked) {
-Add-Failure "Release package manifest blocklist_result.checked must be true."
-}
-$policy = @($manifest.blocklist_result.policy | ForEach-Object { [string] $_ })
-foreach ($requiredPolicy in @(".agents/runtime/**", ".workflow/**", ".agents/runtime/agent-ledger.jsonl", ".codex/config.toml", "API keys", "provider sessions")) {
-if ($policy -notcontains $requiredPolicy) {
-Add-Failure ("Release package manifest blocklist policy is missing: {0}" -f $requiredPolicy)
-}
-}
-}
-$requiredFiles = @(
-"docs/agents/org.yaml",
-"docs/agents/model-policy.yaml",
-"docs/agents/dispatch.yaml",
-"docs/agents/workflow-artifacts.yaml",
-"docs/agents/context-compact.yaml",
-"docs/agents/collaborators.yaml",
-"docs/agents/core-system.yaml",
-"docs/agents/runtime-execution.yaml",
-"docs/agents/provider-adapters.yaml",
-"docs/agents/route-packs.yaml",
-"docs/agents/knowledge-footprint.yaml",
-"docs/agents/openai-foundations.yaml"
-)
-$manifestPaths = @($manifest.files | ForEach-Object { [string] $_.path })
-foreach ($requiredFile in $requiredFiles) {
-if ($manifestPaths -notcontains $requiredFile) {
-Add-Failure ("Release package is missing required file: {0}" -f $requiredFile)
-}
-if (-not (Test-Path -LiteralPath (Join-Path $packageRoot ($requiredFile -replace "/", [System.IO.Path]::DirectorySeparatorChar)) -PathType Leaf)) {
-Add-Failure ("Release package physical file is missing: {0}" -f $requiredFile)
-}
-}
-$blockedExact = @(
-".codex/config.toml",
-".codex/environments/environment.toml",
-".codex/environments/environment.template.toml",
-".agents/runtime/collaborators.jsonl",
-".agents/runtime/agent-ledger.jsonl",
-"docs/agent-status.md",
-".agents/docs/agent-status.md"
-)
-$blockedPrefix = @(
-".git/",
-".codex/environments/",
-".agents/runtime/",
-".agents/runtime/workflows/",
-".workflow/",
-"docs/agent-events/",
-".agents/docs/agent-events/",
-"docs/tmp-approval-",
-".agents/docs/tmp-approval-",
-"docs/hard-isolation-evidence/",
-".agents/docs/hard-isolation-evidence/",
-"docs/runtime-multi-agent-validation/",
-".agents/docs/runtime-multi-agent-validation/"
-)
-foreach ($path in $manifestPaths) {
-$rel = $path.ToLowerInvariant()
-if ($blockedExact -contains $rel) {
-Add-Failure ("Release package manifest includes blocked local path: {0}" -f $path)
-}
-foreach ($prefix in $blockedPrefix) {
-if ($rel.StartsWith($prefix)) {
-Add-Failure ("Release package manifest includes blocked local path: {0}" -f $path)
-}
-}
-}
-$blockedPhysical = @(
-".git",
-".agents/runtime",
-".agents/runtime/workflows",
-".agents/runtime/executions",
-".agents/runtime/knowledge",
-".agents/runtime/route-packs",
-".agents/runtime/tool-evidence",
-".agents/runtime/deployments",
-".workflow",
-".codex/config.toml",
-".codex/environments/environment.toml",
-".codex/environments",
-".agents/runtime/collaborators.jsonl",
-".agents/runtime/agent-ledger.jsonl"
-)
-foreach ($blocked in $blockedPhysical) {
-$fullPath = Join-Path $packageRoot ($blocked -replace "/", [System.IO.Path]::DirectorySeparatorChar)
-if (Test-Path -LiteralPath $fullPath) {
-Add-Failure ("Release package contains blocked local path: {0}" -f $blocked)
-}
-}
-if ($Failures.Count -eq $startFailureCount) {
-Add-Pass "Release package export checks passed."
-}
-}
 function Test-FullAuditGates {
 Test-GitDiffCheck
 Test-LineEndings
@@ -2851,6 +2614,7 @@ Test-CIWorkflowStability
 Test-ReadinessLadderEvidence
 Test-SizeGates
 Test-ReleasePackageExport
+Test-RuntimeReleaseEvidence
 }
 Push-Location $RepoRoot
 try {

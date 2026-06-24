@@ -35,6 +35,7 @@
     "controller_lease",
     "hard_isolation_evidence",
     "runtime_multi_agent_validation",
+    "runtime_release_evidence",
     "history_cleanup_evidence",
     "memory_entry",
     "skill",
@@ -113,6 +114,11 @@
     "hard_isolation_evidence.rule",
     "runtime_multi_agent_validation.storage_rule",
     "runtime_multi_agent_validation.required_fields",
+    "runtime_release_evidence.required_fields",
+    "runtime_release_evidence.command_fields",
+    "runtime_release_evidence.performance_rule",
+    "runtime_release_evidence.storage_rule",
+    "runtime_release_evidence.boundary_rule",
     "history_cleanup_evidence.required_when_claimed",
     "history_cleanup_evidence.target_filter",
     "history_cleanup_evidence.runtime_ids_resolved_from",
@@ -315,6 +321,44 @@
       "path": "runtime_multi_agent_validation.storage_rule",
       "contains": [
         "local scratch"
+      ]
+    },
+    {
+      "path": "runtime_release_evidence.required_fields",
+      "contains": [
+        "schema_version",
+        "workflow_version",
+        "commands",
+        "xr_xw"
+      ]
+    },
+    {
+      "path": "runtime_release_evidence.command_fields",
+      "contains": [
+        "duration_ms",
+        "exit_code",
+        "retry_count"
+      ]
+    },
+    {
+      "path": "runtime_release_evidence.performance_rule",
+      "contains": [
+        "unavailable",
+        "reason",
+        "estimating"
+      ]
+    },
+    {
+      "path": "runtime_release_evidence.storage_rule",
+      "contains": [
+        "%TEMP%/codex-agent-status",
+        "not tracked"
+      ]
+    },
+    {
+      "path": "runtime_release_evidence.boundary_rule",
+      "contains": [
+        "not live external deployment proof"
       ]
     },
     {

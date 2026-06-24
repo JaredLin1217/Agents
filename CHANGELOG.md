@@ -1,6 +1,15 @@
 # Changelog
 All notable changes to this repository are documented here.
 ## Unreleased
+## 2.6.2 - 2026-06-24
+- Added repeatable runtime evidence capture for self-test, current project
+  dry-run, and full validation.
+- Added a runtime evidence schema and sanitized v2.6.2 release evidence
+  contract.
+- Added source freshness fields and overdue checks for the OpenAI foundation
+  source matrix.
+- Split size gates and release evidence checks out of the main validator to
+  reduce maintenance hotspots.
 ## 2.6.1 - 2026-06-23
 - Stabilized the 2.6 foundation creation release without changing the core
   workflow contract.

@@ -10,9 +10,9 @@ Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` ins
 
 ## Current Project Version
 
-- Version: `2.6.1`
+- Version: `2.6.2`
 - Channel: `foundation-creation`
-- Positioning: Stabilization release preserving foundation creation semantics while adding source traceability, runtime dry-run evidence boundaries, and size headroom.
+- Positioning: 2.6.2 preserves the foundation-creation workflow while adding repeatable runtime evidence capture, source freshness gates, and lower validation maintenance hotspots.
 
 ## Recent Commits
 

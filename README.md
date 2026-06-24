@@ -16,13 +16,13 @@ repo history.
 
 ## Current Version
 
-Current Agents workflow version: `2.6.1` (`foundation-creation`).
+Current Agents workflow version: `2.6.2` (`foundation-creation`).
 
 Canonical version source: `docs/agents/version.yaml`
 
-Version positioning: 2.6.1 stabilizes the foundation-creation workflow with
-official source traceability, runtime dry-run evidence boundaries, and added
-size headroom without changing core workflow semantics.
+Version positioning: 2.6.2 preserves the foundation-creation workflow while
+adding repeatable runtime evidence capture, source freshness gates, and lower
+validation maintenance hotspots.
 
 ## What This Project Provides
 
@@ -105,6 +105,12 @@ Full release readiness and quality score:
 
 ```powershell
 .\scripts\validate.ps1 -Full -Score
+```
+
+Capture sanitized v2.6.2 runtime release evidence:
+
+```powershell
+.\scripts\capture-runtime-evidence.ps1 -OutputPath .\docs\evidence\releases\v2.6.2-runtime-evidence.json -Full
 ```
 
 Deployment dry-run into an authorized target:

@@ -33,41 +33,65 @@ source_matrix:
   checked: "2026-06-23"
   structured_outputs:
     capability: "Structured Outputs"
+    checked: "2026-06-23"
+    refresh_interval_days: 90
+    next_review_due: "2026-09-21"
     url: "https://developers.openai.com/api/docs/guides/structured-outputs"
     boundary: "schema-bound machine output"
     drift_risk: "model or API schema support can change"
   conversation_state:
     capability: "conversation state"
+    checked: "2026-06-23"
+    refresh_interval_days: 90
+    next_review_due: "2026-09-21"
     url: "https://developers.openai.com/api/docs/guides/conversation-state"
     boundary: "model-side continuity and resume scope"
     drift_risk: "state APIs and retention rules can change"
   agents_sdk:
     capability: "Agents SDK"
+    checked: "2026-06-23"
+    refresh_interval_days: 90
+    next_review_due: "2026-09-21"
     url: "https://openai.github.io/openai-agents-python/"
     boundary: "handoffs, guardrails, tracing, agent loops"
     drift_risk: "SDK interfaces and defaults can change"
   codex_skills:
     capability: "Codex skills"
+    checked: "2026-06-23"
+    refresh_interval_days: 90
+    next_review_due: "2026-09-21"
     url: "https://developers.openai.com/codex/skills"
     boundary: "scoped repeatable instructions"
     drift_risk: "Codex skill packaging rules can change"
   subagents:
     capability: "subagents"
+    checked: "2026-06-23"
+    refresh_interval_days: 90
+    next_review_due: "2026-09-21"
     url: "https://developers.openai.com/codex/subagents"
     boundary: "parallel delegated work with controller integration"
     drift_risk: "runtime delegation behavior can change"
   prompt_caching:
     capability: "prompt caching"
+    checked: "2026-06-23"
+    refresh_interval_days: 90
+    next_review_due: "2026-09-21"
     url: "https://developers.openai.com/api/docs/guides/prompt-caching"
     boundary: "stable prompt prefix optimization"
     drift_risk: "cache eligibility and pricing can change"
   predicted_outputs:
     capability: "predicted outputs"
+    checked: "2026-06-23"
+    refresh_interval_days: 90
+    next_review_due: "2026-09-21"
     url: "https://developers.openai.com/api/docs/guides/predicted-outputs"
     boundary: "known-output edit acceleration"
     drift_risk: "parameter compatibility can change"
   evaluations:
     capability: "evaluations"
+    checked: "2026-06-23"
+    refresh_interval_days: 90
+    next_review_due: "2026-09-21"
     url: "https://developers.openai.com/api/docs/guides/evals"
     boundary: "dataset-backed pass/fail release evidence"
     drift_risk: "evaluation tooling and flows can change"

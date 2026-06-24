@@ -26,34 +26,58 @@
     "evaluation.score_rule",
     "source_matrix.checked",
     "source_matrix.structured_outputs.capability",
+    "source_matrix.structured_outputs.checked",
+    "source_matrix.structured_outputs.refresh_interval_days",
+    "source_matrix.structured_outputs.next_review_due",
     "source_matrix.structured_outputs.url",
     "source_matrix.structured_outputs.boundary",
     "source_matrix.structured_outputs.drift_risk",
     "source_matrix.conversation_state.capability",
+    "source_matrix.conversation_state.checked",
+    "source_matrix.conversation_state.refresh_interval_days",
+    "source_matrix.conversation_state.next_review_due",
     "source_matrix.conversation_state.url",
     "source_matrix.conversation_state.boundary",
     "source_matrix.conversation_state.drift_risk",
     "source_matrix.agents_sdk.capability",
+    "source_matrix.agents_sdk.checked",
+    "source_matrix.agents_sdk.refresh_interval_days",
+    "source_matrix.agents_sdk.next_review_due",
     "source_matrix.agents_sdk.url",
     "source_matrix.agents_sdk.boundary",
     "source_matrix.agents_sdk.drift_risk",
     "source_matrix.codex_skills.capability",
+    "source_matrix.codex_skills.checked",
+    "source_matrix.codex_skills.refresh_interval_days",
+    "source_matrix.codex_skills.next_review_due",
     "source_matrix.codex_skills.url",
     "source_matrix.codex_skills.boundary",
     "source_matrix.codex_skills.drift_risk",
     "source_matrix.subagents.capability",
+    "source_matrix.subagents.checked",
+    "source_matrix.subagents.refresh_interval_days",
+    "source_matrix.subagents.next_review_due",
     "source_matrix.subagents.url",
     "source_matrix.subagents.boundary",
     "source_matrix.subagents.drift_risk",
     "source_matrix.prompt_caching.capability",
+    "source_matrix.prompt_caching.checked",
+    "source_matrix.prompt_caching.refresh_interval_days",
+    "source_matrix.prompt_caching.next_review_due",
     "source_matrix.prompt_caching.url",
     "source_matrix.prompt_caching.boundary",
     "source_matrix.prompt_caching.drift_risk",
     "source_matrix.predicted_outputs.capability",
+    "source_matrix.predicted_outputs.checked",
+    "source_matrix.predicted_outputs.refresh_interval_days",
+    "source_matrix.predicted_outputs.next_review_due",
     "source_matrix.predicted_outputs.url",
     "source_matrix.predicted_outputs.boundary",
     "source_matrix.predicted_outputs.drift_risk",
     "source_matrix.evaluations.capability",
+    "source_matrix.evaluations.checked",
+    "source_matrix.evaluations.refresh_interval_days",
+    "source_matrix.evaluations.next_review_due",
     "source_matrix.evaluations.url",
     "source_matrix.evaluations.boundary",
     "source_matrix.evaluations.drift_risk",
@@ -68,6 +92,38 @@
     {
       "path": "verification.profile",
       "value": "foundation_creation"
+    },
+    {
+      "path": "source_matrix.structured_outputs.refresh_interval_days",
+      "value": 90
+    },
+    {
+      "path": "source_matrix.conversation_state.refresh_interval_days",
+      "value": 90
+    },
+    {
+      "path": "source_matrix.agents_sdk.refresh_interval_days",
+      "value": 90
+    },
+    {
+      "path": "source_matrix.codex_skills.refresh_interval_days",
+      "value": 90
+    },
+    {
+      "path": "source_matrix.subagents.refresh_interval_days",
+      "value": 90
+    },
+    {
+      "path": "source_matrix.prompt_caching.refresh_interval_days",
+      "value": 90
+    },
+    {
+      "path": "source_matrix.predicted_outputs.refresh_interval_days",
+      "value": 90
+    },
+    {
+      "path": "source_matrix.evaluations.refresh_interval_days",
+      "value": 90
     }
   ],
   "x-required-contains": [
@@ -120,32 +176,64 @@
       "contains": ["2026-06-23"]
     },
     {
+      "path": "source_matrix.structured_outputs.next_review_due",
+      "contains": ["2026-09-21"]
+    },
+    {
       "path": "source_matrix.structured_outputs.url",
       "contains": ["structured-outputs"]
+    },
+    {
+      "path": "source_matrix.conversation_state.next_review_due",
+      "contains": ["2026-09-21"]
     },
     {
       "path": "source_matrix.conversation_state.url",
       "contains": ["conversation-state"]
     },
     {
+      "path": "source_matrix.agents_sdk.next_review_due",
+      "contains": ["2026-09-21"]
+    },
+    {
       "path": "source_matrix.agents_sdk.url",
       "contains": ["openai-agents-python"]
+    },
+    {
+      "path": "source_matrix.codex_skills.next_review_due",
+      "contains": ["2026-09-21"]
     },
     {
       "path": "source_matrix.codex_skills.url",
       "contains": ["codex/skills"]
     },
     {
+      "path": "source_matrix.subagents.next_review_due",
+      "contains": ["2026-09-21"]
+    },
+    {
       "path": "source_matrix.subagents.url",
       "contains": ["codex/subagents"]
+    },
+    {
+      "path": "source_matrix.prompt_caching.next_review_due",
+      "contains": ["2026-09-21"]
     },
     {
       "path": "source_matrix.prompt_caching.url",
       "contains": ["prompt-caching"]
     },
     {
+      "path": "source_matrix.predicted_outputs.next_review_due",
+      "contains": ["2026-09-21"]
+    },
+    {
       "path": "source_matrix.predicted_outputs.url",
       "contains": ["predicted-outputs"]
+    },
+    {
+      "path": "source_matrix.evaluations.next_review_due",
+      "contains": ["2026-09-21"]
     },
     {
       "path": "source_matrix.evaluations.url",

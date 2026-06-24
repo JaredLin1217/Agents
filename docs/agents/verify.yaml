@@ -26,7 +26,7 @@ file_classes:
   runbooks: ["docs/runbooks/*.md"]
   deploy_templates: ["docs/templates/agents/**"]
   memory_docs: ["docs/project-memory.md","docs/memory/**","docs/memory-entry.template.md"]
-  runtime_local: [".agents/runtime/**",".agents/runtime/workflows/**",".workflow/**",".codex/config.toml",".codex/environments/*.toml","docs/{agent-status.md,agent-events/**,tmp-approval-*/**,runtime-multi-agent-validation/**,hard-isolation-evidence/**}",".agents/docs/{agent-status.md,agent-events/**,tmp-approval-*/**,runtime-multi-agent-validation/**,hard-isolation-evidence/**}"]
+  runtime_local: [".agents/runtime/**",".agents/runtime/workflows/**",".workflow/**",".codex/**","{docs,.agents/docs}/{agent-status.md,agent-events/**,tmp-approval-*/**,runtime-multi-agent-validation/**,hard-isolation-evidence/**}"]
   generated_or_cache: ["generated","cache","build","vendor"]
 gate_matrix:
   durable_prose_changed: ["English-only","placeholder"]
@@ -46,18 +46,21 @@ commands:
   checkpoint_bundle: "status, diff_check, manifest, pair/prose/EOL/size, no staged runtime"
   full_audit_bundle: ".\\scripts\\validate.ps1 -Full"
   ai_runtime_compact: "ai-runtime/mirror <=4096; expand_only routes."
-  enterprise_dispatch_integrity: "validate.ps1: org/model/dispatch, department leader references, model tier references, escalation, L1-6."
-  workflow_artifact_integrity: "validate.ps1: workflow-artifacts route/mirror/helper/blocklists/approval gates/packets/L1-6 simulations."
-  context_compact_integrity: "validate.ps1: context-compact route, raw transcript exclusion, runtime event boundary."
+  enterprise_dispatch_integrity: "validate.ps1: department leader references, model tier references, escalation."
+  workflow_artifact_integrity: "validate.ps1: workflow-artifacts route, approval gates, L1-6 simulations."
+  context_compact_integrity: "validate.ps1: context-compact route, raw transcript, runtime event boundary."
   collaborator_window_integrity: "validate.ps1: collaborator route/schema/mirror, leader/tier map, runtime ids, close/archive evidence."
-  core_system_integrity: "validate.ps1: core route/schema/mirror, deploy/release contract, blocklist, version."
-  foundation_creation_integrity: "scripts/validate-foundation.ps1: route/schema/mirror, official docs first, source matrix, structured outputs, state owner, latency controls, evaluation gate."
-  runtime_execution_integrity: "validate.ps1: runtime route/schema/helper, approvals, tool evidence, results, cleanup."
-  provider_adapter_integrity: "validate.ps1: provider route/schema, tiers, capabilities, no hard-bound workflow model id."
-  route_pack_integrity: "validate.ps1: route-pack route/schema, deterministic manifest hash, compact set, cache keys."
-  knowledge_footprint_integrity: "validate.ps1: footprint route/schema, resume pointer, evidence refs, gaps, no full transcript."
+  core_system_integrity: "validate.ps1: core contract, blocklist, version."
+  foundation_creation_integrity: "validate-foundation.ps1: official docs first, structured outputs, state owner, latency controls, evaluation gate."
+  runtime_execution_integrity: "validate.ps1: approvals, tool evidence, results, cleanup."
+  provider_adapter_integrity: "validate.ps1: tiers, capabilities, no hard-bound workflow model id."
+  route_pack_integrity: "validate.ps1: deterministic manifest hash, compact set, cache keys."
+  knowledge_footprint_integrity: "validate.ps1: resume pointer, evidence refs, gaps, no full transcript."
   legacy_residue_scan: "Reject retired compatibility positioning, removed external connector files, and stale helper version literals."
   release_package_export: ".\\scripts\\export-release-package.ps1 -Quiet"
+  runtime_release_evidence: ".\\scripts\\capture-runtime-evidence.ps1 -OutputPath docs/evidence/releases/v2.6.2-runtime-evidence.json -Full -Quiet"
+  size_gate_helper: "scripts/validate-size-gates.ps1"
+  release_evidence_helper: "scripts/validate-release-evidence.ps1"
   runtime_helper: ".\\scripts\\agents-runtime.ps1"
   runtime_cleanup_helper: ".\\scripts\\agents-cleanup.ps1 -Action Verify"
   cleanup_mandatory_script: "scripts/agents-cleanup.ps1"
@@ -96,7 +99,7 @@ profiles:
       template_integrity: ["exact-pair drift","template bundle coverage"]
       schema_skill_integrity: ["schema coverage","multi-agent integrity","evidence template coverage","skill metadata"]
       size: ["size gates"]
-      claim_specific: ["release appendix","runtime_multi_agent if claimed","hard_isolation if claimed"]
+      claim_specific: ["release appendix","runtime release evidence","runtime_multi_agent if claimed","hard_isolation if claimed"]
   enterprise_dispatch: "Inspect org/model-policy/dispatch; verify leaders/workers/tiers/escalation; use L1-6; leader-only integration."
   workflow_artifact: "Inspect workflow-artifacts/schemas/verify; use agents-workflow helper; verify gates/packets/guardrails/collection."
   context_compact: "Inspect context-compact/schemas/verify; preserve latest request/next step; record changes/verify/risks; exclude raw transcript."
@@ -116,6 +119,7 @@ size_gates:
     project_skill: 1592
     canonical_agents_yaml: 15684
     script_ps1: 129000
+    validate_script_ps1_after_split: 120668
     tracked_repo_kib: 896
   tracked_rule: "Ignored/untracked files excluded; intended new files count."
 claim_scopes:
@@ -129,6 +133,7 @@ minimum_evidence:
   branch_push: ["checkpoint gates","current branch/remote","push result"]
   deploy_clean: ["target authorization","target inspected","layout selected","deployed_file_set recorded","blocklist/source-neutral checks","handoff or skipped reason"]
   runtime_multi_agent: ["real runtime id","assignment/report match","git status after employee work","close evidence","expected/received/closed reconciliation","history_cleanup_evidence"]
+  runtime_release_evidence: ["sanitized release evidence JSON","schema validation","command durations","exit codes","retry counts","token usage unavailable reason","local-only boundary"]
   workflow_artifact: ["workflow state verified","packet/result collection normalized","approval gate or escalation evidence"]
   context_compact: ["latest_user_request preserved","changed_files known/unknown","verification_state","open_risks","subagents_open or closed counts"]
   collaborator_window: ["thread capability discovered","leader mapping verified","runtime-local evidence","archive/close verified"]
@@ -146,9 +151,9 @@ no_deduction_audit:
 coverage_gates:
   slim_policy_pack: ["no-command answer-only","compact profiles/claim bounds","enterprise/artifact/context compact/collaborator routes","source state excluded","assignment/report/runtime fields","lifecycle, recovery, scoring, deployment, validation"]
 live_employee_validation:
-  required: ["explicit hire/spawn/delegation/parallel-agent request","real runtime id/nickname/mode/role/task","ledger/roster path/version/permissions when needed","assignment fields","final report matches runtime id/fields","ledger/poll/report/close matches snapshot version","git status proves scope","cleanup attempted or exact-aborted with history_cleanup_evidence"]
+  required: ["explicit hire/spawn request","real runtime id/nickname/mode/role/task","roster/ledger paths when needed","assignment fields","final report matches runtime id","ledger/poll/report/close snapshot match","git status proves scope","cleanup attempted or exact-aborted with history_cleanup_evidence"]
 batch_employee_validation:
-  required: ["expected id set created before dispatch","assignment has id + compact schema","missing/duplicate/invalid-format checks","failed/running/unclosed counted","close/official status proves cleanup","history cleanup evidence proves zero residue or safe abort","batch report separates protocol smoke success from work success","project-local skill -> GS not used unless global/system SKILL.md used"]
+  required: ["expected id set created before dispatch","assignment has id + compact schema","missing/duplicate/invalid-format checks","failed/running/unclosed counted","close/list proves cleanup","history cleanup evidence zero residue or safe abort","batch report splits protocol smoke success from work success","project-local skill -> GS not used unless global/system SKILL.md used"]
   accepted_ack_formats: ["compact JSON object preferred","exact natural-language ack only when parser and normalization are stated"]
   invalid_outcomes: ["missing id","duplicate id","wrong id","parser-breaking fields","closed claim without close evidence"]
 drift_checks:
@@ -156,4 +161,4 @@ drift_checks:
   template_specific_cleanliness_files: ["docs/templates/agents/README.md","docs/templates/agents/gitignore.fragment","docs/templates/agents/project-memory.md","docs/templates/agents/project-structure.md","docs/templates/agents/memory-index.md"]
 release_appendix:
   provider_repo_checks: ["tracked/intended docs/templates/agents files are paired or template-specific","template memory starter has no data rows/project names","schema field coverage matches templates","project skill metadata is valid"]
-  source_neutral_scan_literals: ["provider repo name/path","usernames","remotes/branches/commits/tags/push status","filled status/validation rows","non-placeholder memory rows"]
+  source_neutral_scan_literals: ["provider repo/path","usernames","repo refs/status rows","non-placeholder memory rows"]
