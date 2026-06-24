@@ -166,7 +166,7 @@ return
 }
 $startFailureCount = $Failures.Count
 $schemaPath = Get-RepoPath "schemas/agents-runtime-evidence.schema.json"
-$evidencePath = Get-RepoPath "docs/evidence/releases/v2.6.2-runtime-evidence.json"
+$evidencePath = Get-RepoPath "docs/evidence/releases/v2.7.0-runtime-evidence.json"
 foreach ($path in @($schemaPath, $evidencePath)) {
 if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
 Add-Failure ("Runtime release evidence file is missing: {0}" -f $path)
@@ -183,7 +183,26 @@ catch {
 Add-Failure ("Runtime release evidence JSON parse failed: {0}" -f $_.Exception.Message)
 return
 }
-$requiredFields = @("schema_version", "workflow_version", "repo_commit", "run_started_utc", "run_finished_utc", "duration_ms", "commands", "claims", "scope", "xr_xw")
+$requiredFields = @(
+"schema_version",
+"workflow_version",
+"repo_commit",
+"source_commit",
+"validated_content_digest",
+"content_digest_excluded_paths",
+"working_tree_status_at_capture",
+"run_started_utc",
+"run_finished_utc",
+"duration_ms",
+"commands",
+"claims",
+"scope",
+"xr_xw",
+"evidence_tier",
+"performance",
+"result",
+"release"
+)
 $schemaRequired = @($schema.required | ForEach-Object { [string] $_ })
 foreach ($field in $requiredFields) {
 if ($schemaRequired -notcontains $field) {
@@ -191,7 +210,7 @@ Add-Failure ("Runtime evidence schema is missing required field contract: {0}" -
 }
 [void] (Test-ObjectField -Object $evidence -Field $field -Context "Runtime evidence")
 }
-if ([string] $evidence.schema_version -ne "agents-runtime-evidence/v1") {
+if ([string] $evidence.schema_version -ne "agents-runtime-evidence/v2") {
 Add-Failure "Runtime evidence schema_version mismatch."
 }
 $expectedVersion = Get-CanonicalWorkflowVersion
@@ -200,6 +219,12 @@ Add-Failure ("Runtime evidence workflow_version must be {0}." -f $expectedVersio
 }
 if ([string]::IsNullOrWhiteSpace([string] $evidence.repo_commit)) {
 Add-Failure "Runtime evidence repo_commit is empty."
+}
+if ([string]::IsNullOrWhiteSpace([string] $evidence.source_commit)) {
+Add-Failure "Runtime evidence source_commit is empty."
+}
+if ([string] $evidence.release -ne ("v{0}" -f $expectedVersion)) {
+Add-Failure ("Runtime evidence release must be v{0}." -f $expectedVersion)
 }
 try {
 $started = [datetimeoffset]::Parse([string] $evidence.run_started_utc)
@@ -214,8 +239,52 @@ Add-Failure "Runtime evidence timestamps must be ISO date-time values."
 if ([int64] $evidence.duration_ms -lt 0) {
 Add-Failure "Runtime evidence duration_ms must be non-negative."
 }
+$digest = $evidence.validated_content_digest
+foreach ($field in @("algorithm", "value", "tracked_file_count")) {
+[void] (Test-ObjectField -Object $digest -Field $field -Context "Runtime evidence validated_content_digest")
+}
+if ([string] $digest.algorithm -ne "sha256") {
+Add-Failure "Runtime evidence content digest algorithm must be sha256."
+}
+if ([string] $digest.value -notmatch "^[a-f0-9]{64}$") {
+Add-Failure "Runtime evidence content digest must be a 64-character lowercase sha256 value."
+}
+if ([int] $digest.tracked_file_count -le 0) {
+Add-Failure "Runtime evidence content digest tracked_file_count must be positive."
+}
+$excludedPaths = @($evidence.content_digest_excluded_paths | ForEach-Object { [string] $_ })
+foreach ($requiredExcludedPath in @(".git/**", ".agents/runtime/**", ".workflow/**", ".codex/**", "docs/evidence/releases/*.json", "docs/evidence/raw/**")) {
+if ($excludedPaths -notcontains $requiredExcludedPath) {
+Add-Failure ("Runtime evidence content digest exclusions are missing: {0}" -f $requiredExcludedPath)
+}
+}
+$tree = $evidence.working_tree_status_at_capture
+foreach ($field in @("state", "porcelain", "entry_count")) {
+[void] (Test-ObjectField -Object $tree -Field $field -Context "Runtime evidence working_tree_status_at_capture")
+}
+if (@("clean", "dirty") -notcontains [string] $tree.state) {
+Add-Failure "Runtime evidence working tree state must be clean or dirty."
+}
+if ([int] $tree.entry_count -ne @($tree.porcelain).Count) {
+Add-Failure "Runtime evidence working tree entry_count must match porcelain entries."
+}
+$treeText = (@($tree.porcelain) -join "`n")
+if ($treeText -match "[A-Za-z]:\\") {
+Add-Failure "Runtime evidence working tree status must not expose absolute paths."
+}
 $commands = @($evidence.commands)
-$requiredCommandNames = @("deployment_self_test", "current_project_dry_run", "full_validation")
+$requiredCommandNames = @(
+"deployment_self_test",
+"current_project_dry_run",
+"disposable_target_rollback_drill",
+"runtime_lifecycle_smoke",
+"release_package_export",
+"route_pack_deterministic",
+"full_validation"
+)
+if ($commands.Count -ne $requiredCommandNames.Count) {
+Add-Failure ("Runtime evidence must contain exactly {0} practice commands." -f $requiredCommandNames.Count)
+}
 foreach ($name in $requiredCommandNames) {
 if (@($commands | Where-Object { [string] $_.name -eq $name }).Count -ne 1) {
 Add-Failure ("Runtime evidence must contain exactly one command: {0}" -f $name)
@@ -250,14 +319,26 @@ Add-Failure "Runtime evidence full_validation must record overall_score 100.0."
 }
 }
 }
-foreach ($field in @("static_validation", "runtime_evidence", "hard_isolation")) {
+foreach ($field in @("static_validation", "runtime_evidence", "practice_evidence", "evidence_tier", "hard_isolation")) {
 [void] (Test-ObjectField -Object $evidence.claims -Field $field -Context "Runtime evidence claims")
 }
-foreach ($field in @("target", "external_target_deployment", "raw_output_storage")) {
+if ([string] $evidence.claims.evidence_tier -ne "T2 current-repo practice") {
+Add-Failure "Runtime evidence claims must be limited to T2 current-repo practice."
+}
+if ([string] $evidence.claims.hard_isolation -notmatch "No hard isolation claim") {
+Add-Failure "Runtime evidence must preserve the hard isolation boundary statement."
+}
+foreach ($field in @("target", "external_target_deployment", "raw_output_storage", "practice", "disposable_target")) {
 [void] (Test-ObjectField -Object $evidence.scope -Field $field -Context "Runtime evidence scope")
 }
 if ([bool] $evidence.scope.external_target_deployment) {
 Add-Failure "Runtime evidence must not claim external target deployment."
+}
+if (-not [bool] $evidence.scope.practice) {
+Add-Failure "Runtime evidence must be captured with the practice suite."
+}
+if ([string] $evidence.scope.raw_output_storage -ne "%TEMP%/codex-agent-status/<project-id>/<run-id>/") {
+Add-Failure "Runtime evidence raw output storage must be the sanitized status scratch reference."
 }
 foreach ($field in @("external_reads", "external_writes")) {
 [void] (Test-ObjectField -Object $evidence.xr_xw -Field $field -Context "Runtime evidence xr_xw")
@@ -265,21 +346,62 @@ foreach ($field in @("external_reads", "external_writes")) {
 if (@($evidence.xr_xw.external_reads).Count -ne 0) {
 Add-Failure "Runtime evidence must not record external reads for this release."
 }
-if ($null -eq $evidence.PSObject.Properties["performance"]) {
-Add-Failure "Runtime evidence must include performance baseline details."
+if (@($evidence.xr_xw.external_writes).Count -eq 0) {
+Add-Failure "Runtime evidence must record status scratch writes."
 }
-else {
+foreach ($field in @("current", "maximum_claimed", "scale")) {
+[void] (Test-ObjectField -Object $evidence.evidence_tier -Field $field -Context "Runtime evidence tier")
+}
+if ([string] $evidence.evidence_tier.current -ne "T2 current-repo practice") {
+Add-Failure "Runtime evidence tier current value must be T2 current-repo practice."
+}
+if ([string] $evidence.evidence_tier.maximum_claimed -ne "T2 current-repo practice") {
+Add-Failure "Runtime evidence tier maximum_claimed value must be T2 current-repo practice."
+}
+$tierScale = @($evidence.evidence_tier.scale | ForEach-Object { [string] $_ })
+foreach ($tier in @("T0 static", "T1 dry-run", "T2 current-repo practice", "T3 external pilot", "T4 enforced isolation")) {
+if ($tierScale -notcontains $tier) {
+Add-Failure ("Runtime evidence tier scale is missing: {0}" -f $tier)
+}
+}
+foreach ($field in @("command_count", "total_duration_ms", "token_usage", "token_usage_reason")) {
+[void] (Test-ObjectField -Object $evidence.performance -Field $field -Context "Runtime evidence performance")
+}
+if ([int] $evidence.performance.command_count -ne $commands.Count) {
+Add-Failure "Runtime evidence performance command_count must match commands."
+}
+if ([int64] $evidence.performance.total_duration_ms -ne [int64] $evidence.duration_ms) {
+Add-Failure "Runtime evidence performance total_duration_ms must match duration_ms."
+}
 if ([string] $evidence.performance.token_usage -ne "unavailable") {
 Add-Failure "Runtime evidence token usage must be marked unavailable when metrics are absent."
 }
 if ([string]::IsNullOrWhiteSpace([string] $evidence.performance.token_usage_reason)) {
 Add-Failure "Runtime evidence token usage reason is required."
 }
+if ([string] $evidence.result -ne "passed") {
+Add-Failure "Runtime evidence result must be passed."
 }
-$serialized = $evidence | ConvertTo-Json -Depth 16 -Compress
-foreach ($forbidden in @($RepoRoot.Path, "C:\Users\", "D:\", "JaredLin")) {
-if (-not [string]::IsNullOrWhiteSpace($forbidden) -and $serialized.Contains($forbidden)) {
-Add-Failure ("Runtime evidence leaks a local absolute/source-specific path marker: {0}" -f $forbidden)
+$repoRootMarker = if ($null -ne $RepoRoot.PSObject.Properties["Path"]) { [string] $RepoRoot.Path } else { [string] $RepoRoot }
+$serialized = $evidence | ConvertTo-Json -Depth 20 -Compress
+if ($serialized -match "[A-Za-z]:\\") {
+Add-Failure "Runtime evidence leaks a local absolute path marker."
+}
+$dynamicMarkers = New-Object System.Collections.Generic.List[string]
+foreach ($marker in @(
+    $repoRootMarker,
+    [string] $RepoRoot.Name,
+    [string] (Split-Path -Path $repoRootMarker -Parent | Split-Path -Leaf),
+    [string] $env:USERNAME,
+    [string] $env:USERPROFILE
+)) {
+if (-not [string]::IsNullOrWhiteSpace($marker) -and $marker.Length -ge 3) {
+[void] $dynamicMarkers.Add($marker)
+}
+}
+foreach ($forbidden in ($dynamicMarkers | Select-Object -Unique)) {
+if ($serialized.Contains($forbidden)) {
+Add-Failure "Runtime evidence leaks a local source-specific path marker."
 }
 }
 if ($Failures.Count -eq $startFailureCount) {

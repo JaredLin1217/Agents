@@ -2,22 +2,22 @@ schema: agents-version/v2
 purpose: "Foundation creation version metadata for provider and target deployments."
 owns: "Foundation creation version, deployment contract, and upgrade expectations."
 workflow:
-  version: "2.6.2"
+  version: "2.7.0"
   channel: "foundation-creation"
-  positioning: "Stabilization release preserving foundation creation semantics while adding repeatable runtime evidence capture, source freshness gates, and lower validation maintenance hotspots."
+  positioning: "Practice-hardening release preserving core workflow semantics while adding v2 runtime evidence, current-repo practice proof, operator guidance, and lower validation maintenance hotspots."
   root_principle: "One repo-local operating standard, official-docs-first capability creation, source-neutral deployment, runtime-local evidence, project-owned knowledge, and repeatable task flow across growing projects."
 readiness_ladder:
   P0: "Validation entry point, canonical contracts, English-only durable rules, ignored runtime and local state, and no local permission repair."
   P1: "Deployment dry-run, target layout detection, provider self-write refusal, deployed file boundary, and upgrade gate."
   P2: "Source-neutral template bundle, exact-pair drift checks, route packs, schema mirrors, and template coverage."
   P3: "Delegated deployment worker rules, enterprise department leader dispatch, collaborator leader windows, artifact-backed workflow packets, runtime execution evidence, and lifecycle checks."
-  P4: "Release audit profile, release package export, runtime release evidence, workflow artifact verification, runtime blocklists, hard-isolation claim boundaries, full verification, and size gates."
-  P5: "Target-owned state preservation, target rollback by version control, artifact-backed evidence, collaborator thread runtime boundaries, context compaction contracts, knowledge footprints, foundation creation contracts, source freshness review, and compact workflow growth controls."
+  P4: "Release audit profile, release package export, v2 runtime release evidence, workflow artifact verification, runtime blocklists, hard-isolation claim boundaries, full verification, and size gates."
+  P5: "Target-owned state preservation, target rollback by version control, artifact-backed evidence, collaborator thread runtime boundaries, context compaction contracts, knowledge footprints, foundation creation contracts, source freshness review, practice evidence tiering, and compact workflow growth controls."
 upgrade_policy:
   default: "dry-run first"
   core_contract_rule: "Upgrades must preserve AGENTS.md routing, project-local skill invocation, enterprise_dispatch, workflow_artifact, context_compact, collaborator_window, foundation_creation, runtime_execution, deploy modes, ignored runtime boundaries, and target-owned state."
   foundation_creation_rule: "Upgrades must preserve openai_foundations, official-docs-first guidance, schema-first outputs, explicit state ownership, tool boundaries, latency controls, and evaluation gates."
-  breaking_change_rule: "A breaking change requires migration notes and explicit target opt-in."
+  breaking_change_rule: "Current releases may retire obsolete internal compatibility code when canonical contracts and target opt-in remain clear; target deployments still require explicit upgrade review."
   overwrite_scope: "Only allowlisted deployed files may be updated."
   preserve_target_owned: ["runtime state", "workflow artifacts", ".workflow imports", "local Codex config", "memory entries", "status files", "events", "commits", "remotes", "deployment history"]
   rollback: "Use target version control or target backup; provider repo does not store target rollback state."

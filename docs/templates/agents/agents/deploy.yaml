@@ -10,13 +10,13 @@ boundary:
 target_layout:
   detect_first: ["AGENTS.md","docs/agents",".agents/docs/agents",".agents/skills"]
   public_profiles:
-    auto: "Detect route/layout; else root-layout."
-    root-layout: "docs/agents + docs/runbooks."
-    dot-agents-layout: ".agents/docs/agents + .agents/docs/runbooks."
-  root_docs: "docs/agents + runbooks if routed/no layout."
-  dot_agents_docs: ".agents/docs + skills if routed."
+    auto: "Detect; else root-layout."
+    root-layout: "docs/agents + runbooks."
+    dot-agents-layout: ".agents/docs + runbooks."
+  root_docs: "docs/agents + runbooks."
+  dot_agents_docs: ".agents/docs + skills."
   rule: "Preserve one layout unless migrating."
-  report_name_rule: "Use public names: auto, root-layout, dot-agents-layout."
+  report_name_rule: "Public names: auto, root-layout, dot-agents-layout."
   mixed_route_rule: "AGENTS route cannot include both docs layouts."
   target_path_rule: "`to` is canonical before layout rewrite."
   path_rewrite: "For .agents/docs, rewrite refs by layout_destination_map."
@@ -62,7 +62,7 @@ deployment_modes:
   full_workflow: "Add memory starters, evidence/feedback templates, runbooks."
   template_provider_mode: "Add docs/templates/agents/** for redeploy."
 deployment_manifest_markers:
-  core_bootstrap_foundation: "docs/templates/agents/agents/openai-foundations.yaml -> docs/agents/openai-foundations.yaml"
+  core_bootstrap_foundation: "docs/templates/agents/agents/openai-foundations.yaml docs/agents/openai-foundations.yaml"
 upgrade:
   rule: "Allowlisted redeploy: dry-run first, preserve target-owned state, update only deployed_file_set."
   overwrite_gate: "Changed deployed files need -Upgrade after dry-run; unchanged may skip."
@@ -135,6 +135,8 @@ deployable_by_mode:
       to: "scripts/agents-cleanup.ps1"
     - from: "docs/templates/agents/agents-deployment.md"
       to: "docs/runbooks/agents-deployment.md"
+    - from: "docs/templates/agents/agents-operator-guide.md"
+      to: "docs/runbooks/agents-operator-guide.md"
     - from: "docs/templates/agents/task-closeout.md"
       to: "docs/runbooks/task-closeout.md"
   full_workflow_additions:

@@ -44,6 +44,7 @@ $required = @(
 "docs/templates/agents/agents/context-compact.yaml",
 ".agents/skills/project-isolation-workflow/SKILL.md",
 "docs/project-structure.md",
+"docs/runbooks/agents-operator-guide.md",
 "scripts/deploy-agents-workflow.ps1",
 "scripts/export-release-package.ps1",
 "scripts/agents-workflow.ps1",
@@ -56,6 +57,10 @@ $required = @(
 "scripts/validate-residue.ps1",
 "scripts/validate-size-gates.ps1",
 "scripts/validate-release-evidence.ps1",
+"scripts/validate-route-pack.ps1",
+"scripts/validate-runtime-execution.ps1",
+"scripts/validate-readiness.ps1",
+"scripts/validate-cross-project-runtime.ps1",
 "scripts/export-route-pack.ps1",
 "schemas/agents-runtime-evidence.schema.json"
 )

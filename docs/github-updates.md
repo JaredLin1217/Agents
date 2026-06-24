@@ -10,9 +10,9 @@ Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` ins
 
 ## Current Project Version
 
-- Version: `2.6.2`
+- Version: `2.7.0`
 - Channel: `foundation-creation`
-- Positioning: 2.6.2 preserves the foundation-creation workflow while adding repeatable runtime evidence capture, source freshness gates, and lower validation maintenance hotspots.
+- Positioning: 2.7.0 keeps the core workflow semantics while adding v2 runtime evidence, current-repo practice proof, operator guidance, and lower validation maintenance hotspots.
 
 ## Recent Commits
 

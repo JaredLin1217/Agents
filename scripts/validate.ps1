@@ -93,6 +93,42 @@ function Test-RequiredFiles {
 Add-Failure "Required files validation helper missing: scripts/validate-required-files.ps1"
 }
 }
+$RoutePackValidationHelper = Join-Path $PSScriptRoot "validate-route-pack.ps1"
+if (Test-Path -LiteralPath $RoutePackValidationHelper -PathType Leaf) {
+. $RoutePackValidationHelper
+}
+else {
+function Test-RoutePackDeterminism {
+Add-Failure "Route pack validation helper missing: scripts/validate-route-pack.ps1"
+}
+}
+$RuntimeExecutionValidationHelper = Join-Path $PSScriptRoot "validate-runtime-execution.ps1"
+if (Test-Path -LiteralPath $RuntimeExecutionValidationHelper -PathType Leaf) {
+. $RuntimeExecutionValidationHelper
+}
+else {
+function Test-RuntimeExecutionSmoke {
+Add-Failure "Runtime execution validation helper missing: scripts/validate-runtime-execution.ps1"
+}
+}
+$ReadinessValidationHelper = Join-Path $PSScriptRoot "validate-readiness.ps1"
+if (Test-Path -LiteralPath $ReadinessValidationHelper -PathType Leaf) {
+. $ReadinessValidationHelper
+}
+else {
+function Test-ReadinessLadderEvidence {
+Add-Failure "Readiness validation helper missing: scripts/validate-readiness.ps1"
+}
+}
+$CrossProjectRuntimeValidationHelper = Join-Path $PSScriptRoot "validate-cross-project-runtime.ps1"
+if (Test-Path -LiteralPath $CrossProjectRuntimeValidationHelper -PathType Leaf) {
+. $CrossProjectRuntimeValidationHelper
+}
+else {
+function Test-CrossProjectRuntimeResilienceIntegrity {
+Add-Failure "Cross-project runtime validation helper missing: scripts/validate-cross-project-runtime.ps1"
+}
+}
 function Get-RepoPathHash {
 param([string] $Path)
 $normalized = [System.IO.Path]::GetFullPath($Path).TrimEnd([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar).ToLowerInvariant()
@@ -857,6 +893,7 @@ $pairs = @(
 @("docs/agents/knowledge-footprint.yaml", "docs/templates/agents/agents/knowledge-footprint.yaml"),
 @("docs/agents/context-compact.yaml", "docs/templates/agents/agents/context-compact.yaml"),
 @("docs/runbooks/agents-deployment.md", "docs/templates/agents/agents-deployment.md"),
+@("docs/runbooks/agents-operator-guide.md", "docs/templates/agents/agents-operator-guide.md"),
 @("docs/runbooks/isolation-audit.md", "docs/templates/agents/isolation-audit.md"),
 @("docs/runbooks/multi-agent-workflow.md", "docs/templates/agents/multi-agent-workflow.md"),
 @("docs/runbooks/repository-maintenance.md", "docs/templates/agents/repository-maintenance.md"),
@@ -922,6 +959,7 @@ $allowedItems = @(
 "docs/templates/agents/agents/knowledge-footprint.yaml",
 "docs/templates/agents/agents/context-compact.yaml",
 "docs/templates/agents/agents-deployment.md",
+"docs/templates/agents/agents-operator-guide.md",
 "docs/templates/agents/isolation-audit.md",
 "docs/templates/agents/multi-agent-workflow.md",
 "docs/templates/agents/repository-maintenance.md",
@@ -2216,140 +2254,6 @@ if ($Failures.Count -eq $startFailureCount) {
 Add-Pass "CI workflow stability checks passed."
 }
 }
-function Test-ReadinessLadderEvidence {
-$startFailureCount = $Failures.Count
-$checks = @(
-@{
-Level = "P0"
-Evidence = @(
-@("docs/agents/version.yaml", "P0:"),
-@("scripts/validate.ps1", "Test-SchemaContracts"),
-@("scripts/validate.ps1", "Test-RuntimeBoundaries"),
-@("scripts/validate.ps1", "forbidden local repair")
-)
-},
-@{
-Level = "P1"
-Evidence = @(
-@("docs/agents/version.yaml", "P1:"),
-@("scripts/deploy-agents-workflow.ps1", "DryRun"),
-@("scripts/deploy-agents-workflow.ps1", "Get-TargetLayout"),
-@("scripts/deploy-agents-workflow.ps1", "Refusing to write into the provider/source repo"),
-@("scripts/deploy-agents-workflow.ps1", "requires -Upgrade"),
-@("scripts/deploy-agents-workflow.ps1", "Test-DeployPathAllowed"),
-@("scripts/deploy-agents-workflow.ps1", "Test-DeployedFileSet")
-)
-},
-@{
-Level = "P2"
-Evidence = @(
-@("docs/agents/version.yaml", "P2:"),
-@("docs/agents/version.yaml", "root_principle"),
-@("scripts/validate.ps1", "Test-TemplateSourceNeutrality"),
-@("scripts/validate.ps1", "Test-ExactPairs"),
-@("scripts/validate.ps1", "Test-TemplateCoverage")
-)
-},
-@{
-Level = "P3"
-Evidence = @(
-@("docs/agents/version.yaml", "P3:"),
-@("docs/agents/deploy.yaml", "deployment_worker"),
-@("docs/agents/workflows.yaml", "enterprise_dispatch_runtime"),
-@("docs/agents/workflows.yaml", "workflow_artifact_runtime"),
-@("docs/agents/workflows.yaml", "context_compact_runtime"),
-@("docs/agents/workflows.yaml", "collaborator_window_runtime"),
-@("docs/agents/workflow-artifacts.yaml", "artifact_root_rule"),
-@("docs/agents/context-compact.yaml", "summary_contract"),
-@("docs/agents/collaborators.yaml", "lifecycle"),
-@("docs/agents/collaborators.yaml", "leader_mapping"),
-@("docs/agents/dispatch.yaml", "department_report"),
-@("docs/agents/workflows.yaml", "ownership:"),
-@("docs/agents/workflows.yaml", "ledger_missing_or_cleared"),
-@("docs/agents/workflows.yaml", "before:"),
-@("docs/agents/workflows.yaml", "during:"),
-@("docs/agents/workflows.yaml", "after:"),
-@("scripts/agents-workflow.ps1", "SimulateDispatch"),
-@("scripts/validate.ps1", "Test-EnterpriseDispatchIntegrity"),
-@("scripts/validate.ps1", "Test-WorkflowArtifactIntegrity"),
-@("scripts/validate.ps1", "Test-ContextCompactIntegrity"),
-@("scripts/validate.ps1", "Test-CollaboratorWindowIntegrity"),
-@("scripts/validate.ps1", "Test-MultiAgentWorkflowIntegrity"),
-@("scripts/validate.ps1", "Test-AgentCleanupHelperIntegrity")
-)
-},
-@{
-Level = "P4"
-Evidence = @(
-@("docs/agents/version.yaml", "P4:"),
-@("docs/agents/verify.yaml", "release_deploy_push_audit"),
-@("docs/agents/verify.yaml", "runtime_multi_agent"),
-@("docs/agents/verify.yaml", "hard_isolation"),
-@("docs/agents/verify.yaml", "workflow_artifact"),
-@("docs/agents/verify.yaml", "context_compact"),
-@("docs/agents/verify.yaml", "collaborator_window"),
-@("docs/agents/verify.yaml", "core_system"),
-@("docs/agents/verify.yaml", "runtime_execution"),
-@("docs/agents/verify.yaml", "provider_adapter"),
-@("docs/agents/verify.yaml", "route_pack"),
-@("docs/agents/verify.yaml", "knowledge_footprint"),
-@("docs/agents/verify.yaml", "foundation_creation"),
-@("scripts/export-release-package.ps1", "release-manifest.json"),
-@("scripts/validate-release-evidence.ps1", "Test-ReleasePackageExport"),
-@("scripts/validate-release-evidence.ps1", "Test-RuntimeReleaseEvidence"),
-@("scripts/validate-size-gates.ps1", "Test-SizeGates"),
-@("scripts/validate-evidence-templates.ps1", "Test-EvidenceTemplateSchemaCoverage"),
-@("scripts/validate.ps1", "Test-CIWorkflowStability"),
-@("scripts/validate.ps1", "Full release audit gates passed")
-)
-},
-@{
-Level = "P5"
-Evidence = @(
-@("docs/agents/version.yaml", "P5:"),
-@("docs/agents/version.yaml", "core_contract_rule"),
-@("docs/agents/version.yaml", "foundation_creation_rule"),
-@("docs/agents/version.yaml", "workflow_artifact"),
-@("docs/agents/version.yaml", "context_compact"),
-@("docs/agents/version.yaml", "rollback"),
-@("docs/agents/openai-foundations.yaml", "structured_outputs"),
-@("scripts/validate-foundation.ps1", "Test-FoundationCreationIntegrity"),
-@("docs/agents/verify.yaml", "stale_literal_rule"),
-@("docs/agents/verify.yaml", "batch_rule"),
-@("docs/agents/verify.yaml", "target-owned state preservation"),
-@("docs/agents/verify.yaml", "target git rollback scope"),
-@("docs/agents/deploy.yaml", "target-owned state preserved"),
-@("docs/agents/deploy.yaml", "target git rollback scope"),
-@("docs/agents/deploy.yaml", ".workflow/"),
-@("docs/agents/workflows.yaml", "compact_output"),
-@("docs/agents/context-compact.yaml", "raw transcript"),
-@("scripts/validate-size-gates.ps1", "Test-SizeGates"),
-@("scripts/deploy-agents-workflow.ps1", "target git rollback scope"),
-@("scripts/deploy-agents-workflow.ps1", "Update-TargetStateClassification"),
-@("scripts/deploy-agents-workflow.ps1", "Protected dirty/local target state observed"),
-@("scripts/deploy-agents-workflow.ps1", "Target-owned historical Agents files outside deployed file set")
-)
-}
-)
-foreach ($check in $checks) {
-foreach ($item in $check.Evidence) {
-$path = $item[0]
-$marker = $item[1]
-$fullPath = Get-RepoPath $path
-if (-not (Test-Path -LiteralPath $fullPath -PathType Leaf)) {
-Add-Failure ("{0} readiness evidence file is missing: {1}" -f $check.Level, $path)
-continue
-}
-$content = Get-Content -LiteralPath $fullPath -Raw
-if (-not $content.Contains($marker)) {
-Add-Failure ("{0} readiness evidence marker is missing in {1}: {2}" -f $check.Level, $path, $marker)
-}
-}
-}
-if ($Failures.Count -eq $startFailureCount) {
-Add-Pass "P0-P5 readiness evidence checks passed."
-}
-}
 function Test-SkillMetadata {
 $startFailureCount = $Failures.Count
 $skillFiles = @(
@@ -2430,164 +2334,10 @@ Add-Failure ("Core runtime marker missing from {0}: {1}" -f $path, $marker)
 }
 }
 }
-$routePackRoot = Get-ValidationTempRoot -Purpose "route-pack-validation"
-$routePackA = Join-Path $routePackRoot "core-system-a.json"
-$routePackB = Join-Path $routePackRoot "core-system-b.json"
-$routePackAnswerA = Join-Path $routePackRoot "answer-only-a.json"
-$routePackAnswerB = Join-Path $routePackRoot "answer-only-b.json"
-try {
-$outputA = & (Get-RepoPath "scripts/export-route-pack.ps1") -RouteId "core_system" -OutputPath $routePackA -Quiet 2>&1
-$outputB = & (Get-RepoPath "scripts/export-route-pack.ps1") -RouteId "core_system" -OutputPath $routePackB -Quiet 2>&1
-$outputAnswerA = & (Get-RepoPath "scripts/export-route-pack.ps1") -RouteId "answer_only" -OutputPath $routePackAnswerA -Quiet 2>&1
-$outputAnswerB = & (Get-RepoPath "scripts/export-route-pack.ps1") -RouteId "answer_only" -OutputPath $routePackAnswerB -Quiet 2>&1
-if (@($outputA).Count -gt 0 -or @($outputB).Count -gt 0 -or @($outputAnswerA).Count -gt 0 -or @($outputAnswerB).Count -gt 0) {
-Add-Failure "Route pack export quiet mode produced output during deterministic check."
-}
-if (-not (Test-Path -LiteralPath $routePackA -PathType Leaf) -or -not (Test-Path -LiteralPath $routePackB -PathType Leaf) -or -not (Test-Path -LiteralPath $routePackAnswerA -PathType Leaf) -or -not (Test-Path -LiteralPath $routePackAnswerB -PathType Leaf)) {
-Add-Failure "Route pack deterministic check did not produce both manifests."
-}
-else {
-$hashA = (Get-FileHash -LiteralPath $routePackA -Algorithm SHA256).Hash
-$hashB = (Get-FileHash -LiteralPath $routePackB -Algorithm SHA256).Hash
-if ($hashA -ne $hashB) {
-Add-Failure "Route pack deterministic check produced different manifest hashes."
-}
-$answerHashA = (Get-FileHash -LiteralPath $routePackAnswerA -Algorithm SHA256).Hash
-$answerHashB = (Get-FileHash -LiteralPath $routePackAnswerB -Algorithm SHA256).Hash
-if ($answerHashA -ne $answerHashB) {
-Add-Failure "Answer-only route pack deterministic check produced different manifest hashes."
-}
-$manifest = Get-Content -LiteralPath $routePackA -Raw | ConvertFrom-Json
-if ([string] $manifest.route_id -ne "core_system") {
-Add-Failure "Route pack manifest route_id mismatch."
-}
-if ([string] $manifest.version -ne $expectedWorkflowVersion) {
-Add-Failure ("Route pack manifest version must be {0}." -f $expectedWorkflowVersion)
-}
-if ($manifest.PSObject.Properties["files"]) {
-Add-Failure "Route pack manifest must use required_files, not files."
-}
-$requiredFiles = $manifest.PSObject.Properties["required_files"]
-if (-not $requiredFiles -or $null -eq $requiredFiles.Value -or @($requiredFiles.Value).Count -eq 0) {
-Add-Failure "Route pack manifest must contain non-empty required_files for core_system."
-}
-if (-not $manifest.PSObject.Properties["manifest_hash"] -or [string]::IsNullOrWhiteSpace([string] $manifest.manifest_hash)) {
-Add-Failure "Route pack manifest must include manifest_hash."
-}
-$answerManifest = Get-Content -LiteralPath $routePackAnswerA -Raw | ConvertFrom-Json
-if ([string] $answerManifest.route_id -ne "answer_only") {
-Add-Failure "Answer-only route pack manifest route_id mismatch."
-}
-if ([string] $answerManifest.tool_surface -ne "no_file_read") {
-Add-Failure "Answer-only route pack must use no_file_read tool_surface."
-}
-$answerRequiredFiles = $answerManifest.PSObject.Properties["required_files"]
-if (-not $answerRequiredFiles) {
-Add-Failure "Answer-only route pack manifest must include required_files."
-}
-elseif ($null -ne $answerRequiredFiles.Value -and @($answerRequiredFiles.Value).Count -ne 0) {
-Add-Failure "Answer-only route pack required_files must be empty."
-}
-if (-not $answerManifest.PSObject.Properties["manifest_hash"] -or [string]::IsNullOrWhiteSpace([string] $answerManifest.manifest_hash)) {
-Add-Failure "Answer-only route pack manifest must include manifest_hash."
-}
-}
-}
-catch {
-Add-Failure ("Route pack deterministic check failed: {0}" -f $_.Exception.Message)
-}
-$runtimeRoot = Get-ValidationTempRoot -Purpose "runtime-execution-validation"
-$runId = "readonly-smoke"
-try {
-$runtimeScript = Get-RepoPath "scripts/agents-runtime.ps1"
-& $runtimeScript -Action NewRun -RunId $runId -RuntimeRoot $runtimeRoot -Objective "readonly validation smoke" -Authority "read_only" -Quiet 2>&1 | Out-Null
-& $runtimeScript -Action AddStep -RunId $runId -RuntimeRoot $runtimeRoot -Step "read_only" -Authority "read_only" -Quiet 2>&1 | Out-Null
-& $runtimeScript -Action AddDeploymentEvidence -RunId $runId -RuntimeRoot $runtimeRoot -EvidenceType "verify" -Summary "readonly verification evidence" -EvidenceRef "run.json" -VerificationRef "scripts/agents-runtime.ps1" -Quiet 2>&1 | Out-Null
-& $runtimeScript -Action AddResult -RunId $runId -RuntimeRoot $runtimeRoot -Result "completed" -Summary "readonly smoke completed" -EvidenceRef "summary.json" -VerificationRef "scripts/validate.ps1" -Quiet 2>&1 | Out-Null
-& $runtimeScript -Action Collect -RunId $runId -RuntimeRoot $runtimeRoot -Quiet 2>&1 | Out-Null
-& $runtimeScript -Action Verify -RunId $runId -RuntimeRoot $runtimeRoot -Quiet 2>&1 | Out-Null
-& $runtimeScript -Action Cleanup -RunId $runId -RuntimeRoot $runtimeRoot -Quiet 2>&1 | Out-Null
-& $runtimeScript -Action Verify -RunId $runId -RuntimeRoot $runtimeRoot -Quiet 2>&1 | Out-Null
-$runPath = Join-Path (Join-Path $runtimeRoot $runId) "run.json"
-if (-not (Test-Path -LiteralPath $runPath -PathType Leaf)) {
-Add-Failure "Runtime execution smoke did not produce run.json."
-}
-else {
-$run = Get-Content -LiteralPath $runPath -Raw | ConvertFrom-Json
-if ([string] $run.version -ne $expectedWorkflowVersion) {
-Add-Failure ("Runtime execution run version must be {0}." -f $expectedWorkflowVersion)
-}
-if ([string] $run.status -ne "cleaned") {
-Add-Failure "Runtime execution smoke must end with cleaned status."
-}
-if (@($run.cleanup_evidence).Count -lt 1) {
-Add-Failure "Runtime execution smoke must include cleanup evidence."
-}
-foreach ($requiredArray in @("event_summary", "verification_refs", "risks", "deployment_evidence")) {
-if ($null -eq $run.PSObject.Properties[$requiredArray]) {
-Add-Failure ("Runtime execution run is missing required array: {0}" -f $requiredArray)
-}
-}
-if ([string]::IsNullOrWhiteSpace([string] $run.resume_pointer)) {
-Add-Failure "Runtime execution run must include resume_pointer."
-}
-if (@($run.deployment_evidence).Count -lt 1) {
-Add-Failure "Runtime execution smoke must include deployment evidence."
-}
-}
-}
-catch {
-Add-Failure ("Runtime execution helper smoke failed: {0}" -f $_.Exception.Message)
-}
+Test-RoutePackDeterminism
+Test-RuntimeExecutionSmoke
 if ($Failures.Count -eq $startFailureCount) {
 Add-Pass "Core runtime system integrity checks passed."
-}
-}
-function Test-CrossProjectRuntimeResilienceIntegrity {
-$startFailureCount = $Failures.Count
-$mirrorPairs = @(
-@("docs/agents/deploy.yaml", "docs/templates/agents/agents/deploy.yaml"),
-@("docs/agents/runtime-execution.yaml", "docs/templates/agents/agents/runtime-execution.yaml")
-)
-foreach ($pair in $mirrorPairs) {
-$source = Get-RepoPath $pair[0]
-$mirror = Get-RepoPath $pair[1]
-if (-not (Test-Path -LiteralPath $source -PathType Leaf) -or -not (Test-Path -LiteralPath $mirror -PathType Leaf)) {
-Add-Failure ("Cross-project mirror missing: {0} <-> {1}" -f $pair[0], $pair[1])
-continue
-}
-$sourceHash = (Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash
-$mirrorHash = (Get-FileHash -LiteralPath $mirror -Algorithm SHA256).Hash
-if ($sourceHash -ne $mirrorHash) {
-Add-Failure ("Cross-project mirror drift: {0} <-> {1}" -f $pair[0], $pair[1])
-}
-}
-$markerChecks = @(
-@("docs/agents/deploy.yaml", @("root-layout", "dot-agents-layout", "pre_dirty_snapshot", "post_dirty_snapshot", "changed_by_deploy", "unexpected_changed_files", "cleanup_capability", "dirty_snapshot_guard", "scripts/agents-cleanup.ps1", "%TEMP%/codex-agent-status/<project-id>-<repo-path-hash>/<run-id>/")),
-@("scripts/deploy-agents-workflow.ps1", @("LayoutProfile", "Get-TargetDirtySnapshot", "Test-AgentsRoutePathConsistency", "Assert-NoUnexpectedTargetChanges", "cleanup_capability", "run_id", "Get-StatusProjectKey")),
-@("scripts/validate.ps1", @("TempRoot", "Get-ValidationTempRoot", "Get-RepoPathHash", "ValidationRunId")),
-@("scripts/agents-runtime.ps1", @("resume_pointer", "event_summary", "verification_refs", "deployment_evidence", "AddDeploymentEvidence")),
-@("scripts/export-route-pack.ps1", @("Get-ProjectKey", "Get-RunId", "codex-agent-status", "manifest_hash")),
-@("docs/agents/runtime-execution.yaml", @("cross_window_recovery", "deployment_evidence", "resume_pointer", "verification_refs")),
-@("docs/agents/workflows.yaml", @("runtime.quiet_cleanup", "scripts/agents-cleanup.ps1")),
-@("docs/agents/verify.yaml", @("scripts/agents-cleanup.ps1", "cleanup"))
-)
-foreach ($check in $markerChecks) {
-$path = [string] $check[0]
-$contentPath = Get-RepoPath $path
-if (-not (Test-Path -LiteralPath $contentPath -PathType Leaf)) {
-Add-Failure ("Cross-project marker file missing: {0}" -f $path)
-continue
-}
-$content = Get-Content -LiteralPath $contentPath -Raw
-foreach ($marker in @($check[1])) {
-if (-not $content.Contains([string] $marker)) {
-Add-Failure ("Cross-project marker missing from {0}: {1}" -f $path, $marker)
-}
-}
-}
-if ($Failures.Count -eq $startFailureCount) {
-    Add-Pass "Cross-project ok."
 }
 }
 function Test-FullAuditGates {

@@ -17,6 +17,7 @@
     "commands",
     "profiles",
     "size_gates",
+    "evidence_tiers",
     "claim_scopes",
     "minimum_evidence",
     "no_deduction_audit",
@@ -48,6 +49,10 @@
     "commands.runtime_release_evidence",
     "commands.size_gate_helper",
     "commands.release_evidence_helper",
+    "commands.route_pack_validation_helper",
+    "commands.runtime_execution_validation_helper",
+    "commands.readiness_validation_helper",
+    "commands.cross_project_runtime_validation_helper",
     "commands.deployment_script_safety",
     "commands.deployment_script_selftest",
     "commands.multi_agent_workflow_integrity",
@@ -64,6 +69,7 @@
     "profiles.hard_isolation",
     "size_gates.targets.tracked_repo_kib",
     "size_gates.targets.validate_script_ps1_after_split",
+    "evidence_tiers.current_release_max",
     "claim_scopes.deploy_clean",
     "claim_scopes.hard_isolation",
     "no_deduction_audit.rule",
@@ -236,6 +242,7 @@
       "contains": [
         "capture-runtime-evidence.ps1",
         "-Full",
+        "-Practice",
         "-Quiet"
       ]
     },
@@ -254,16 +261,23 @@
     {
       "path": "size_gates.targets.validate_script_ps1_after_split",
       "contains": [
-        "120668"
+        "110000"
       ]
     },
     {
       "path": "minimum_evidence.runtime_release_evidence",
       "contains": [
-        "schema validation",
+        "v2 schema",
+        "validated_content_digest",
         "command durations",
         "token usage unavailable reason",
-        "local-only boundary"
+        "T2 current-repo practice boundary"
+      ]
+    },
+    {
+      "path": "evidence_tiers.current_release_max",
+      "contains": [
+        "T2 current-repo practice"
       ]
     }
   ]

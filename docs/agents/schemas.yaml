@@ -159,11 +159,12 @@ runtime_multi_agent_validation:
   marker_anchors: "[Expected id set, Protocol result, Roster snapshot version, Final report matched runtime id, Git status after employee work, SQLite thread state result, session_index_result, Global unread state result, Rollout residue result, Delayed cleanup verification]"
   storage_rule: "Filled records are local scratch unless promoted."
 runtime_release_evidence:
-  required_fields: "[schema_version, workflow_version, repo_commit, run_started_utc, run_finished_utc, duration_ms, commands, claims, scope, xr_xw]"
+  required_fields: "[schema_version, workflow_version, repo_commit, source_commit, validated_content_digest, content_digest_excluded_paths, working_tree_status_at_capture, run_started_utc, run_finished_utc, duration_ms, commands, claims, scope, xr_xw, evidence_tier]"
   command_fields: "[name, command, result, exit_code, duration_ms, retry_count, raw_output_ref, overall_score]"
+  digest_rule: "Content digest excludes runtime scratch and evidence outputs; it binds validated content, not final commit hash."
   performance_rule: "Token usage is unavailable; record reason, never estimating."
   storage_rule: "Raw output stays in %TEMP%/codex-agent-status/<project-id>/<run-id>/; not tracked."
-  boundary_rule: "Self-test/dry-run evidence is not live external deployment proof."
+  boundary_rule: "T2 current-repo practice is not live external deployment proof, T3 external pilot, or T4 enforced isolation."
 runtime_dry_run_evidence:
   required_fields: ["Evidence id","Date","Operator","Request","Claim scope","Static validation result","Target path","Dry-run command","Write mode","Expected no-write result","Output reference","Changed files","Cleanup","Result","Boundary statement","Isolation"]
   boundary_rule: "Static 100/100 validation is not runtime deployment proof."
