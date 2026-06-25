@@ -1,0 +1,137 @@
+{
+    "schema_version":  "agents-runtime-evidence/v2",
+    "workflow_version":  "2.7.0",
+    "repo_commit":  "13e0dc58b0bd6e18aefdfdb67822f55d6c53240f",
+    "source_commit":  "13e0dc58b0bd6e18aefdfdb67822f55d6c53240f",
+    "validated_content_digest":  {
+                                     "algorithm":  "sha256",
+                                     "value":  "88401d5a7f15d051de47248184a0311ecaee21b3014b6199b4e3602633636b7a",
+                                     "tracked_file_count":  167
+                                 },
+    "content_digest_excluded_paths":  [
+                                          ".git/**",
+                                          ".agents/runtime/**",
+                                          ".workflow/**",
+                                          ".codex/**",
+                                          "docs/evidence/releases/*.json",
+                                          "docs/evidence/raw/**"
+                                      ],
+    "working_tree_status_at_capture":  {
+                                           "state":  "clean",
+                                           "porcelain":  [
+
+                                                         ],
+                                           "entry_count":  0
+                                       },
+    "run_started_utc":  "2026-06-25T00:14:42.8019077Z",
+    "run_finished_utc":  "2026-06-25T00:17:31.3296493Z",
+    "duration_ms":  168528,
+    "commands":  [
+                     {
+                         "name":  "deployment_self_test",
+                         "command":  ".\\scripts\\deploy-agents-workflow.ps1 -SelfTest -Quiet",
+                         "result":  "passed",
+                         "exit_code":  0,
+                         "duration_ms":  40685,
+                         "retry_count":  0,
+                         "raw_output_ref":  "%TEMP%/codex-agent-status/jared-s-ai-team-269f185848e5/runtime-evidence-20260625T001442Z-43753ef5/deployment_self_test.log"
+                     },
+                     {
+                         "name":  "current_project_dry_run",
+                         "command":  ".\\scripts\\deploy-agents-workflow.ps1 -TargetPath . -Mode template_provider_mode -LayoutProfile auto -DryRun -Quiet",
+                         "result":  "passed",
+                         "exit_code":  0,
+                         "duration_ms":  2490,
+                         "retry_count":  0,
+                         "raw_output_ref":  "%TEMP%/codex-agent-status/jared-s-ai-team-269f185848e5/runtime-evidence-20260625T001442Z-43753ef5/current_project_dry_run.log"
+                     },
+                     {
+                         "name":  "disposable_target_rollback_drill",
+                         "command":  ".\\scripts\\deploy-agents-workflow.ps1 -SelfTest -Quiet",
+                         "result":  "passed",
+                         "exit_code":  0,
+                         "duration_ms":  26253,
+                         "retry_count":  0,
+                         "raw_output_ref":  "%TEMP%/codex-agent-status/jared-s-ai-team-269f185848e5/runtime-evidence-20260625T001442Z-43753ef5/disposable_target_rollback_drill.log"
+                     },
+                     {
+                         "name":  "runtime_lifecycle_smoke",
+                         "command":  ".\\scripts\\validate-runtime-execution.ps1",
+                         "result":  "passed",
+                         "exit_code":  0,
+                         "duration_ms":  1261,
+                         "retry_count":  0,
+                         "raw_output_ref":  "%TEMP%/codex-agent-status/jared-s-ai-team-269f185848e5/runtime-evidence-20260625T001442Z-43753ef5/runtime_lifecycle_smoke.log"
+                     },
+                     {
+                         "name":  "release_package_export",
+                         "command":  ".\\scripts\\export-release-package.ps1 -OutputPath %TEMP%/codex-agent-status/\u003cproject-id\u003e/\u003crun-id\u003e/release-package -Quiet",
+                         "result":  "passed",
+                         "exit_code":  0,
+                         "duration_ms":  3927,
+                         "retry_count":  0,
+                         "raw_output_ref":  "%TEMP%/codex-agent-status/jared-s-ai-team-269f185848e5/runtime-evidence-20260625T001442Z-43753ef5/release_package_export.log"
+                     },
+                     {
+                         "name":  "route_pack_deterministic",
+                         "command":  ".\\scripts\\validate-route-pack.ps1",
+                         "result":  "passed",
+                         "exit_code":  0,
+                         "duration_ms":  1179,
+                         "retry_count":  0,
+                         "raw_output_ref":  "%TEMP%/codex-agent-status/jared-s-ai-team-269f185848e5/runtime-evidence-20260625T001442Z-43753ef5/route_pack_deterministic.log"
+                     },
+                     {
+                         "name":  "full_validation",
+                         "command":  ".\\scripts\\validate.ps1 -Full -Score",
+                         "result":  "passed",
+                         "exit_code":  0,
+                         "duration_ms":  88567,
+                         "retry_count":  0,
+                         "raw_output_ref":  "%TEMP%/codex-agent-status/jared-s-ai-team-269f185848e5/runtime-evidence-20260625T001442Z-43753ef5/full_validation.log",
+                         "overall_score":  100.0,
+                         "evidence_capture_mode":  "runtime-evidence-bootstrap"
+                     }
+                 ],
+    "claims":  {
+                   "static_validation":  "Full validation covers repository contracts, schema checks, package checks, and release evidence.",
+                   "runtime_evidence":  "Runtime evidence is captured from repeatable local commands.",
+                   "practice_evidence":  "T2 current-repo practice suite captured.",
+                   "evidence_tier":  "T2 current-repo practice",
+                   "hard_isolation":  "No hard isolation claim is made without current runtime, tool, OS, account, or cloud enforcement evidence."
+               },
+    "scope":  {
+                  "target":  "current repository and disposable self-test target",
+                  "external_target_deployment":  false,
+                  "raw_output_storage":  "%TEMP%/codex-agent-status/\u003cproject-id\u003e/\u003crun-id\u003e/",
+                  "practice":  true,
+                  "disposable_target":  "deployment self-test temporary targets only"
+              },
+    "xr_xw":  {
+                  "external_reads":  [
+
+                                     ],
+                  "external_writes":  [
+                                          "%TEMP%/codex-agent-status/\u003cproject-id\u003e/\u003crun-id\u003e/ raw command logs and release package scratch"
+                                      ]
+              },
+    "evidence_tier":  {
+                          "current":  "T2 current-repo practice",
+                          "maximum_claimed":  "T2 current-repo practice",
+                          "scale":  [
+                                        "T0 static",
+                                        "T1 dry-run",
+                                        "T2 current-repo practice",
+                                        "T3 external pilot",
+                                        "T4 enforced isolation"
+                                    ]
+                      },
+    "performance":  {
+                        "command_count":  7,
+                        "total_duration_ms":  168528,
+                        "token_usage":  "unavailable",
+                        "token_usage_reason":  "Repository validation scripts do not receive Codex token accounting."
+                    },
+    "result":  "passed",
+    "release":  "v2.7.0"
+}
