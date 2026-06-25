@@ -4,17 +4,67 @@ This file is generated from git history after public branch pushes.
 Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` instead.
 
 - Source branch: `main`
-- Source commit analyzed: `e558aef`
-- Source commit date: `2026-06-23T17:25:02+08:00`
+- Source commit analyzed: `26b1ad3`
+- Source commit date: `2026-06-25T08:17:46+08:00`
 - Commit window: latest 12 non-merge commits
 
 ## Current Project Version
 
 - Version: `2.7.0`
 - Channel: `foundation-creation`
-- Positioning: 2.7.0 keeps the core workflow semantics while adding v2 runtime evidence, current-repo practice proof, operator guidance, and lower validation maintenance hotspots.
+- Positioning: Practice-hardening release preserving core workflow semantics while adding v2 runtime evidence, current-repo practice proof, operator guidance, and lower validation maintenance hotspots.
 
 ## Recent Commits
+
+### 2026-06-25 - `26b1ad3`
+
+Add 2.7.0 practice runtime evidence
+
+- Author: `JaredLin1217`
+- Shortstat: `1 file changed, 137 insertions(+)`
+- Files:
+  - `docs/evidence/releases/v2.7.0-runtime-evidence.json`
+
+### 2026-06-24 - `13e0dc5`
+
+Practice-harden 2.7.0 workflow
+
+- Author: `JaredLin1217`
+- Shortstat: `23 files changed, 1109 insertions(+), 493 deletions(-)`
+- Files:
+  - `README.md`
+  - `docs/agents/deploy.yaml`
+  - `docs/agents/schemas.yaml`
+  - `docs/agents/verify.yaml`
+  - `docs/agents/version.yaml`
+  - `docs/evidence/releases/v2.6.2-runtime-evidence.json`
+  - `docs/github-updates.md`
+  - `docs/runbooks/agents-operator-guide.md`
+
+### 2026-06-24 - `6b1ee53`
+
+Stabilize 2.6.2 runtime evidence
+
+- Author: `JaredLin1217`
+- Shortstat: `23 files changed, 1403 insertions(+), 331 deletions(-)`
+- Files:
+  - `CHANGELOG.md`
+  - `README.md`
+  - `docs/agents/openai-foundations.yaml`
+  - `docs/agents/schemas.yaml`
+  - `docs/agents/verify.yaml`
+  - `docs/agents/version.yaml`
+  - `docs/evidence/releases/v2.6.2-runtime-evidence.json`
+  - `docs/github-updates.md`
+
+### 2026-06-23 - `b85d82e`
+
+docs: update GitHub update log [skip ci]
+
+- Author: `github-actions[bot]`
+- Shortstat: `1 file changed, 45 insertions(+), 44 deletions(-)`
+- Files:
+  - `docs/github-updates.md`
 
 ### 2026-06-23 - `e558aef`
 
@@ -109,52 +159,5 @@ docs: update GitHub update log [skip ci]
 
 - Author: `github-actions[bot]`
 - Shortstat: `1 file changed, 25 insertions(+), 37 deletions(-)`
-- Files:
-  - `docs/github-updates.md`
-
-### 2026-06-05 - `378aed3`
-
-Add 2.5.1 cross-project runtime resilience
-
-- Author: `JaredLin1217`
-- Shortstat: `31 files changed, 2310 insertions(+), 344 deletions(-)`
-- Files:
-  - `.agents/skills/project-isolation-workflow/SKILL.md`
-  - `CHANGELOG.md`
-  - `README.md`
-  - `docs/agents/deploy.yaml`
-  - `docs/agents/runtime-execution.yaml`
-  - `docs/agents/schemas.yaml`
-  - `docs/agents/verify.yaml`
-  - `docs/agents/version.yaml`
-
-### 2026-06-03 - `4997195`
-
-docs: update GitHub update log [skip ci]
-
-- Author: `github-actions[bot]`
-- Shortstat: `1 file changed, 24 insertions(+), 27 deletions(-)`
-- Files:
-  - `docs/github-updates.md`
-
-### 2026-06-04 - `9c9fde0`
-
-Improve public README value narrative
-
-- Author: `JaredLin1217`
-- Shortstat: `5 files changed, 241 insertions(+), 286 deletions(-)`
-- Files:
-  - `README.md`
-  - `docs/agents/deploy.yaml`
-  - `docs/templates/agents/agents/deploy.yaml`
-  - `scripts/deploy-agents-workflow.ps1`
-  - `scripts/validate.ps1`
-
-### 2026-06-03 - `08f743e`
-
-docs: update GitHub update log [skip ci]
-
-- Author: `github-actions[bot]`
-- Shortstat: `1 file changed, 26 insertions(+), 27 deletions(-)`
 - Files:
   - `docs/github-updates.md`
