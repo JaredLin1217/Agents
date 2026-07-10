@@ -4,17 +4,42 @@ This file is generated from git history after public branch pushes.
 Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` instead.
 
 - Source branch: `main`
-- Source commit analyzed: `26b1ad3`
-- Source commit date: `2026-06-25T08:17:46+08:00`
+- Source commit analyzed: `8a2d46a`
+- Source commit date: `2026-07-10T11:35:22+08:00`
 - Commit window: latest 12 non-merge commits
 
 ## Current Project Version
 
-- Version: `2.7.0`
-- Channel: `foundation-creation`
-- Positioning: Practice-hardening release preserving core workflow semantics while adding v2 runtime evidence, current-repo practice proof, operator guidance, and lower validation maintenance hotspots.
+- Version: `2.8.0`
+- Channel: `precision-efficiency`
+- Positioning: Latest-only precision release with progressive disclosure, evidence-bound memory, change-aware validation, current official foundations, and lower routine token cost.
 
 ## Recent Commits
+
+### 2026-07-10 - `8a2d46a`
+
+feat: release AI Agents 2.8.0
+
+- Author: `JaredLin1217`
+- Shortstat: `55 files changed, 1506 insertions(+), 901 deletions(-)`
+- Files:
+  - `CHANGELOG.md`
+  - `README.md`
+  - `docs/agents/context-compact.yaml`
+  - `docs/agents/deploy.yaml`
+  - `docs/agents/knowledge-footprint.yaml`
+  - `docs/agents/openai-foundations.yaml`
+  - `docs/agents/schemas.yaml`
+  - `docs/agents/verify.yaml`
+
+### 2026-06-25 - `cf52bf7`
+
+docs: update GitHub update log [skip ci]
+
+- Author: `github-actions[bot]`
+- Shortstat: `1 file changed, 53 insertions(+), 50 deletions(-)`
+- Files:
+  - `docs/github-updates.md`
 
 ### 2026-06-25 - `26b1ad3`
 
@@ -141,23 +166,5 @@ docs: update GitHub update log [skip ci]
 
 - Author: `github-actions[bot]`
 - Shortstat: `1 file changed, 20 insertions(+), 27 deletions(-)`
-- Files:
-  - `docs/github-updates.md`
-
-### 2026-06-05 - `298142b`
-
-Harden subagent cleanup residue removal
-
-- Author: `JaredLin1217`
-- Shortstat: `1 file changed, 46 insertions(+), 8 deletions(-)`
-- Files:
-  - `scripts/agents-cleanup.ps1`
-
-### 2026-06-05 - `1a60c5b`
-
-docs: update GitHub update log [skip ci]
-
-- Author: `github-actions[bot]`
-- Shortstat: `1 file changed, 25 insertions(+), 37 deletions(-)`
 - Files:
   - `docs/github-updates.md`
