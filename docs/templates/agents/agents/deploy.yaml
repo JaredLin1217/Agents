@@ -272,7 +272,7 @@ hard_fail_gates:
   - "Runtime closeout claims full deletion without proof."
 validation_levels:
   repo_local_dry_run: "source/template/blocklist checks only"
-  disposable_selftest: "root_docstemplate-providerdot_agents_docsdry-runprotected-existinggit-backed foreign projectmissing-targettarget-owned-staterouted-historicalambiguous-layoutapp-file preservationpartial-gitignoregitignore duplicate avoidancetarget handoff checktarget-owned state preservedtarget git rollback scopetarget-local environment bootstrap; verifies blocklist, cleanup, temp/run id."
+  disposable_selftest: "Executable -SelfTest verifies blocklist, cleanup, rollback, layout, and target-state boundaries."
   authorized_target_dry_run: "read target and report plan"
   authorized_target_handoff_check: "read route, skill, report, runbooks, protected paths, git status"
   authorized_target_deployment_test: "write approved files, validate deployed_file_set, handoff check"

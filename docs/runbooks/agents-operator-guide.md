@@ -18,7 +18,34 @@ Use this guide to choose the lightest workflow that proves the claim you need.
 - T3 external pilot: authorized external target evidence exists and is reviewed.
 - T4 enforced isolation: current runtime, OS, account, or cloud controls prove enforcement.
 
-Do not claim above the captured tier. v2.7 defaults to T2.
+Do not claim above the captured tier. v2.8 defaults to T2.
+
+## Validate By Change Risk
+
+- Routine source or prose change: run `.\scripts\validate-changes.ps1 -Profile Auto -Explain`; expected profile is `Fast`.
+- Canonical policy, instruction, skill, template, or memory change: expected profile is `Policy`.
+- Schema, version, release evidence, CI, deploy, or validator change: expected profile is `Full`.
+- Commit, push, deployment, or release claim: use the profile required by `docs/agents/verify.yaml`, even when auto-selection would be lighter.
+
+Auto-selection minimizes repeated work; it does not weaken the evidence needed for a broader claim.
+
+## Recall Durable Knowledge
+
+1. Read `docs/memory/index.md`, not every memory entry.
+2. Filter by the active route, status, and `next_review` date.
+3. Load at most three relevant details within the context byte budget.
+4. Verify remembered facts against current repository or tool evidence before acting.
+5. Update or retire stale memory after a durable decision changes.
+
+Checked-in memory supports recall. Canonical YAML and current evidence remain authoritative.
+
+## Keep Context Small
+
+- Keep stable instructions before dynamic task state so exact prefixes remain reusable.
+- Expand only the route files named by `docs/agents/ai-runtime.yaml`.
+- Summarize long tool output to the evidence needed for the next decision.
+- Delegate only when parallel benefit exceeds context, coordination, and integration cost.
+- Compact at task boundaries or context pressure; preserve decisions, evidence, risks, and the next executable step.
 
 ## Clean Closeout
 

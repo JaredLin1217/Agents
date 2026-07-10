@@ -1,0 +1,191 @@
+{
+    "schema_version":  "agents-runtime-evidence/v3",
+    "workflow_version":  "2.8.0",
+    "repo_commit":  "cf52bf787cafdb818931a04dbe030794015f071e",
+    "source_commit":  "cf52bf787cafdb818931a04dbe030794015f071e",
+    "validated_content_digest":  {
+                                     "algorithm":  "sha256",
+                                     "value":  "d70c0552e0212904dec1ea5f75de11b663280486274f8a8d758df30bf3156f8a",
+                                     "intended_file_count":  170
+                                 },
+    "content_digest_excluded_paths":  [
+                                          ".git/**",
+                                          ".agents/runtime/**",
+                                          ".workflow/**",
+                                          ".codex/**",
+                                          "docs/evidence/releases/*.json",
+                                          "docs/evidence/raw/**"
+                                      ],
+    "working_tree_status_at_capture":  {
+                                           "state":  "dirty",
+                                           "porcelain":  [
+                                                             " M CHANGELOG.md",
+                                                             " M README.md",
+                                                             " M docs/agents/context-compact.yaml",
+                                                             " M docs/agents/deploy.yaml",
+                                                             " M docs/agents/knowledge-footprint.yaml",
+                                                             " M docs/agents/openai-foundations.yaml",
+                                                             " M docs/agents/schemas.yaml",
+                                                             " M docs/agents/verify.yaml",
+                                                             " M docs/agents/version.yaml",
+                                                             " M docs/agents/workflows.yaml",
+                                                             " D docs/evidence/releases/v2.7.0-runtime-evidence.json",
+                                                             " M docs/memory-entry.template.md",
+                                                             " M docs/memory/entries/2026-05-28-verify-chinese-trigger-text.md",
+                                                             " M docs/memory/index.md",
+                                                             " M docs/project-memory.md",
+                                                             " M docs/project-structure.md",
+                                                             " M docs/runbooks/agents-operator-guide.md",
+                                                             " M docs/templates/agents/agents-operator-guide.md",
+                                                             " M docs/templates/agents/agents/context-compact.yaml",
+                                                             " M docs/templates/agents/agents/deploy.yaml",
+                                                             " M docs/templates/agents/agents/knowledge-footprint.yaml",
+                                                             " M docs/templates/agents/agents/openai-foundations.yaml",
+                                                             " M docs/templates/agents/agents/schemas.yaml",
+                                                             " M docs/templates/agents/agents/verify.yaml",
+                                                             " M docs/templates/agents/agents/version.yaml",
+                                                             " M docs/templates/agents/agents/workflows.yaml",
+                                                             " M docs/templates/agents/memory-entry.template.md",
+                                                             " M docs/templates/agents/memory-index.md",
+                                                             " M docs/templates/agents/project-memory.md",
+                                                             " M docs/templates/agents/project-structure.md",
+                                                             " M schemas/agents-context-compact.schema.json",
+                                                             " M schemas/agents-knowledge-footprint.schema.json",
+                                                             " M schemas/agents-openai-foundations.schema.json",
+                                                             " M schemas/agents-runtime-evidence.schema.json",
+                                                             " M schemas/agents-schemas.schema.json",
+                                                             " M schemas/agents-verify.schema.json",
+                                                             " M schemas/agents-version.schema.json",
+                                                             " M schemas/agents-workflows.schema.json",
+                                                             " M scripts/README.md",
+                                                             " M scripts/capture-runtime-evidence.ps1",
+                                                             " M scripts/deploy-agents-workflow.ps1",
+                                                             " M scripts/export-release-package.ps1",
+                                                             " M scripts/validate-foundation.ps1",
+                                                             " M scripts/validate-readiness.ps1",
+                                                             " M scripts/validate-release-evidence.ps1",
+                                                             " M scripts/validate-required-files.ps1",
+                                                             " M scripts/validate-residue.ps1",
+                                                             " M scripts/validate-size-gates.ps1",
+                                                             " M scripts/validate.ps1",
+                                                             " M tests/agents-governance-fixtures/schema-contracts/version.bad-readiness.yaml",
+                                                             " M tests/agents-governance-fixtures/schema-contracts/workflows.valid.yaml",
+                                                             "?? docs/evidence/releases/v2.8.0-runtime-evidence.json",
+                                                             "?? scripts/validate-changes.ps1",
+                                                             "?? scripts/validate-knowledge.ps1",
+                                                             "?? scripts/validate-score.ps1"
+                                                         ],
+                                           "entry_count":  55
+                                       },
+    "run_started_utc":  "2026-07-10T03:31:06.7395315Z",
+    "run_finished_utc":  "2026-07-10T03:32:45.0145155Z",
+    "duration_ms":  98275,
+    "commands":  [
+                     {
+                         "name":  "deployment_self_test",
+                         "command":  ".\\scripts\\deploy-agents-workflow.ps1 -SelfTest -Quiet",
+                         "result":  "passed",
+                         "exit_code":  0,
+                         "duration_ms":  22081,
+                         "retry_count":  0,
+                         "raw_output_ref":  "%TEMP%/codex-agent-status/jared-s-ai-team-269f185848e5/runtime-evidence-20260710T033106Z-dd3360df/deployment_self_test.log"
+                     },
+                     {
+                         "name":  "current_project_dry_run",
+                         "command":  ".\\scripts\\deploy-agents-workflow.ps1 -TargetPath . -Mode template_provider_mode -LayoutProfile auto -DryRun -Quiet",
+                         "result":  "passed",
+                         "exit_code":  0,
+                         "duration_ms":  1323,
+                         "retry_count":  0,
+                         "raw_output_ref":  "%TEMP%/codex-agent-status/jared-s-ai-team-269f185848e5/runtime-evidence-20260710T033106Z-dd3360df/current_project_dry_run.log"
+                     },
+                     {
+                         "name":  "disposable_target_rollback_drill",
+                         "command":  ".\\scripts\\deploy-agents-workflow.ps1 -SelfTest -Quiet",
+                         "result":  "passed",
+                         "exit_code":  0,
+                         "duration_ms":  22888,
+                         "retry_count":  0,
+                         "raw_output_ref":  "%TEMP%/codex-agent-status/jared-s-ai-team-269f185848e5/runtime-evidence-20260710T033106Z-dd3360df/disposable_target_rollback_drill.log"
+                     },
+                     {
+                         "name":  "runtime_lifecycle_smoke",
+                         "command":  ".\\scripts\\validate-runtime-execution.ps1",
+                         "result":  "passed",
+                         "exit_code":  0,
+                         "duration_ms":  768,
+                         "retry_count":  0,
+                         "raw_output_ref":  "%TEMP%/codex-agent-status/jared-s-ai-team-269f185848e5/runtime-evidence-20260710T033106Z-dd3360df/runtime_lifecycle_smoke.log"
+                     },
+                     {
+                         "name":  "release_package_export",
+                         "command":  ".\\scripts\\export-release-package.ps1 -OutputPath %TEMP%/codex-agent-status/\u003cproject-id\u003e/\u003crun-id\u003e/release-package -Quiet",
+                         "result":  "passed",
+                         "exit_code":  0,
+                         "duration_ms":  2398,
+                         "retry_count":  0,
+                         "raw_output_ref":  "%TEMP%/codex-agent-status/jared-s-ai-team-269f185848e5/runtime-evidence-20260710T033106Z-dd3360df/release_package_export.log"
+                     },
+                     {
+                         "name":  "route_pack_deterministic",
+                         "command":  ".\\scripts\\validate-route-pack.ps1",
+                         "result":  "passed",
+                         "exit_code":  0,
+                         "duration_ms":  664,
+                         "retry_count":  0,
+                         "raw_output_ref":  "%TEMP%/codex-agent-status/jared-s-ai-team-269f185848e5/runtime-evidence-20260710T033106Z-dd3360df/route_pack_deterministic.log"
+                     },
+                     {
+                         "name":  "full_validation",
+                         "command":  ".\\scripts\\validate.ps1 -Full -Score",
+                         "result":  "passed",
+                         "exit_code":  0,
+                         "duration_ms":  46554,
+                         "retry_count":  0,
+                         "raw_output_ref":  "%TEMP%/codex-agent-status/jared-s-ai-team-269f185848e5/runtime-evidence-20260710T033106Z-dd3360df/full_validation.log",
+                         "overall_score":  100.0,
+                         "evidence_capture_mode":  "runtime-evidence-bootstrap"
+                     }
+                 ],
+    "claims":  {
+                   "static_validation":  "Full validation covers repository contracts, schema checks, package checks, and release evidence.",
+                   "runtime_evidence":  "Runtime evidence is captured from repeatable local commands.",
+                   "practice_evidence":  "T2 current-repo practice suite captured.",
+                   "evidence_tier":  "T2 current-repo practice",
+                   "hard_isolation":  "No hard isolation claim is made without current runtime, tool, OS, account, or cloud enforcement evidence."
+               },
+    "scope":  {
+                  "target":  "current repository and disposable self-test target",
+                  "external_target_deployment":  false,
+                  "raw_output_storage":  "%TEMP%/codex-agent-status/\u003cproject-id\u003e/\u003crun-id\u003e/",
+                  "practice":  true,
+                  "disposable_target":  "deployment self-test temporary targets only"
+              },
+    "xr_xw":  {
+                  "external_reads":  [
+
+                                     ],
+                  "external_writes":  [
+                                          "%TEMP%/codex-agent-status/\u003cproject-id\u003e/\u003crun-id\u003e/ raw command logs and release package scratch"
+                                      ]
+              },
+    "evidence_tier":  {
+                          "current":  "T2 current-repo practice",
+                          "maximum_claimed":  "T2 current-repo practice",
+                          "scale":  [
+                                        "T0 static",
+                                        "T1 dry-run",
+                                        "T2 current-repo practice",
+                                        "T3 external pilot",
+                                        "T4 enforced isolation"
+                                    ]
+                      },
+    "performance":  {
+                        "command_count":  7,
+                        "total_duration_ms":  98275,
+                        "token_usage":  "unavailable",
+                        "token_usage_reason":  "Repository validation scripts do not receive Codex token accounting."
+                    },
+    "result":  "passed",
+    "release":  "v2.8.0"
+}

@@ -6,8 +6,9 @@
 Jared's AI Team is a repo-local AI Agents workflow system for Codex-style
 engineering sessions. It provides compact routing rules, project-local
 operating policy, deployable governance files, runtime evidence boundaries,
-multi-agent coordination contracts, official-docs-first foundation creation,
-and release packaging checks.
+multi-agent coordination contracts, official-docs-first foundations,
+freshness-bound durable memory, change-aware verification, and release
+packaging checks.
 
 The repository is intentionally small and source-neutral. It is designed to be
 deployed into target projects without copying local runtime state, live Codex
@@ -16,13 +17,14 @@ repo history.
 
 ## Current Version
 
-Current Agents workflow version: `2.7.0` (`foundation-creation`).
+Current Agents workflow version: `2.8.0` (`precision-efficiency`).
 
 Canonical version source: `docs/agents/version.yaml`
 
-Version positioning: 2.7.0 keeps the core workflow semantics while adding v2
-runtime evidence, current-repo practice proof, operator guidance, and lower
-validation maintenance hotspots.
+Version positioning: 2.8.0 is the latest-only precision release. It uses
+progressive disclosure, one state owner, freshness-bound durable memory,
+change-aware verification, and current official foundations to reduce routine
+context and verification cost without weakening release evidence.
 
 ## What This Project Provides
 
@@ -43,8 +45,17 @@ foundation creation, and official OpenAI capability boundaries.
 
 `docs/agents/openai-foundations.yaml` converts official OpenAI documentation
 into project-native primitives for Structured Outputs, conversation state,
-agent handoffs, Codex skills, subagents, prompt caching, predicted outputs, and
-evaluation-backed release decisions.
+agent handoffs, Codex instructions, skills, memories, subagents, prompt caching,
+compaction, token counting, predicted outputs, and evaluation-backed release
+decisions.
+
+### Durable Memory With Freshness
+
+`docs/memory/index.md` is the compact recall index. Detailed entries are loaded
+only when the current route needs them, are capped by the context budget, and
+must carry source references, confidence, status, and review dates. Current
+repository evidence always overrides remembered state; checked-in memory never
+overrides canonical policy.
 
 ### Runtime Evidence Without Repo Pollution
 
@@ -95,11 +106,14 @@ deployment material, not the current repo's live operating authority.
 
 ## Core Commands
 
-Fast validation:
+Change-aware validation for routine work:
 
 ```powershell
-.\scripts\validate.ps1
+.\scripts\validate-changes.ps1 -Profile Auto -Explain
 ```
+
+The auto profile selects `Fast`, `Policy`, or `Full` from changed-path risk.
+Use an explicit profile when the claim scope requires stronger evidence.
 
 Full release readiness and quality score:
 
@@ -107,10 +121,10 @@ Full release readiness and quality score:
 .\scripts\validate.ps1 -Full -Score
 ```
 
-Capture sanitized v2.7.0 practice runtime release evidence:
+Capture sanitized v2.8.0 practice runtime release evidence:
 
 ```powershell
-.\scripts\capture-runtime-evidence.ps1 -OutputPath .\docs\evidence\releases\v2.7.0-runtime-evidence.json -Full -Practice -Quiet
+.\scripts\capture-runtime-evidence.ps1 -OutputPath .\docs\evidence\releases\v2.8.0-runtime-evidence.json -Full -Practice -Quiet
 ```
 
 Deployment dry-run into an authorized target:
@@ -161,6 +175,8 @@ The main validator covers:
 - Lightweight YAML syntax and required canonical files
 - AI runtime compact routing and expand-only route behavior
 - Canonical schema contract checks
+- Change-aware validation profile selection and changed-file syntax checks
+- Memory index, metadata, freshness, source-reference, and template integrity
 - Enterprise dispatch, workflow artifacts, context compaction, collaborator windows, and core runtime integrity
 - Runtime/local boundary checks
 - Durable English-only and placeholder gates

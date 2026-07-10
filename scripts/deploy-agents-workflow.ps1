@@ -658,7 +658,12 @@ param(
 if ($Layout -ne "dot_agents_docs") {
 return $Content
 }
-$rewritten = $Content
+$dotDocsPrefix = ".agents" + "/docs/"
+$dotDocsSentinel = "__CODEX_" + "DOT_AGENTS_DOCS__/"
+if ($Content.Contains($dotDocsSentinel)) {
+throw "Content contains the reserved dot-layout rewrite sentinel."
+}
+$rewritten = $Content.Replace($dotDocsPrefix, $dotDocsSentinel)
 $rewritten = $rewritten.Replace("docs/agents/", ".agents/docs/agents/")
 $rewritten = $rewritten.Replace("docs/runbooks/", ".agents/docs/runbooks/")
 $rewritten = $rewritten.Replace("docs/templates/agents/", ".agents/docs/templates/agents/")
@@ -666,7 +671,20 @@ $rewritten = $rewritten.Replace("docs/project-memory.md", ".agents/docs/project-
 $rewritten = $rewritten.Replace("docs/memory/index.md", ".agents/docs/memory/index.md")
 $rewritten = $rewritten.Replace("docs/memory/entries/README.md", ".agents/docs/memory/entries/README.md")
 $rewritten = $rewritten.Replace("docs/project-structure.md", ".agents/docs/project-structure.md")
-return $rewritten
+foreach ($relativePath in @(
+"agent-assignment.template.md",
+"agent-event.template.md",
+"agent-status.template.md",
+"controller-lease.template.md",
+"hard-isolation-evidence.template.md",
+"runtime-multi-agent-validation.template.md",
+"runtime-dry-run-evidence.template.md",
+"deployment-feedback.template.md",
+"memory-entry.template.md"
+)) {
+$rewritten = $rewritten.Replace(("docs/{0}" -f $relativePath), (".agents/docs/{0}" -f $relativePath))
+}
+return $rewritten.Replace($dotDocsSentinel, $dotDocsPrefix)
 }
 function Get-TargetLayout {
 param([string] $Root)
@@ -1279,6 +1297,16 @@ if (-not $content.Contains($Expected)) {
 throw "Deployment self-test expected content is missing from: $Path"
 }
 }
+function Assert-SelfTestNotContains {
+param(
+[string] $Path,
+[string] $Unexpected
+)
+$content = Get-Content -LiteralPath $Path -Raw
+if ($content.Contains($Unexpected)) {
+throw "Deployment self-test found unexpected content in: $Path"
+}
+}
 function Assert-SelfTestLineCount {
 param(
 [string] $Path,
@@ -1479,6 +1507,14 @@ Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/templates/agent
 Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/templates/agents/agents/workflow-artifacts.yaml"
 Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/templates/agents/agents/context-compact.yaml"
 Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/templates/agents/agents/collaborators.yaml"
+Assert-SelfTestContains -Path (Join-Path $dotTarget "scripts/validate.ps1") -Expected 'Get-RepoPath ".agents/docs/agents/"'
+Assert-SelfTestContains -Path (Join-Path $dotTarget "scripts/validate-size-gates.ps1") -Expected 'Get-RepoPath ".agents/docs/agents/"'
+Assert-SelfTestContains -Path (Join-Path $dotTarget "scripts/validate-residue.ps1") -Expected '".agents/docs/agents/"'
+Assert-SelfTestContains -Path (Join-Path $dotTarget "scripts/validate.ps1") -Expected '".agents/docs/agent-assignment.template.md"'
+Assert-SelfTestContains -Path (Join-Path $dotTarget "scripts/validate.ps1") -Expected '".agents/docs/memory-entry.template.md"'
+$doubleDotDocsPrefix = ".agents/" + ".agents/docs/"
+Assert-SelfTestNotContains -Path (Join-Path $dotTarget "scripts/deploy-agents-workflow.ps1") -Unexpected $doubleDotDocsPrefix
+Assert-SelfTestNotContains -Path (Join-Path $dotTarget "scripts/validate-changes.ps1") -Unexpected $doubleDotDocsPrefix
 Assert-SelfTestContains -Path (Join-Path $dotTarget ".agents/docs/agents-workflow-deployment.md") -Expected "- .agents/docs/templates/agents/agents/deploy.yaml"
 Assert-SelfTestContains -Path (Join-Path $dotTarget ".agents/docs/agents-workflow-deployment.md") -Expected "- Deployed version file: .agents/docs/agents/version.yaml"
 Assert-SelfTestContains -Path (Join-Path $dotTarget ".agents/docs/agents-workflow-deployment.md") -Expected "Layout profile: dot-agents-layout"

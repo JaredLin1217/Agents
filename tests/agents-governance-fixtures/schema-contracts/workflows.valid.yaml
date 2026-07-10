@@ -3,6 +3,7 @@ purpose: "Fixture for a valid workflow document."
 owns: "Fixture ownership text."
 read_first: []
 startup:
+  controller: "Classify from compact route index and expand named route only."
   common_task_matrix:
     enterprise_dispatch: "Use only for organization, department, employee dispatch, or model binding work."
     workflow_artifact: "Use only for workflow artifacts, packets, approval gates, collection, or simulations."
@@ -13,9 +14,10 @@ startup:
     context_compact: "Read context compact files only when compact or handoff artifacts are requested."
 progress_updates:
   cap: "Fixture update cap."
-memory: {}
+memory: "Read docs/memory/index.md first, load at most three matching active entries, and let current evidence win."
 multi_agent_runtime:
   do_not_trigger_for: []
+  delegation_gate: "Use independent parallel work only when benefit exceeds context, coordination, and integration cost; retain one controller."
   batch_ack:
     assignment_contract: "No side effects; stable id; compact output."
     compact_ack_schema: '{"id":"001","ok":true,"msg":"hello"}'
@@ -73,6 +75,7 @@ context_compact_runtime:
   subagent_rule: "Record requested, spawned, completed, and closed counts."
   risk_rule: "Unknown state or unclosed employees are open risks."
   runtime_rule: ".agents/runtime/compact-events.jsonl stays local; never stage it."
+  footprint_rule: "Promote reusable verified lessons, reject stale memory, and ensure current evidence wins."
 handoff:
   project_id: "fixture-project"
 deployment:
@@ -82,6 +85,7 @@ skill_authoring: {}
 maintenance:
   local_permission_boundary: []
   verification_profiles:
+    change_aware: "Use validate-changes.ps1 to select Fast, Policy, or Full."
     release_deploy_push_audit: "Fixture release profile."
   local_only: []
 closeout:

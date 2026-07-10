@@ -1,6 +1,30 @@
 # Changelog
 All notable changes to this repository are documented here.
 ## Unreleased
+## 2.8.0 - 2026-07-10
+- Replaced the runtime evidence v2 contract with v3 so content digests
+  explicitly count every intended tracked or untracked file.
+- Reworked the official foundation layer around current Codex instructions,
+  skills, memory, subagent, compaction, token-counting, caching, and evaluation
+  guidance with a 90-day source review contract.
+- Added freshness-bound, evidence-backed durable memory with index-first
+  retrieval, explicit confidence and review metadata, and current-evidence
+  override rules.
+- Added change-aware `Fast`, `Policy`, and `Full` validation selection so
+  routine work pays only for the evidence its risk requires.
+- Moved quality scoring and repo-size accounting out of the main validation
+  orchestrator, reducing it below 100 KiB while keeping one canonical gate.
+- Strengthened progressive disclosure, context budgets, one-state-owner rules,
+  delegation cost gates, stable prompt-prefix guidance, and tool-output
+  trimming to reduce token use and coordination errors.
+- Removed current-release version hardcoding from runtime evidence validation
+  and aligned canonical schemas, templates, operator guidance, and release
+  evidence on the latest-only 2.8 contract.
+## 2.7.0 - 2026-06-25
+- Added v2 runtime evidence bound to source commit, content digest, working-tree
+  state, command timings, and an explicit T2 current-repo practice tier.
+- Added the operator guide and practice suite while continuing to split runtime
+  and route-pack checks out of the main validator.
 ## 2.6.2 - 2026-06-24
 - Added repeatable runtime evidence capture for self-test, current project
   dry-run, and full validation.

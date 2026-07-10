@@ -43,7 +43,7 @@ gates, deployment templates, and extension points.
 | `docs/agents/openai-foundations.yaml` | foundation creation route | deploy |
 | `docs/runbooks/*.md` | procedure entry points | mode-based deploy |
 | `docs/templates/agents/` | source-neutral deploy bundle | `template_provider_mode` only |
-| `docs/memory/`, `docs/decisions/` | provider-local knowledge | target-owned / do not deploy rows |
+| `docs/memory/`, `docs/decisions/` | evidence-linked knowledge | deploy starters; preserve target-owned populated rows |
 | `docs/agents/decisions/` | workflow structure decisions | provider source only |
 | `schemas/`, `scripts/`, `tests/` | contracts, checks, and fixtures | provider source only until explicitly deployed |
 | `artifacts/`, `.github/workflows/` | audits/evals and CI | provider source only |
@@ -64,5 +64,5 @@ Simple answer, scoped edit, plain deploy, and release tasks still use the
 minimal route from `docs/agents/ai-runtime.yaml` and should not load
 organization, workflow artifact, context compact, collaborator, core-system,
 runtime-execution, provider-adapter, route-pack, knowledge-footprint, or
-foundation-creation files
+foundation-creation route files
 unless the task is about those named routes.

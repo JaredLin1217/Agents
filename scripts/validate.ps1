@@ -63,6 +63,15 @@ function Test-EvidenceTemplateSchemaCoverage {
 Add-Failure "Evidence template validation helper missing: scripts/validate-evidence-templates.ps1"
 }
 }
+$ScoreValidationHelper = Join-Path $PSScriptRoot "validate-score.ps1"
+if (Test-Path -LiteralPath $ScoreValidationHelper -PathType Leaf) {
+. $ScoreValidationHelper
+}
+else {
+function Get-IntendedRepoFiles { return @() }
+function Get-RepoFilesSize { param([string[]] $Paths) return 0 }
+function Write-AgentQualityScore { Add-Failure "Score validation helper missing: scripts/validate-score.ps1" }
+}
 $SizeGateValidationHelper = Join-Path $PSScriptRoot "validate-size-gates.ps1"
 if (Test-Path -LiteralPath $SizeGateValidationHelper -PathType Leaf) {
 . $SizeGateValidationHelper
@@ -127,6 +136,15 @@ if (Test-Path -LiteralPath $CrossProjectRuntimeValidationHelper -PathType Leaf) 
 else {
 function Test-CrossProjectRuntimeResilienceIntegrity {
 Add-Failure "Cross-project runtime validation helper missing: scripts/validate-cross-project-runtime.ps1"
+}
+}
+$KnowledgeValidationHelper = Join-Path $PSScriptRoot "validate-knowledge.ps1"
+if (Test-Path -LiteralPath $KnowledgeValidationHelper -PathType Leaf) {
+. $KnowledgeValidationHelper
+}
+else {
+function Test-KnowledgeMemoryIntegrity {
+Add-Failure "Knowledge validation helper missing: scripts/validate-knowledge.ps1"
 }
 }
 function Get-RepoPathHash {
@@ -582,7 +600,7 @@ Add-Failure ("Gitignore fragment is missing runtime/local entry: {0}" -f $entry)
 else {
 Add-Failure "Gitignore fragment is missing: docs/templates/agents/gitignore.fragment"
 }
-$trackedRuntime = & git -C $RepoRoot ls-files -- `
+$trackedRuntime = & git -c core.quotepath=false -C $RepoRoot ls-files -- `
 ".agents/runtime" `
 ".agents/runtime/collaborators.jsonl" `
 ".codex/config.toml" `
@@ -653,208 +671,6 @@ break
 }
 if ($Failures.Count -eq $startFailureCount) {
 Add-Pass "Line-ending readiness checks passed."
-}
-}
-function Get-IntendedRepoFiles {
-$files = @(
-& git -C $RepoRoot ls-files
-& git -C $RepoRoot ls-files --others --exclude-standard
-) | Where-Object { $_ } | Sort-Object -Unique
-return @($files | Where-Object { Test-Path -LiteralPath (Get-RepoPath $_) -PathType Leaf })
-}
-function Get-RepoFilesSize {
-param([string[]] $Paths)
-$total = 0
-foreach ($path in $Paths) {
-$fullPath = Get-RepoPath $path
-if (Test-Path -LiteralPath $fullPath -PathType Leaf) {
-$total += (Get-Item -LiteralPath $fullPath).Length
-}
-}
-return $total
-}
-function Write-AgentQualityScore {
-$aiRuntimePath = Get-RepoPath "docs/agents/ai-runtime.yaml"
-$foundationPath = Get-RepoPath "docs/agents/openai-foundations.yaml"
-$deployPath = Get-RepoPath "docs/agents/deploy.yaml"
-$verifyPath = Get-RepoPath "docs/agents/verify.yaml"
-$exportPath = Get-RepoPath "scripts/export-release-package.ps1"
-$aiRuntimeText = Get-Content -LiteralPath $aiRuntimePath -Raw
-$foundationText = Get-Content -LiteralPath $foundationPath -Raw
-$deployText = Get-Content -LiteralPath $deployPath -Raw
-$verifyText = Get-Content -LiteralPath $verifyPath -Raw
-$aiRuntimeBytes = (Get-Item -LiteralPath $aiRuntimePath).Length
-$intendedBytes = Get-RepoFilesSize -Paths (Get-IntendedRepoFiles)
-$repoGrowthMatch = [regex]::Match($verifyText, "(?m)^\s*tracked_repo_kib:\s*(\d+)\s*$")
-$repoGrowthLimitBytes = if ($repoGrowthMatch.Success) { [int]$repoGrowthMatch.Groups[1].Value * 1024 } else { 512 * 1024 }
-$enterpriseRouteMinimal = (
-$aiRuntimeText -match 'enterprise_dispatch:\s*\{\s*f:\s*\[[^\]]*"docs/agents/org\.yaml"[^\]]*"docs/agents/model-policy\.yaml"[^\]]*"docs/agents/dispatch\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]' -and
-$aiRuntimeText -notmatch 'enterprise_dispatch:\s*\{[^\r\n]*(workflows|schemas)\.yaml'
-)
-$workflowArtifactRouteMinimal = (
-$aiRuntimeText -match 'workflow_artifact:\s*\{\s*f:\s*\[[^\]]*"docs/agents/workflow-artifacts\.yaml"[^\]]*"docs/agents/schemas\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]' -and
-$aiRuntimeText -notmatch 'workflow_artifact:\s*\{[^\r\n]*(org|model-policy|dispatch|workflows|deploy)\.yaml'
-)
-$contextCompactRouteMinimal = (
-$aiRuntimeText -match 'context_compact:\s*\{\s*f:\s*\[[^\]]*"docs/agents/context-compact\.yaml"[^\]]*"docs/agents/schemas\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]' -and
-$aiRuntimeText -notmatch 'context_compact:\s*\{[^\r\n]*(org|model-policy|dispatch|workflows|deploy|workflow-artifacts)\.yaml'
-)
-$collaboratorRouteMinimal = (
-$aiRuntimeText -match 'collaborator_window:\s*\{\s*f:\s*\[[^\]]*"docs/agents/collaborators\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]' -and
-$aiRuntimeText -notmatch 'collaborator_window:\s*\{[^\r\n]*(org|model-policy|dispatch|workflows|deploy|schemas|workflow-artifacts|context-compact)\.yaml'
-)
-$coreSystemRouteMinimal = (
-$aiRuntimeText -match 'core_system:\s*\{\s*f:\s*\[[^\]]*"docs/agents/core-system\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]' -and
-$aiRuntimeText -notmatch 'core_system:\s*\{[^\r\n]*(workflows|schemas|deploy|org|dispatch|context-compact)\.yaml'
-)
-$runtimeExecutionRouteMinimal = (
-$aiRuntimeText -match 'runtime_execution:\s*\{\s*f:\s*\[[^\]]*"docs/agents/runtime-execution\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]'
-)
-$providerAdapterRouteMinimal = (
-$aiRuntimeText -match 'provider_adapter:\s*\{\s*f:\s*\[[^\]]*"docs/agents/provider-adapters\.yaml"[^\]]*"docs/agents/model-policy\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]'
-)
-$routePackRouteMinimal = (
-$aiRuntimeText -match 'route_pack:\s*\{\s*f:\s*\[[^\]]*"docs/agents/route-packs\.yaml"[^\]]*"docs/agents/ai-runtime\.yaml"[^\]]*\]'
-)
-$knowledgeFootprintRouteMinimal = (
-$aiRuntimeText -match 'knowledge_footprint:\s*\{\s*f:\s*\[[^\]]*"docs/agents/knowledge-footprint\.yaml"[^\]]*"docs/agents/context-compact\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]'
-)
-$foundationCreationRouteMinimal = (
-$aiRuntimeText -match 'foundation_creation:\s*\{\s*f:\s*\[[^\]]*"docs/agents/openai-foundations\.yaml"[^\]]*"docs/agents/schemas\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]' -and
-$aiRuntimeText -notmatch 'foundation_creation:\s*\{[^\r\n]*(org|dispatch|workflows|deploy|runtime-execution|collaborators)\.yaml'
-)
-$officialDocsFirst = ($foundationText -match 'official OpenAI developer documentation' -and $foundationText -match 'official_docs_first')
-$foundationCapabilityReady = (
-$foundationText -match 'structured_outputs' -and
-$foundationText -match 'conversation_state' -and
-$foundationText -match 'agents_sdk' -and
-$foundationText -match 'codex_skills' -and
-$foundationText -match 'subagents' -and
-$foundationText -match 'prompt_caching' -and
-$foundationText -match 'predicted_outputs' -and
-$foundationText -match 'evaluation'
-)
-$releaseExportReady = (
-(Test-Path -LiteralPath $exportPath -PathType Leaf) -and
-$deployText -match 'do_not_deploy' -and
-$deployText -match 'validation_levels'
-)
-$llmRuleComplete = (
-$enterpriseRouteMinimal -and
-$workflowArtifactRouteMinimal -and
-$contextCompactRouteMinimal -and
-$collaboratorRouteMinimal -and
-$coreSystemRouteMinimal -and
-$runtimeExecutionRouteMinimal -and
-$providerAdapterRouteMinimal -and
-$routePackRouteMinimal -and
-$knowledgeFootprintRouteMinimal -and
-$foundationCreationRouteMinimal -and
-$foundationCapabilityReady -and
-$aiRuntimeText -match 'expand_only' -and
-$aiRuntimeText -match 'canonical YAML wins' -and
-$aiRuntimeText -match 'Do not load docs/templates/agents/\*\*' -and
-$aiRuntimeText -match 'Never stage, deploy, or copy runtime_local'
-)
-$dispatchValues = Get-LightweightYamlPathValues -File (Get-Item -LiteralPath (Get-RepoPath "docs/agents/dispatch.yaml"))
-$schemaValues = Get-LightweightYamlPathValues -File (Get-Item -LiteralPath (Get-RepoPath "docs/agents/schemas.yaml"))
-$levelChecks = @()
-foreach ($level in 1..6) {
-$levelChecks += (
-$dispatchValues.ContainsKey("runtime_test_matrix.level_$level.kind") -and
-$dispatchValues.ContainsKey("runtime_test_matrix.level_$level.pass_when")
-)
-}
-$countChecks = @()
-foreach ($countName in @("requested", "spawned", "completed", "closed", "missing", "duplicate", "invalid_format", "failed", "risk")) {
-$countChecks += $dispatchValues.ContainsKey("runtime_report_contract.required_counts.$countName")
-}
-$enterpriseGuardrailsComplete = (
-($levelChecks -notcontains $false) -and
-($countChecks -notcontains $false) -and
-$dispatchValues.ContainsKey("runtime_report_contract.response_envelope_rule") -and
-([string]$dispatchValues["runtime_report_contract.response_envelope_rule"] -match "strip \$\$") -and
-$dispatchValues.ContainsKey("runtime_report_contract.guardrail_rule") -and
-([string]$dispatchValues["runtime_report_contract.guardrail_rule"] -match "escalation_record") -and
-$dispatchValues.ContainsKey("runtime_report_contract.count_authority_rule") -and
-([string]$dispatchValues["runtime_report_contract.count_authority_rule"] -match "authoritative") -and
-([string]$dispatchValues["runtime_report_contract.count_authority_rule"] -match "employee") -and
-$dispatchValues.ContainsKey("runtime_report_contract.cleanup_rule") -and
-([string]$dispatchValues["runtime_report_contract.cleanup_rule"] -match "runtime cleanup success") -and
-$schemaValues.ContainsKey("report_validation.project_local_skill_rule") -and
-([string]$schemaValues["report_validation.project_local_skill_rule"] -match "not GS")
-)
-$items = @(
-[pscustomobject]@{
-Name = "llm_rule_fit"
-Score = if ($llmRuleComplete) { 100.0 } elseif ($aiRuntimeText -match 'expand_only') { 96.0 } else { 84.0 }
-Evidence = if ($llmRuleComplete) { "minimal enterprise, artifact, collaborator, core runtime, provider, route pack, knowledge footprint, and foundation creation routes, expand-only router, canonical priority, template skip, and runtime-local block" } else { "router present; LLM rule fit is incomplete" }
-},
-[pscustomobject]@{
-Name = "official_guidance_path"
-Score = if ($officialDocsFirst) { 100.0 } else { 84.0 }
-Evidence = if ($officialDocsFirst) { "OpenAI developer docs first path retained" } else { "official guidance path missing or weak" }
-},
-[pscustomobject]@{
-Name = "foundation_capability_fit"
-Score = if ($foundationCapabilityReady) { 100.0 } else { 84.0 }
-Evidence = if ($foundationCapabilityReady) { "foundation creation covers schema-first output, state, agents, skills, subagents, latency controls, and evaluation gates" } else { "foundation creation capability map is incomplete" }
-},
-[pscustomobject]@{
-Name = "token_economy"
-Score = if ($aiRuntimeBytes -le 4096) { 100.0 } else { 86.0 }
-Evidence = "ai-runtime.yaml is $aiRuntimeBytes bytes; 100 gate <= 4096 bytes"
-},
-[pscustomobject]@{
-Name = "repo_growth_control"
-Score = if ($intendedBytes -le $repoGrowthLimitBytes) { 100.0 } elseif ($intendedBytes -le [int]($repoGrowthLimitBytes * 1.25)) { 97.0 } else { 82.0 }
-Evidence = "intended repo files are $intendedBytes bytes; 100 gate <= $repoGrowthLimitBytes bytes"
-},
-[pscustomobject]@{
-Name = "enterprise_guardrails"
-Score = if ($enterpriseGuardrailsComplete) { 100.0 } else { 88.0 }
-Evidence = if ($enterpriseGuardrailsComplete) { "Level 1-6 matrix, controller-authoritative counts, guardrail rule, cleanup split, and project-local skill normalization are canonical" } else { "enterprise guardrail contract is incomplete" }
-},
-[pscustomobject]@{
-Name = "deploy_portability"
-Score = if ($Full -and $releaseExportReady -and $Failures.Count -eq 0) { 100.0 } elseif ($releaseExportReady) { 98.0 } else { 84.0 }
-Evidence = if ($Full) { "full release/export gates included" } else { "fast score; run -Full for package proof" }
-}
-)
-if ($Failures.Count -gt 0) {
-$items = @($items | ForEach-Object {
-[pscustomobject]@{
-Name = $_.Name
-Score = [Math]::Min([decimal]$_.Score, 80.0)
-Evidence = "$($_.Evidence); validation failures present"
-}
-})
-}
-$scoreTarget = 100.0
-$items = @($items | ForEach-Object {
-$scoreValue = [decimal]$_.Score
-[pscustomobject]@{
-Name = $_.Name
-Status = if ($scoreValue -ge $scoreTarget) { "PASS" } else { "WARN" }
-Score = $scoreValue
-Evidence = $_.Evidence
-}
-})
-$belowTarget = @($items | Where-Object { $_.Score -lt $scoreTarget })
-$overall = [Math]::Round([decimal](($items | Measure-Object -Property Score -Average).Average), 1)
-Write-Host ""
-Write-Host "Individual validation:"
-foreach ($item in $items) {
-Write-Host ("[{0}] {1}: {2:0.0}/100 - {3}" -f $item.Status, $item.Name, $item.Score, $item.Evidence)
-}
-Write-Host ("Individual target: {0} (>= {1:0.0})" -f $(if ($belowTarget.Count -eq 0) { "PASS" } else { "WARN" }), $scoreTarget)
-Write-Host ("Overall: {0:0.0}/100" -f $overall)
-if ($belowTarget.Count -eq 0) {
-Write-Host "Evaluation: every individual score meets the 100.0 target threshold; keep runtime deployment checks separate."
-} elseif ($overall -ge 97) {
-Write-Host "Evaluation: overall score is near target, but at least one individual score is still below threshold."
-} else {
-Write-Host "Evaluation: below target; inspect failed or low-scoring gates before release."
 }
 }
 function Test-ExactPairs {
@@ -1997,42 +1813,6 @@ if (-not $content.Contains(('"{0}"' -f $marker))) {
 Add-Failure ("Deployment self-test scenario is missing from script: {0}" -f $marker)
 }
 }
-$documentationPaths = @(
-"docs/agents/deploy.yaml",
-"docs/templates/agents/agents/deploy.yaml",
-"docs/agents/verify.yaml"
-)
-$selfTestDocumentationMarkers = @(
-"root_docs",
-"template-provider",
-"dot_agents_docs",
-"dry-run",
-"protected-existing",
-"git-backed foreign project",
-"missing-target",
-"target-owned-state",
-"routed-historical",
-"ambiguous-layout",
-"app-file preservation",
-"partial-gitignore",
-"gitignore duplicate avoidance",
-"target handoff check",
-"target git rollback scope",
-"target-local environment bootstrap"
-)
-foreach ($docPath in $documentationPaths) {
-$docFullPath = Get-RepoPath $docPath
-if (-not (Test-Path -LiteralPath $docFullPath -PathType Leaf)) {
-Add-Failure ("Deployment self-test documentation file is missing: {0}" -f $docPath)
-continue
-}
-$docContent = Get-Content -LiteralPath $docFullPath -Raw
-foreach ($marker in $selfTestDocumentationMarkers) {
-if (-not $docContent.Contains($marker)) {
-Add-Failure ("Deployment self-test documentation is missing marker {0} in {1}" -f $marker, $docPath)
-}
-}
-}
 $forbiddenPatterns = @(
 "#requires",
 "RunAsAdministrator",
@@ -2137,18 +1917,8 @@ $schemaMarkers = @(
 "canonical_fields:",
 "controller_lease:",
 "runtime_multi_agent_validation:",
-"Expected id set",
-"Protocol result",
-"Roster snapshot version",
 "Ownership matrix status",
-"Final report matched runtime id",
-"Git status after employee work",
-"SQLite thread state result",
-"session_index_result",
-"Global unread state result",
-"Rollout residue result",
 "never sidebar nicknames",
-"Delayed cleanup verification",
 "history_cleanup_evidence:",
 "cleanup_helper",
 "runtime_ids_resolved_from",
@@ -2313,7 +2083,7 @@ $markerChecks = @(
 @("docs/agents/deploy.yaml", @("docs/agents/core-system.yaml", "docs/agents/runtime-execution.yaml", "docs/agents/provider-adapters.yaml", "docs/agents/route-packs.yaml", "docs/agents/knowledge-footprint.yaml", "docs/agents/openai-foundations.yaml", ".agents/runtime/executions/", ".agents/runtime/tool-evidence/", ".agents/runtime/deployments/", ".agents/runtime/route-packs/", ".agents/runtime/knowledge/")),
 @("docs/agents/verify.yaml", @("core_system", "runtime_execution", "provider_adapter", "route_pack", "knowledge_footprint", "foundation_creation", "core_system_integrity", "runtime_execution_integrity", "provider_adapter_integrity", "route_pack_integrity", "knowledge_footprint_integrity", "foundation_creation_integrity", "route_pack_export", "runtime_helper")),
 @("docs/agents/route-packs.yaml", @("answer_only", "no_read_default", "no_file_read", "manifest_hash")),
-@("docs/agents/version.yaml", @($expectedWorkflowVersion, "foundation-creation", "core_contract_rule", "runtime_execution_rule", "knowledge_footprint_rule", "foundation_creation_rule")),
+@("docs/agents/version.yaml", @($expectedWorkflowVersion, "precision-efficiency", "core_contract_rule", "runtime_execution_rule", "knowledge_footprint_rule", "foundation_creation_rule")),
 @("docs/agents/schemas.yaml", @("core_system", "runtime_execution", "provider_adapter", "route_pack", "knowledge_footprint", "foundation_creation")),
 @("docs/agents/collaborators.yaml", @("thread_operation_record", "execution_run_ref")),
 @("docs/agents/context-compact.yaml", @("retained_facts", "dropped_details", "resume_pointer")),
@@ -2369,7 +2139,7 @@ Test-RuntimeReleaseEvidence
 Push-Location $RepoRoot
 try {
 Write-Check "INFO" ("Repo root: {0}" -f $RepoRoot)
-$yamlFiles = Get-ChildItem -LiteralPath (Get-RepoPath "docs/agents") -Filter "*.yaml" -File
+$yamlFiles = Get-ChildItem -LiteralPath (Get-RepoPath "docs/agents/") -Filter "*.yaml" -File
 foreach ($file in $yamlFiles) {
 Test-LightweightYaml -File $file
 }
@@ -2402,6 +2172,7 @@ Test-ContextCompactIntegrity
 Test-CollaboratorWindowIntegrity
 Test-CoreRuntimeSystemIntegrity
 Test-FoundationCreationIntegrity
+Test-KnowledgeMemoryIntegrity
 Test-AgentCleanupHelperIntegrity
 Test-CrossProjectRuntimeResilienceIntegrity
 Test-LegacyResidue

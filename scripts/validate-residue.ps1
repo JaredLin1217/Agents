@@ -2,7 +2,7 @@ function Test-LegacyResidue {
 $startFailureCount = $Failures.Count
 $roots = @(
 "README.md",
-"docs/agents",
+"docs/agents/",
 "docs/project-structure.md",
 "docs/templates/agents",
 "docs/runbooks",
