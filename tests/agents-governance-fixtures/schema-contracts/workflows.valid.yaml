@@ -8,16 +8,18 @@ startup:
     enterprise_dispatch: "Use only for organization, department, employee dispatch, or model binding work."
     workflow_artifact: "Use only for workflow artifacts, packets, approval gates, collection, or simulations."
     context_compact: "Use only for context compaction, handoff, resume, or employee closeout summaries."
+    context_intelligence: "Use only for minimal context, impact analysis, provenance, freshness, or verification recommendations."
   fast_classification:
     enterprise_dispatch: "Read enterprise files only when the task names department dispatch."
     workflow_artifact: "Read workflow artifact files only when artifacts or simulations are requested."
     context_compact: "Read context compact files only when compact or handoff artifacts are requested."
+    context_intelligence: "Read context intelligence files only for stateful route, scope, impact, or verification decisions."
 progress_updates:
   cap: "Fixture update cap."
-memory: "Read docs/memory/index.md first, load at most three matching active entries, and let current evidence win."
+memory: "Read docs/memory/index.md first; open at most three matching active entries; verify source_commit/content_hash/checked_at/update_trigger/supersedes/boundary; current evidence wins."
 multi_agent_runtime:
   do_not_trigger_for: []
-  delegation_gate: "Use independent parallel work only when benefit exceeds context, coordination, and integration cost; retain one controller."
+  delegation_gate: "Use independent parallel work only when value exceeds context/coordination/integration cost; keep one controller."
   batch_ack:
     assignment_contract: "No side effects; stable id; compact output."
     compact_ack_schema: '{"id":"001","ok":true,"msg":"hello"}'
@@ -69,13 +71,14 @@ workflow_artifact_runtime:
 context_compact_runtime:
   source_of_truth: "docs/agents/context-compact.yaml owns context compact semantics."
   trigger_when: ["context compaction", "handoff", "resume", "subagent closeout"]
-  do_not_trigger_for: ["answer-only", "ordinary scoped edit"]
-  summary_rule: "Preserve latest_user_request, verification_state, open_risks, and next_step."
+  summary_rule: "Preserve latest_user_request, context_evidence_ref, verification_state, open_risks, and next_step."
   raw_content_rule: "Exclude raw transcript and raw worker chatter."
-  subagent_rule: "Record requested, spawned, completed, and closed counts."
-  risk_rule: "Unknown state or unclosed employees are open risks."
-  runtime_rule: ".agents/runtime/compact-events.jsonl stays local; never stage it."
-  footprint_rule: "Promote reusable verified lessons, reject stale memory, and ensure current evidence wins."
+  runtime_rule: ".agents/runtime/compact-events.jsonl stays local; never stage it. Promote reusable verified lessons; stale memory cannot override current evidence."
+context_intelligence_runtime:
+  source_of_truth: "docs/agents/context-intelligence.yaml owns minimal-context and impact-evidence semantics."
+  resolver_rule: "scripts/resolve-agent-context.ps1 returns at most three files/8192 bytes; expand on gaps."
+  evidence_rule: "Record provenance/confidence/hash/freshness, dependency paths, affected tests, gaps, and verification recommendation; heuristics cannot alone authorize edits or skipped verification."
+  fallback_rule: "Dirty, stale, degraded, unsupported, parse-error, or conflicting evidence: expand reads + Full; never continue silently. Ignore .agents/runtime/context-intelligence/ Git state/content hashes; never stage/deploy/release it. Ledger keeps current route, verified assumptions, change boundary, remaining steps, recovery pointers; avoid full-repo rescan."
 handoff:
   project_id: "fixture-project"
 deployment:
@@ -85,7 +88,7 @@ skill_authoring: {}
 maintenance:
   local_permission_boundary: []
   verification_profiles:
-    change_aware: "Use validate-changes.ps1 to select Fast, Policy, or Full."
+    change_aware: "validate-changes.ps1 uses ContextMode Auto for Fast/Policy/Full; Required for release evidence; checkpoint gates remain full."
     release_deploy_push_audit: "Fixture release profile."
   local_only: []
 closeout:

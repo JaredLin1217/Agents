@@ -147,6 +147,16 @@ function Test-KnowledgeMemoryIntegrity {
 Add-Failure "Knowledge validation helper missing: scripts/validate-knowledge.ps1"
 }
 }
+$ContextIntelligenceValidationHelper = Join-Path $PSScriptRoot "validate-context-intelligence.ps1"
+if (Test-Path -LiteralPath $ContextIntelligenceValidationHelper -PathType Leaf) {
+. $ContextIntelligenceValidationHelper
+}
+else {
+function Test-ContextIntelligenceIntegrity {
+param([switch] $RunPractice)
+Add-Failure "Context intelligence validation helper missing: scripts/validate-context-intelligence.ps1"
+}
+}
 function Get-RepoPathHash {
 param([string] $Path)
 $normalized = [System.IO.Path]::GetFullPath($Path).TrimEnd([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar).ToLowerInvariant()
@@ -432,7 +442,8 @@ $contracts = @(
 @{ Yaml = "docs/agents/runtime-execution.yaml"; Schema = "schemas/agents-runtime-execution.schema.json" },
 @{ Yaml = "docs/agents/provider-adapters.yaml"; Schema = "schemas/agents-provider-adapters.schema.json" },
 @{ Yaml = "docs/agents/route-packs.yaml"; Schema = "schemas/agents-route-packs.schema.json" },
-@{ Yaml = "docs/agents/knowledge-footprint.yaml"; Schema = "schemas/agents-knowledge-footprint.schema.json" }
+@{ Yaml = "docs/agents/knowledge-footprint.yaml"; Schema = "schemas/agents-knowledge-footprint.schema.json" },
+@{ Yaml = "docs/agents/context-intelligence.yaml"; Schema = "schemas/agents-context-intelligence.schema.json" }
 )
 foreach ($contract in $contracts) {
 $yamlPath = Get-RepoPath $contract.Yaml
@@ -485,7 +496,7 @@ $yamlLabel = Join-Path "tests/agents-governance-fixtures/schema-contracts" ([str
 $schemaLabel = [string] $case.schema
 $yamlPath = Get-RepoPath $yamlLabel
 $schemaPath = Get-RepoPath $schemaLabel
-$issues = Get-SchemaContractIssues -YamlPath $yamlPath -SchemaPath $schemaPath -YamlLabel $yamlLabel -SchemaLabel $schemaLabel
+$issues = @(Get-SchemaContractIssues -YamlPath $yamlPath -SchemaPath $schemaPath -YamlLabel $yamlLabel -SchemaLabel $schemaLabel)
 if ($case.expected -eq "pass") {
 if ($issues.Count -gt 0) {
 Add-Failure ("Fixture expected pass but failed: {0}" -f $case.name)
@@ -708,6 +719,7 @@ $pairs = @(
 @("docs/agents/route-packs.yaml", "docs/templates/agents/agents/route-packs.yaml"),
 @("docs/agents/knowledge-footprint.yaml", "docs/templates/agents/agents/knowledge-footprint.yaml"),
 @("docs/agents/context-compact.yaml", "docs/templates/agents/agents/context-compact.yaml"),
+@("docs/agents/context-intelligence.yaml", "docs/templates/agents/agents/context-intelligence.yaml"),
 @("docs/runbooks/agents-deployment.md", "docs/templates/agents/agents-deployment.md"),
 @("docs/runbooks/agents-operator-guide.md", "docs/templates/agents/agents-operator-guide.md"),
 @("docs/runbooks/isolation-audit.md", "docs/templates/agents/isolation-audit.md"),
@@ -774,6 +786,7 @@ $allowedItems = @(
 "docs/templates/agents/agents/route-packs.yaml",
 "docs/templates/agents/agents/knowledge-footprint.yaml",
 "docs/templates/agents/agents/context-compact.yaml",
+"docs/templates/agents/agents/context-intelligence.yaml",
 "docs/templates/agents/agents-deployment.md",
 "docs/templates/agents/agents-operator-guide.md",
 "docs/templates/agents/isolation-audit.md",
@@ -1015,6 +1028,7 @@ $requiredNeedles = @(
 "enterprise_dispatch",
 "workflow_artifact",
 "context_compact",
+"context_intelligence",
 "collaborator_window",
 "core_system",
 "runtime_execution",
@@ -1027,6 +1041,7 @@ $requiredNeedles = @(
 "docs/agents/dispatch.yaml",
 "docs/agents/workflow-artifacts.yaml",
 "docs/agents/context-compact.yaml",
+"docs/agents/context-intelligence.yaml",
 "docs/agents/collaborators.yaml",
 "docs/agents/core-system.yaml",
 "docs/agents/runtime-execution.yaml",
@@ -1065,6 +1080,9 @@ Add-Failure ("AI runtime workflow artifact route must load only workflow-artifac
 }
 if ($content -notmatch 'context_compact:\s*\{\s*f:\s*\[[^\]]*"docs/agents/context-compact\.yaml"[^\]]*"docs/agents/schemas\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]' -or $content -match 'context_compact:\s*\{[^\r\n]*(org|model-policy|dispatch|workflows|deploy|workflow-artifacts)\.yaml') {
 Add-Failure ("AI runtime context compact route must load only context-compact, schemas, and verify: {0}" -f $path)
+}
+if ($content -notmatch 'context_intelligence:\s*\{\s*f:\s*\[[^\]]*"docs/agents/context-intelligence\.yaml"[^\]]*"docs/agents/context-compact\.yaml"[^\]]*"docs/agents/schemas\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]' -or $content -match 'context_intelligence:\s*\{[^\r\n]*(org|model-policy|dispatch|workflows|deploy|workflow-artifacts)\.yaml') {
+Add-Failure ("AI runtime context intelligence route must load only context-intelligence, context-compact, schemas, and verify: {0}" -f $path)
 }
 if ($content -notmatch 'collaborator_window:\s*\{\s*f:\s*\[[^\]]*"docs/agents/collaborators\.yaml"[^\]]*"docs/agents/verify\.yaml"[^\]]*\]' -or $content -match 'collaborator_window:\s*\{[^\r\n]*(org|model-policy|dispatch|workflows|deploy|schemas|workflow-artifacts|context-compact)\.yaml') {
 Add-Failure ("AI runtime collaborator window route must load only collaborators and verify: {0}" -f $path)
@@ -2062,6 +2080,7 @@ $mirrorPairs = @(
 @("docs/agents/provider-adapters.yaml", "docs/templates/agents/agents/provider-adapters.yaml"),
 @("docs/agents/route-packs.yaml", "docs/templates/agents/agents/route-packs.yaml"),
 @("docs/agents/knowledge-footprint.yaml", "docs/templates/agents/agents/knowledge-footprint.yaml"),
+@("docs/agents/context-intelligence.yaml", "docs/templates/agents/agents/context-intelligence.yaml"),
 @("docs/agents/openai-foundations.yaml", "docs/templates/agents/agents/openai-foundations.yaml")
 )
 foreach ($pair in $mirrorPairs) {
@@ -2078,13 +2097,13 @@ Add-Failure ("Core runtime template mirror drift: {0} <-> {1}" -f $pair[0], $pai
 }
 }
 $markerChecks = @(
-@("docs/agents/ai-runtime.yaml", @("core_system", "runtime_execution", "provider_adapter", "route_pack", "knowledge_footprint", "foundation_creation")),
-@("docs/agents/workflows.yaml", @("core_system_runtime", "runtime_execution_runtime", "provider_adapter_runtime", "route_pack_runtime", "knowledge_footprint_runtime")),
-@("docs/agents/deploy.yaml", @("docs/agents/core-system.yaml", "docs/agents/runtime-execution.yaml", "docs/agents/provider-adapters.yaml", "docs/agents/route-packs.yaml", "docs/agents/knowledge-footprint.yaml", "docs/agents/openai-foundations.yaml", ".agents/runtime/executions/", ".agents/runtime/tool-evidence/", ".agents/runtime/deployments/", ".agents/runtime/route-packs/", ".agents/runtime/knowledge/")),
-@("docs/agents/verify.yaml", @("core_system", "runtime_execution", "provider_adapter", "route_pack", "knowledge_footprint", "foundation_creation", "core_system_integrity", "runtime_execution_integrity", "provider_adapter_integrity", "route_pack_integrity", "knowledge_footprint_integrity", "foundation_creation_integrity", "route_pack_export", "runtime_helper")),
+@("docs/agents/ai-runtime.yaml", @("core_system", "runtime_execution", "provider_adapter", "route_pack", "knowledge_footprint", "foundation_creation", "context_intelligence")),
+@("docs/agents/workflows.yaml", @("core_system_runtime", "runtime_execution_runtime", "provider_adapter_runtime", "route_pack_runtime", "knowledge_footprint_runtime", "context_intelligence_runtime")),
+@("docs/agents/deploy.yaml", @("docs/agents/core-system.yaml", "docs/agents/runtime-execution.yaml", "docs/agents/provider-adapters.yaml", "docs/agents/route-packs.yaml", "docs/agents/knowledge-footprint.yaml", "docs/agents/openai-foundations.yaml", "docs/agents/context-intelligence.yaml", ".agents/runtime/executions/", ".agents/runtime/tool-evidence/", ".agents/runtime/deployments/", ".agents/runtime/route-packs/", ".agents/runtime/knowledge/", ".agents/runtime/context-intelligence/")),
+@("docs/agents/verify.yaml", @("core_system", "runtime_execution", "provider_adapter", "route_pack", "knowledge_footprint", "foundation_creation", "context_intelligence", "core_system_integrity", "runtime_execution_integrity", "provider_adapter_integrity", "route_pack_integrity", "knowledge_footprint_integrity", "foundation_creation_integrity", "context_intelligence_integrity", "route_pack_export", "runtime_helper", "context_intelligence_helper")),
 @("docs/agents/route-packs.yaml", @("answer_only", "no_read_default", "no_file_read", "manifest_hash")),
-@("docs/agents/version.yaml", @($expectedWorkflowVersion, "precision-efficiency", "core_contract_rule", "runtime_execution_rule", "knowledge_footprint_rule", "foundation_creation_rule")),
-@("docs/agents/schemas.yaml", @("core_system", "runtime_execution", "provider_adapter", "route_pack", "knowledge_footprint", "foundation_creation")),
+@("docs/agents/version.yaml", @($expectedWorkflowVersion, "context-intelligence", "core_contract_rule", "runtime_execution_rule", "knowledge_footprint_rule", "foundation_creation_rule", "context_intelligence_rule")),
+@("docs/agents/schemas.yaml", @("core_system", "runtime_execution", "provider_adapter", "route_pack", "knowledge_footprint", "foundation_creation", "context_intelligence", "context_evidence")),
 @("docs/agents/collaborators.yaml", @("thread_operation_record", "execution_run_ref")),
 @("docs/agents/context-compact.yaml", @("retained_facts", "dropped_details", "resume_pointer")),
 @("docs/agents/dispatch.yaml", @("execution_run_ref")),
@@ -2124,6 +2143,7 @@ Test-MultiAgentWorkflowIntegrity
 Test-AgentCleanupHelperIntegrity
 Test-WorkflowArtifactIntegrity
 Test-ContextCompactIntegrity
+Test-ContextIntelligenceIntegrity -RunPractice
 Test-CollaboratorWindowIntegrity
 Test-CoreRuntimeSystemIntegrity
 Test-CrossProjectRuntimeResilienceIntegrity
@@ -2169,6 +2189,7 @@ Add-Pass "Canonical YAML files match initial schema contracts."
 Test-EnterpriseDispatchIntegrity
 Test-WorkflowArtifactIntegrity
 Test-ContextCompactIntegrity
+Test-ContextIntelligenceIntegrity
 Test-CollaboratorWindowIntegrity
 Test-CoreRuntimeSystemIntegrity
 Test-FoundationCreationIntegrity

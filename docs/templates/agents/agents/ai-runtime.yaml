@@ -11,6 +11,7 @@ route:
   enterprise_dispatch: {f: ["docs/agents/org.yaml","docs/agents/model-policy.yaml","docs/agents/dispatch.yaml","docs/agents/verify.yaml"], v: enterprise_dispatch}
   workflow_artifact: {f: ["docs/agents/workflow-artifacts.yaml","docs/agents/schemas.yaml","docs/agents/verify.yaml"], v: workflow_artifact}
   context_compact: {f: ["docs/agents/context-compact.yaml","docs/agents/schemas.yaml","docs/agents/verify.yaml"], v: context_compact}
+  context_intelligence: {f: ["docs/agents/context-intelligence.yaml","docs/agents/context-compact.yaml","docs/agents/schemas.yaml","docs/agents/verify.yaml"], v: context_intelligence}
   collaborator_window: {f: ["docs/agents/collaborators.yaml","docs/agents/verify.yaml"], v: collaborator_window}
   core_system: {f: ["docs/agents/core-system.yaml","docs/agents/verify.yaml"], v: core_system}
   runtime_execution: {f: ["docs/agents/runtime-execution.yaml","docs/agents/verify.yaml"], v: runtime_execution}

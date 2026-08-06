@@ -1,6 +1,24 @@
 # Changelog
 All notable changes to this repository are documented here.
 ## Unreleased
+## 2.9.0 - 2026-08-06
+- Added bounded, pointer-first context intelligence with deterministic routing,
+  file and line evidence, dependency and test impact, provenance, confidence,
+  content hashes, freshness, gaps, and verification recommendations.
+- Integrated context evidence into change-aware validation so evidence can
+  increase verification scope while stale, degraded, unsupported, conflicting,
+  dirty, and parse-failure states trigger controlled full-validation fallback.
+- Replaced knowledge footprint, compact context, and runtime evidence contracts
+  with current-only v3, v3, and v4 formats; removed the superseded release
+  evidence artifact and compatibility branches.
+- Added a repeatable eight-task, three-run A/B practice suite with accuracy,
+  critical-impact recall, precision, context-byte, tool-call, determinism, and
+  fallback acceptance gates.
+- Extended runtime task state with route, verified assumptions, change boundary,
+  remaining steps, and recovery pointers for bounded long-task resume.
+- Kept all context indexes and raw reports in ignored runtime storage and
+  blocklisted them from deployment and release packages. CodeGraph remains a
+  research influence only; no CodeGraph runtime dependency was added.
 ## 2.8.0 - 2026-07-10
 - Replaced the runtime evidence v2 contract with v3 so content digests
   explicitly count every intended tracked or untracked file.

@@ -7,8 +7,8 @@ Jared's AI Team is a repo-local AI Agents workflow system for Codex-style
 engineering sessions. It provides compact routing rules, project-local
 operating policy, deployable governance files, runtime evidence boundaries,
 multi-agent coordination contracts, official-docs-first foundations,
-freshness-bound durable memory, change-aware verification, and release
-packaging checks.
+freshness-bound durable memory, bounded context intelligence, change-aware
+verification, and release packaging checks.
 
 The repository is intentionally small and source-neutral. It is designed to be
 deployed into target projects without copying local runtime state, live Codex
@@ -17,14 +17,14 @@ repo history.
 
 ## Current Version
 
-Current Agents workflow version: `2.8.0` (`precision-efficiency`).
+Current Agents workflow version: `2.9.0` (`context-intelligence`).
 
 Canonical version source: `docs/agents/version.yaml`
 
-Version positioning: 2.8.0 is the latest-only precision release. It uses
-progressive disclosure, one state owner, freshness-bound durable memory,
-change-aware verification, and current official foundations to reduce routine
-context and verification cost without weakening release evidence.
+Version positioning: 2.9.0 is the latest-only context intelligence release. It
+adds provenance-aware minimal context, impact recommendations, controlled
+fallbacks, resumable task state, and A/B practice evidence without installing a
+code-graph service or weakening release verification.
 
 ## What This Project Provides
 
@@ -34,7 +34,17 @@ context and verification cost without weakening release evidence.
 keeps default context small and expands only the named canonical YAML files
 needed for the current task. This keeps ordinary turns fast while still
 allowing deeper routes for deployment, multi-agent work, runtime evidence,
-provider adapters, route packs, knowledge footprints, and foundation creation.
+context intelligence, provider adapters, route packs, knowledge footprints,
+and foundation creation.
+
+### Bounded Context Intelligence
+
+`scripts/resolve-agent-context.ps1` returns at most three relevant files within
+an 8,192-byte budget, with line pointers, dependencies, affected tests,
+provenance, confidence, hashes, freshness, gaps, and a verification
+recommendation. Its heuristic relationships are discovery leads only. Dirty,
+stale, conflicting, unsupported, or parse-failure states force broader reads
+and validation.
 
 ### Foundation Creation Governance
 
@@ -53,9 +63,10 @@ decisions.
 
 `docs/memory/index.md` is the compact recall index. Detailed entries are loaded
 only when the current route needs them, are capped by the context budget, and
-must carry source references, confidence, status, and review dates. Current
-repository evidence always overrides remembered state; checked-in memory never
-overrides canonical policy.
+must carry source commit, content hash, checked time, update trigger,
+supersession, boundary, confidence, status, and review dates. Current repository
+evidence always overrides remembered state; stale or conflicting memory cannot
+act as fact.
 
 ### Runtime Evidence Without Repo Pollution
 
@@ -109,7 +120,7 @@ deployment material, not the current repo's live operating authority.
 Change-aware validation for routine work:
 
 ```powershell
-.\scripts\validate-changes.ps1 -Profile Auto -Explain
+.\scripts\validate-changes.ps1 -Profile Auto -ContextMode Auto -Explain
 ```
 
 The auto profile selects `Fast`, `Policy`, or `Full` from changed-path risk.
@@ -121,10 +132,16 @@ Full release readiness and quality score:
 .\scripts\validate.ps1 -Full -Score
 ```
 
-Capture sanitized v2.8.0 practice runtime release evidence:
+Resolve minimal context for a repository task:
 
 ```powershell
-.\scripts\capture-runtime-evidence.ps1 -OutputPath .\docs\evidence\releases\v2.8.0-runtime-evidence.json -Full -Practice -Quiet
+.\scripts\resolve-agent-context.ps1 -Task "update validation contracts" -MaxFiles 3 -BudgetBytes 8192 -Format Compact
+```
+
+Capture sanitized v2.9.0 practice runtime release evidence:
+
+```powershell
+.\scripts\capture-runtime-evidence.ps1 -OutputPath .\docs\evidence\releases\v2.9.0-runtime-evidence.json -Full -Practice -Quiet
 ```
 
 Deployment dry-run into an authorized target:
@@ -174,6 +191,7 @@ The main validator covers:
 
 - Lightweight YAML syntax and required canonical files
 - AI runtime compact routing and expand-only route behavior
+- Bounded context resolution, provenance, freshness, impact, fallback, and A/B practice metrics
 - Canonical schema contract checks
 - Change-aware validation profile selection and changed-file syntax checks
 - Memory index, metadata, freshness, source-reference, and template integrity
