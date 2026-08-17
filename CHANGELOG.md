@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this repository are documented here.
 ## Unreleased
+## 2.9.1 - 2026-08-17
+- Added standard-parser TOML evidence for declared local configuration, with
+  fixtures, impact coverage, and fail-closed full-validation fallback.
+- Kept `.codex/**` out of artifacts while letting explicit local configuration
+  inform repository work.
+- Updated the ignored profile for `gpt-5.6-sol`, bounded concurrency and output,
+  prefix-aware compaction, and unchanged `xhigh` reasoning effort.
 ## 2.9.0 - 2026-08-06
 - Added bounded, pointer-first context intelligence with deterministic routing,
   file and line evidence, dependency and test impact, provenance, confidence,

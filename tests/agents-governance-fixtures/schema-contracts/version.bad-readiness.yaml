@@ -8,7 +8,7 @@ workflow:
 readiness_ladder:
   P0: "Incomplete readiness value."
   P1: "Deployment dry-run with provider self-write refusal and upgrade gate."
-  P2: "Source-neutral template bundle with exact-pair drift checks and root intent preservation."
+  P2: "Incomplete readiness marker."
   P3: "Delegated deployment worker with ownership boundaries and before/during/after lifecycle checks."
   P4: "Release audit profile with hard-isolation claim boundaries and size gates."
   P5: "Long-term official-foundation governance with target-owned state preservation and compact workflow growth controls."

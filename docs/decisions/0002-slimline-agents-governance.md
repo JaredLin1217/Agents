@@ -7,4 +7,4 @@ Every-session context should stay small, while deployment, verification, memory,
 - `AGENTS.md` is a router and hard-guardrail file.
 - `docs/agents/*.yaml` is the canonical Agents governance rules.
 - Runbooks stay short and point to the Agents governance rules.
-- Deployable templates mirror reusable rules but exclude source-project state.
+- Canonical rules deploy directly; templates contain only target-specific starters.

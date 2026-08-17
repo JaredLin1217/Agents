@@ -684,121 +684,42 @@ if ($Failures.Count -eq $startFailureCount) {
 Add-Pass "Line-ending readiness checks passed."
 }
 }
-function Test-ExactPairs {
+function Test-CanonicalSourceUniqueness {
 $startFailureCount = $Failures.Count
-$pairs = @(
-@("docs/agent-assignment.template.md", "docs/templates/agents/agent-assignment.template.md"),
-@("docs/agent-status.template.md", "docs/templates/agents/agent-status.template.md"),
-@("docs/agent-event.template.md", "docs/templates/agents/agent-event.template.md"),
-@("docs/controller-lease.template.md", "docs/templates/agents/controller-lease.template.md"),
-@("docs/hard-isolation-evidence.template.md", "docs/templates/agents/hard-isolation-evidence.template.md"),
-@("docs/runtime-multi-agent-validation.template.md", "docs/templates/agents/runtime-multi-agent-validation.template.md"),
-@("docs/runtime-dry-run-evidence.template.md", "docs/templates/agents/runtime-dry-run-evidence.template.md"),
-@("docs/deployment-feedback.template.md", "docs/templates/agents/deployment-feedback.template.md"),
-@("docs/memory-entry.template.md", "docs/templates/agents/memory-entry.template.md"),
-@("docs/memory/entries/README.md", "docs/templates/agents/memory-entries-README.md"),
-@(".agents/skills/project-isolation-workflow/agents/openai.yaml", "docs/templates/agents/skills/project-isolation-workflow/agents/openai.yaml"),
-@("AGENTS.md", "docs/templates/agents/AGENTS.md"),
-@(".agents/skills/project-isolation-workflow/SKILL.md", "docs/templates/agents/skills/project-isolation-workflow/SKILL.md"),
-@("docs/agents/ai-runtime.yaml", "docs/templates/agents/agents/ai-runtime.yaml"),
-@("docs/agents/policy.yaml", "docs/templates/agents/agents/policy.yaml"),
-@("docs/agents/workflows.yaml", "docs/templates/agents/agents/workflows.yaml"),
-@("docs/agents/schemas.yaml", "docs/templates/agents/agents/schemas.yaml"),
-@("docs/agents/deploy.yaml", "docs/templates/agents/agents/deploy.yaml"),
-@("docs/agents/openai-foundations.yaml", "docs/templates/agents/agents/openai-foundations.yaml"),
-@("docs/agents/version.yaml", "docs/templates/agents/agents/version.yaml"),
-@("docs/agents/verify.yaml", "docs/templates/agents/agents/verify.yaml"),
-@("docs/agents/org.yaml", "docs/templates/agents/agents/org.yaml"),
-@("docs/agents/model-policy.yaml", "docs/templates/agents/agents/model-policy.yaml"),
-@("docs/agents/dispatch.yaml", "docs/templates/agents/agents/dispatch.yaml"),
-@("docs/agents/workflow-artifacts.yaml", "docs/templates/agents/agents/workflow-artifacts.yaml"),
-@("docs/agents/collaborators.yaml", "docs/templates/agents/agents/collaborators.yaml"),
-@("docs/agents/core-system.yaml", "docs/templates/agents/agents/core-system.yaml"),
-@("docs/agents/runtime-execution.yaml", "docs/templates/agents/agents/runtime-execution.yaml"),
-@("docs/agents/provider-adapters.yaml", "docs/templates/agents/agents/provider-adapters.yaml"),
-@("docs/agents/route-packs.yaml", "docs/templates/agents/agents/route-packs.yaml"),
-@("docs/agents/knowledge-footprint.yaml", "docs/templates/agents/agents/knowledge-footprint.yaml"),
-@("docs/agents/context-compact.yaml", "docs/templates/agents/agents/context-compact.yaml"),
-@("docs/agents/context-intelligence.yaml", "docs/templates/agents/agents/context-intelligence.yaml"),
-@("docs/runbooks/agents-deployment.md", "docs/templates/agents/agents-deployment.md"),
-@("docs/runbooks/agents-operator-guide.md", "docs/templates/agents/agents-operator-guide.md"),
-@("docs/runbooks/isolation-audit.md", "docs/templates/agents/isolation-audit.md"),
-@("docs/runbooks/multi-agent-workflow.md", "docs/templates/agents/multi-agent-workflow.md"),
-@("docs/runbooks/repository-maintenance.md", "docs/templates/agents/repository-maintenance.md"),
-@("docs/runbooks/session-handoff.md", "docs/templates/agents/session-handoff.md"),
-@("docs/runbooks/skill-authoring.md", "docs/templates/agents/skill-authoring.md"),
-@("docs/runbooks/task-closeout.md", "docs/templates/agents/task-closeout.md")
-)
-foreach ($pair in $pairs) {
-$left = Get-RepoPath $pair[0]
-$right = Get-RepoPath $pair[1]
-if (-not (Test-Path -LiteralPath $left -PathType Leaf)) {
-Add-Failure ("Exact-pair source missing: {0}" -f $pair[0])
+$canonicalByHash = @{}
+foreach ($path in @(Get-IntendedRepoFiles | Where-Object { $_ -notlike "docs/templates/agents/*" })) {
+$normalized = $path.Replace("\", "/")
+$fullPath = Get-RepoPath $normalized
+if (-not (Test-Path -LiteralPath $fullPath -PathType Leaf)) {
 continue
 }
-if (-not (Test-Path -LiteralPath $right -PathType Leaf)) {
-Add-Failure ("Exact-pair template missing: {0}" -f $pair[1])
+$hash = (Get-FileHash -LiteralPath $fullPath -Algorithm SHA256).Hash
+if (-not $canonicalByHash.ContainsKey($hash)) {
+$canonicalByHash[$hash] = $normalized
+}
+}
+foreach ($path in @(Get-IntendedRepoFiles | Where-Object { $_ -like "docs/templates/agents/*" })) {
+$normalized = $path.Replace("\", "/")
+$fullPath = Get-RepoPath $normalized
+if (-not (Test-Path -LiteralPath $fullPath -PathType Leaf)) {
 continue
 }
-$leftHash = (Get-FileHash -LiteralPath $left -Algorithm SHA256).Hash
-$rightHash = (Get-FileHash -LiteralPath $right -Algorithm SHA256).Hash
-if ($leftHash -ne $rightHash) {
-Add-Failure ("Exact-pair drift: {0} != {1}" -f $pair[0], $pair[1])
+$hash = (Get-FileHash -LiteralPath $fullPath -Algorithm SHA256).Hash
+if ($canonicalByHash.ContainsKey($hash)) {
+Add-Failure ("Target-specific starter duplicates canonical source: {0} == {1}" -f $normalized, $canonicalByHash[$hash])
 }
 }
 if ($Failures.Count -eq $startFailureCount) {
-Add-Pass "Exact-pair drift checks passed."
+Add-Pass "Canonical source uniqueness checks passed."
 }
 }
 function Test-TemplateCoverage {
 $startFailureCount = $Failures.Count
 $allowed = New-Object 'System.Collections.Generic.HashSet[string]'
 $allowedItems = @(
-"docs/templates/agents/agent-assignment.template.md",
-"docs/templates/agents/agent-status.template.md",
-"docs/templates/agents/agent-event.template.md",
-"docs/templates/agents/controller-lease.template.md",
-"docs/templates/agents/hard-isolation-evidence.template.md",
-"docs/templates/agents/runtime-multi-agent-validation.template.md",
-"docs/templates/agents/runtime-dry-run-evidence.template.md",
-"docs/templates/agents/deployment-feedback.template.md",
-"docs/templates/agents/memory-entry.template.md",
-"docs/templates/agents/memory-entries-README.md",
-"docs/templates/agents/skills/project-isolation-workflow/agents/openai.yaml",
-"docs/templates/agents/AGENTS.md",
-"docs/templates/agents/skills/project-isolation-workflow/SKILL.md",
-"docs/templates/agents/agents/ai-runtime.yaml",
-"docs/templates/agents/agents/policy.yaml",
-"docs/templates/agents/agents/workflows.yaml",
-"docs/templates/agents/agents/schemas.yaml",
-"docs/templates/agents/agents/deploy.yaml",
-"docs/templates/agents/agents/openai-foundations.yaml",
-"docs/templates/agents/agents/version.yaml",
-"docs/templates/agents/agents/verify.yaml",
-"docs/templates/agents/agents/org.yaml",
-"docs/templates/agents/agents/model-policy.yaml",
-"docs/templates/agents/agents/dispatch.yaml",
-"docs/templates/agents/agents/workflow-artifacts.yaml",
-"docs/templates/agents/agents/collaborators.yaml",
-"docs/templates/agents/agents/core-system.yaml",
-"docs/templates/agents/agents/runtime-execution.yaml",
-"docs/templates/agents/agents/provider-adapters.yaml",
-"docs/templates/agents/agents/route-packs.yaml",
-"docs/templates/agents/agents/knowledge-footprint.yaml",
-"docs/templates/agents/agents/context-compact.yaml",
-"docs/templates/agents/agents/context-intelligence.yaml",
-"docs/templates/agents/agents-deployment.md",
-"docs/templates/agents/agents-operator-guide.md",
-"docs/templates/agents/isolation-audit.md",
-"docs/templates/agents/multi-agent-workflow.md",
-"docs/templates/agents/repository-maintenance.md",
-"docs/templates/agents/session-handoff.md",
-"docs/templates/agents/skill-authoring.md",
-"docs/templates/agents/task-closeout.md",
 "docs/templates/agents/README.md",
 "docs/templates/agents/gitignore.fragment",
 "docs/templates/agents/project-memory.md",
-"docs/templates/agents/project-structure.md",
 "docs/templates/agents/memory-index.md"
 )
 foreach ($item in $allowedItems) {
@@ -808,11 +729,11 @@ $templateFiles = Get-IntendedRepoFiles | Where-Object { $_ -like "docs/templates
 foreach ($path in $templateFiles) {
 $normalized = $path.Replace("\", "/")
 if (-not $allowed.Contains($normalized)) {
-Add-Failure ("Template bundle file is not covered by exact-pair or cleanliness list: {0}" -f $normalized)
+Add-Failure ("Template bundle file is not an approved target-specific starter: {0}" -f $normalized)
 }
 }
 if ($Failures.Count -eq $startFailureCount) {
-Add-Pass "Template bundle coverage checks passed."
+Add-Pass "Target-specific starter coverage checks passed."
 }
 }
 function Test-TemplateSourceNeutrality {
@@ -833,7 +754,7 @@ Add-Pass "Template source-neutrality checks passed."
 }
 function Test-DeployManifestIntegrity {
 $startFailureCount = $Failures.Count
-$deployPaths = @("docs/agents/deploy.yaml", "docs/templates/agents/agents/deploy.yaml")
+$deployPaths = @("docs/agents/deploy.yaml")
 $deploymentScriptContent = Get-Content -LiteralPath (Get-RepoPath "scripts/deploy-agents-workflow.ps1") -Raw
 $scriptModes = @()
 $modeSetMatch = [regex]::Match($deploymentScriptContent, '\[ValidateSet\(([^)]*)\)\]\s*\r?\n\s*\[string\]\s*\$Mode')
@@ -1013,10 +934,7 @@ else {
 Add-Failure "AI runtime route profile check requires docs/agents/verify.yaml."
 }
 $profileExemptions = @("none", "named_state")
-$paths = @(
-"docs/agents/ai-runtime.yaml",
-"docs/templates/agents/agents/ai-runtime.yaml"
-)
+$paths = @("docs/agents/ai-runtime.yaml")
 $requiredNeedles = @(
 "expand_only: true",
 "answer_only",
@@ -1120,7 +1038,7 @@ Add-Failure ("AI runtime route {0} references missing verify profile: {1}" -f $r
 }
 }
 }
-foreach ($path in @("AGENTS.md", "docs/templates/agents/AGENTS.md", ".agents/skills/project-isolation-workflow/SKILL.md", "docs/templates/agents/skills/project-isolation-workflow/SKILL.md")) {
+foreach ($path in @("AGENTS.md", ".agents/skills/project-isolation-workflow/SKILL.md")) {
 $fullPath = Get-RepoPath $path
 if (-not (Test-Path -LiteralPath $fullPath -PathType Leaf)) {
 Add-Failure ("AI runtime reference file is missing: {0}" -f $path)
@@ -1131,7 +1049,7 @@ if (-not $content.Contains("docs/agents/ai-runtime.yaml")) {
 Add-Failure ("AI runtime compact route is not referenced by {0}" -f $path)
 }
 }
-foreach ($path in @("docs/agents/ai-runtime.yaml", "docs/templates/agents/agents/ai-runtime.yaml", "docs/agents/verify.yaml", "docs/agents/provider-adapters.yaml")) {
+foreach ($path in @("docs/agents/ai-runtime.yaml", "docs/agents/verify.yaml", "docs/agents/provider-adapters.yaml")) {
 $fullPath = Get-RepoPath $path
 $content = Get-Content -LiteralPath $fullPath -Raw
 if ($content -match '\bprovider_adapters\b') {
@@ -1370,9 +1288,9 @@ $routeChecks = @(
 @("docs/agents/schemas.yaml", "escalation_record"),
 @("docs/agents/schemas.yaml", "project_local_skill_rule"),
 @("docs/agents/verify.yaml", "enterprise_dispatch"),
-@("docs/agents/deploy.yaml", "docs/templates/agents/agents/org.yaml"),
-@("docs/agents/deploy.yaml", "docs/templates/agents/agents/model-policy.yaml"),
-@("docs/agents/deploy.yaml", "docs/templates/agents/agents/dispatch.yaml"),
+@("docs/agents/deploy.yaml", "docs/agents/org.yaml"),
+@("docs/agents/deploy.yaml", "docs/agents/model-policy.yaml"),
+@("docs/agents/deploy.yaml", "docs/agents/dispatch.yaml"),
 @("docs/agents/ai-runtime.yaml", "enterprise_dispatch")
 )
 foreach ($check in $routeChecks) {
@@ -1389,7 +1307,6 @@ function Test-WorkflowArtifactIntegrity {
 $startFailureCount = $Failures.Count
 $requiredFiles = @(
 "docs/agents/workflow-artifacts.yaml",
-"docs/templates/agents/agents/workflow-artifacts.yaml",
 "schemas/agents-workflow-artifacts.schema.json",
 "scripts/agents-workflow.ps1"
 )
@@ -1404,10 +1321,6 @@ if (-not $allRequiredFilesExist) {
 return
 }
 $canonicalFile = Get-Item -LiteralPath (Get-RepoPath "docs/agents/workflow-artifacts.yaml")
-$templateFile = Get-Item -LiteralPath (Get-RepoPath "docs/templates/agents/agents/workflow-artifacts.yaml")
-if ((Get-FileHash -LiteralPath $canonicalFile.FullName -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $templateFile.FullName -Algorithm SHA256).Hash) {
-Add-Failure "Workflow artifact canonical and template mirror must be identical."
-}
 $workflow = Get-LightweightYamlPathValues -File $canonicalFile
 function Assert-WorkflowPath {
 param([string] $Path)
@@ -1496,7 +1409,7 @@ $routeChecks = @(
 @("docs/agents/workflows.yaml", "workflow_artifact_runtime"),
 @("docs/agents/schemas.yaml", "workflow_packet"),
 @("docs/agents/verify.yaml", "workflow_artifact"),
-@("docs/agents/deploy.yaml", "docs/templates/agents/agents/workflow-artifacts.yaml")
+@("docs/agents/deploy.yaml", "docs/agents/workflow-artifacts.yaml")
 )
 foreach ($check in $routeChecks) {
 $content = Get-Content -LiteralPath (Get-RepoPath $check[0]) -Raw
@@ -1512,7 +1425,6 @@ function Test-ContextCompactIntegrity {
 $startFailureCount = $Failures.Count
 $requiredFiles = @(
 "docs/agents/context-compact.yaml",
-"docs/templates/agents/agents/context-compact.yaml",
 "schemas/agents-context-compact.schema.json"
 )
 $allRequiredFilesExist = $true
@@ -1526,10 +1438,6 @@ if (-not $allRequiredFilesExist) {
 return
 }
 $canonicalFile = Get-Item -LiteralPath (Get-RepoPath "docs/agents/context-compact.yaml")
-$templateFile = Get-Item -LiteralPath (Get-RepoPath "docs/templates/agents/agents/context-compact.yaml")
-if ((Get-FileHash -LiteralPath $canonicalFile.FullName -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $templateFile.FullName -Algorithm SHA256).Hash) {
-Add-Failure "Context compact canonical and template mirror must be identical."
-}
 $compact = Get-LightweightYamlPathValues -File $canonicalFile
 function Assert-CompactPath {
 param([string] $Path)
@@ -1585,7 +1493,7 @@ $routeChecks = @(
 @("docs/agents/workflows.yaml", "context_compact_runtime"),
 @("docs/agents/schemas.yaml", "context_compact_summary"),
 @("docs/agents/verify.yaml", "context_compact"),
-@("docs/agents/deploy.yaml", "docs/templates/agents/agents/context-compact.yaml"),
+@("docs/agents/deploy.yaml", "docs/agents/context-compact.yaml"),
 @("docs/agents/version.yaml", "context_compact")
 )
 foreach ($check in $routeChecks) {
@@ -1602,7 +1510,6 @@ function Test-CollaboratorWindowIntegrity {
 $startFailureCount = $Failures.Count
 $requiredFiles = @(
 "docs/agents/collaborators.yaml",
-"docs/templates/agents/agents/collaborators.yaml",
 "schemas/agents-collaborators.schema.json"
 )
 $allRequiredFilesExist = $true
@@ -1616,10 +1523,6 @@ if (-not $allRequiredFilesExist) {
 return
 }
 $canonicalFile = Get-Item -LiteralPath (Get-RepoPath "docs/agents/collaborators.yaml")
-$templateFile = Get-Item -LiteralPath (Get-RepoPath "docs/templates/agents/agents/collaborators.yaml")
-if ((Get-FileHash -LiteralPath $canonicalFile.FullName -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $templateFile.FullName -Algorithm SHA256).Hash) {
-Add-Failure "Collaborator window canonical and template mirror must be identical."
-}
 $collab = Get-LightweightYamlPathValues -File $canonicalFile
 $org = Get-LightweightYamlPathValues -File (Get-Item -LiteralPath (Get-RepoPath "docs/agents/org.yaml"))
 $model = Get-LightweightYamlPathValues -File (Get-Item -LiteralPath (Get-RepoPath "docs/agents/model-policy.yaml"))
@@ -1743,7 +1646,7 @@ $routeChecks = @(
 @("docs/agents/workflows.yaml", "collaborator_window_runtime"),
 @("docs/agents/workflows.yaml", "close_rule"),
 @("docs/agents/workflows.yaml", "runtime_rule"),
-@("docs/agents/deploy.yaml", "docs/templates/agents/agents/collaborators.yaml"),
+@("docs/agents/deploy.yaml", "docs/agents/collaborators.yaml"),
 @("docs/agents/deploy.yaml", ".agents/runtime/collaborators.jsonl"),
 @("docs/agents/deploy.yaml", "live thread ids"),
 @("docs/agents/schemas.yaml", "collaborator_record"),
@@ -1885,7 +1788,7 @@ Add-Pass "Deployment self-test passed."
 }
 function Test-MultiAgentWorkflowIntegrity {
 $startFailureCount = $Failures.Count
-$workflowPaths = @("docs/agents/workflows.yaml", "docs/templates/agents/agents/workflows.yaml")
+$workflowPaths = @("docs/agents/workflows.yaml")
 $workflowMarkers = @(
 "multi_agent_runtime:",
 "batch_ack:",
@@ -1924,7 +1827,7 @@ Add-Failure ("Multi-agent workflow marker is missing in {0}: {1}" -f $path, $mar
 }
 }
 }
-$schemaPaths = @("docs/agents/schemas.yaml", "docs/templates/agents/agents/schemas.yaml")
+$schemaPaths = @("docs/agents/schemas.yaml")
 $schemaMarkers = @(
 "assignment:",
 "ownership_matrix:",
@@ -1951,7 +1854,7 @@ Add-Failure ("Multi-agent schema marker is missing in {0}: {1}" -f $path, $marke
 }
 }
 }
-$runbookPaths = @("docs/runbooks/multi-agent-workflow.md", "docs/templates/agents/multi-agent-workflow.md")
+$runbookPaths = @("docs/runbooks/multi-agent-workflow.md")
 $runbookMarkers = @(
 "thread_spawn_edges",
 "session_index.jsonl",
@@ -2045,8 +1948,7 @@ Add-Pass "CI workflow stability checks passed."
 function Test-SkillMetadata {
 $startFailureCount = $Failures.Count
 $skillFiles = @(
-".agents/skills/project-isolation-workflow/SKILL.md",
-"docs/templates/agents/skills/project-isolation-workflow/SKILL.md"
+".agents/skills/project-isolation-workflow/SKILL.md"
 )
 foreach ($path in $skillFiles) {
 $fullPath = Get-RepoPath $path
@@ -2061,7 +1963,7 @@ if (-not ($head | Where-Object { $_ -match "^description:\s+.+" })) {
 Add-Failure ("Project skill metadata is missing description: {0}" -f $path)
 }
 }
-foreach ($path in @(".agents/skills/project-isolation-workflow/agents/openai.yaml", "docs/templates/agents/skills/project-isolation-workflow/agents/openai.yaml")) {
+foreach ($path in @(".agents/skills/project-isolation-workflow/agents/openai.yaml")) {
 $content = Get-Content -LiteralPath (Get-RepoPath $path)
 if (-not ($content | Where-Object { $_ -match "^\s*default_prompt:" })) {
 Add-Failure ("Agent skill metadata is missing default_prompt: {0}" -f $path)
@@ -2074,26 +1976,18 @@ Add-Pass "Skill metadata checks passed."
 function Test-CoreRuntimeSystemIntegrity {
 $startFailureCount = $Failures.Count
 $expectedWorkflowVersion = Get-CanonicalWorkflowVersion
-$mirrorPairs = @(
-@("docs/agents/core-system.yaml", "docs/templates/agents/agents/core-system.yaml"),
-@("docs/agents/runtime-execution.yaml", "docs/templates/agents/agents/runtime-execution.yaml"),
-@("docs/agents/provider-adapters.yaml", "docs/templates/agents/agents/provider-adapters.yaml"),
-@("docs/agents/route-packs.yaml", "docs/templates/agents/agents/route-packs.yaml"),
-@("docs/agents/knowledge-footprint.yaml", "docs/templates/agents/agents/knowledge-footprint.yaml"),
-@("docs/agents/context-intelligence.yaml", "docs/templates/agents/agents/context-intelligence.yaml"),
-@("docs/agents/openai-foundations.yaml", "docs/templates/agents/agents/openai-foundations.yaml")
+$canonicalFiles = @(
+"docs/agents/core-system.yaml",
+"docs/agents/runtime-execution.yaml",
+"docs/agents/provider-adapters.yaml",
+"docs/agents/route-packs.yaml",
+"docs/agents/knowledge-footprint.yaml",
+"docs/agents/context-intelligence.yaml",
+"docs/agents/openai-foundations.yaml"
 )
-foreach ($pair in $mirrorPairs) {
-$source = Get-RepoPath $pair[0]
-$mirror = Get-RepoPath $pair[1]
-if (-not (Test-Path -LiteralPath $source -PathType Leaf) -or -not (Test-Path -LiteralPath $mirror -PathType Leaf)) {
-Add-Failure ("Core runtime mirror pair is missing: {0} <-> {1}" -f $pair[0], $pair[1])
-continue
-}
-$sourceHash = (Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash
-$mirrorHash = (Get-FileHash -LiteralPath $mirror -Algorithm SHA256).Hash
-if ($sourceHash -ne $mirrorHash) {
-Add-Failure ("Core runtime template mirror drift: {0} <-> {1}" -f $pair[0], $pair[1])
+foreach ($path in $canonicalFiles) {
+if (-not (Test-Path -LiteralPath (Get-RepoPath $path) -PathType Leaf)) {
+Add-Failure ("Core runtime canonical file is missing: {0}" -f $path)
 }
 }
 $markerChecks = @(
@@ -2132,7 +2026,7 @@ Add-Pass "Core runtime system integrity checks passed."
 function Test-FullAuditGates {
 Test-GitDiffCheck
 Test-LineEndings
-Test-ExactPairs
+Test-CanonicalSourceUniqueness
 Test-DeployManifestIntegrity
 Test-TemplateCoverage
 Test-TemplateSourceNeutrality

@@ -17,14 +17,15 @@ repo history.
 
 ## Current Version
 
-Current Agents workflow version: `2.9.0` (`context-intelligence`).
+Current Agents workflow version: `2.9.1` (`context-intelligence`).
 
 Canonical version source: `docs/agents/version.yaml`
 
-Version positioning: 2.9.0 is the latest-only context intelligence release. It
-adds provenance-aware minimal context, impact recommendations, controlled
-fallbacks, resumable task state, and A/B practice evidence without installing a
-code-graph service or weakening release verification.
+Version positioning: 2.9.1 is the latest-only context intelligence release. It
+adds TOML-aware, provenance-backed minimal context for tracked and explicitly
+declared local files, controlled fallbacks, resumable task state, and A/B
+practice evidence without installing a code-graph service or weakening release
+verification.
 
 ## What This Project Provides
 
@@ -42,9 +43,10 @@ and foundation creation.
 `scripts/resolve-agent-context.ps1` returns at most three relevant files within
 an 8,192-byte budget, with line pointers, dependencies, affected tests,
 provenance, confidence, hashes, freshness, gaps, and a verification
-recommendation. Its heuristic relationships are discovery leads only. Dirty,
-stale, conflicting, unsupported, or parse-failure states force broader reads
-and validation.
+recommendation. Explicitly named in-repository local TOML files are parsed and
+included even when Git ignores them. Its heuristic relationships are discovery
+leads only. Dirty, stale, conflicting, unsupported, or parse-failure states
+force broader reads and validation.
 
 ### Foundation Creation Governance
 
@@ -80,8 +82,8 @@ operation.
 
 The deployment system can install the AI Agents workflow into another
 authorized repository using an allowlisted file set. It supports dry-run first
-operation, target layout detection, target-owned state preservation, source
-neutral template checks, and release package export.
+operation, target layout detection, target-owned state preservation, canonical
+source checks, starter cleanliness checks, and release package export.
 
 ### Multi-Agent and Enterprise Dispatch Contracts
 
@@ -98,7 +100,7 @@ boundaries. Runtime multi-agent claims require live employee evidence.
 | `.agents/skills/project-isolation-workflow/` | Project-local skill for isolation, memory, deploy, agents, handoff, skills, and maintenance. |
 | `docs/agents/` | Canonical AI Agents workflow YAML files. |
 | `docs/runbooks/` | Human-readable operating procedures. |
-| `docs/templates/agents/` | Source-neutral deployable template bundle. |
+| `docs/templates/agents/` | Target-specific deployment starters only. |
 | `schemas/` | Lightweight schema contracts used by validation. |
 | `scripts/` | Validation, deployment, release, route-pack, runtime, and cleanup helpers. |
 | `tests/agents-governance-fixtures/` | Validation fixtures for schema and workflow contracts. |
@@ -112,8 +114,8 @@ boundaries. Runtime multi-agent claims require live employee evidence.
 4. `docs/agents/verify.yaml` before state claims, edits, commits, deployment, or release
 5. `docs/project-structure.md` for ownership and deployability boundaries
 
-Do not use `docs/templates/agents/**` as the active rule source. Templates are
-deployment material, not the current repo's live operating authority.
+Do not use `docs/templates/agents/**` as the active rule source. These files are
+target-specific starters, not copies of the current repo's operating authority.
 
 ## Core Commands
 
@@ -138,10 +140,10 @@ Resolve minimal context for a repository task:
 .\scripts\resolve-agent-context.ps1 -Task "update validation contracts" -MaxFiles 3 -BudgetBytes 8192 -Format Compact
 ```
 
-Capture sanitized v2.9.0 practice runtime release evidence:
+Capture sanitized v2.9.1 practice runtime release evidence:
 
 ```powershell
-.\scripts\capture-runtime-evidence.ps1 -OutputPath .\docs\evidence\releases\v2.9.0-runtime-evidence.json -Full -Practice -Quiet
+.\scripts\capture-runtime-evidence.ps1 -OutputPath .\docs\evidence\releases\v2.9.1-runtime-evidence.json -Full -Practice -Quiet
 ```
 
 Deployment dry-run into an authorized target:
@@ -198,8 +200,8 @@ The main validator covers:
 - Enterprise dispatch, workflow artifacts, context compaction, collaborator windows, and core runtime integrity
 - Runtime/local boundary checks
 - Durable English-only and placeholder gates
-- Exact-pair drift checks for deployable mirrors
-- Deployment manifest, blocklist, source-neutral template, and self-test checks
+- Canonical-source uniqueness and target-specific starter coverage checks
+- Deployment manifest, blocklist, starter cleanliness, and self-test checks
 - Multi-agent workflow integrity and cleanup evidence contracts
 - CI workflow stability
 - P0-P5 readiness evidence
@@ -226,7 +228,7 @@ standard:
 
 - Compact default context
 - Clear route expansion
-- Source-neutral deployment
+- Canonical-source deployment with target-specific starters
 - Runtime evidence without repository pollution
 - Repeatable validation and release checks
 - Explicit claim boundaries for multi-agent execution and hard isolation

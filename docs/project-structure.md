@@ -1,7 +1,7 @@
 # Source Repo Structure
 This source repo owns the canonical AI Agents workflow: repo-local routing,
 deployable governance, project-local skills, runtime boundaries, validation
-gates, deployment templates, and extension points.
+gates, target-specific starters, and extension points.
 ## Read Order
 1. `AGENTS.md`
 2. `docs/agents/ai-runtime.yaml`
@@ -42,7 +42,7 @@ gates, deployment templates, and extension points.
 | `docs/agents/knowledge-footprint.yaml` | cross-window resume evidence route | deploy |
 | `docs/agents/openai-foundations.yaml` | foundation creation route | deploy |
 | `docs/runbooks/*.md` | procedure entry points | mode-based deploy |
-| `docs/templates/agents/` | source-neutral deploy bundle | `template_provider_mode` only |
+| `docs/templates/agents/` | target-specific deployment starters | `template_provider_mode` only |
 | `docs/memory/`, `docs/decisions/` | evidence-linked knowledge | deploy starters; preserve target-owned populated rows |
 | `docs/agents/decisions/` | workflow structure decisions | provider source only |
 | `schemas/`, `scripts/`, `tests/` | contracts, checks, and fixtures | provider source only until explicitly deployed |
@@ -56,9 +56,9 @@ Do not deploy source `.agents/runtime/`, `.agents/runtime/workflows/`,
 `.codex/environments/*.toml`, source memory rows, decisions, status,
 live thread ids, collaborator window state, or validation history by default.
 ## Core Runtime Structure Rule
-Core runtime structure changes must preserve mirror pairs, deployment rules,
-schema contracts, runtime blocklists, and route-pack compactness until drift
-checks are updated. Large moves of runbooks, templates, decisions, or memory docs
+Core runtime structure changes must preserve canonical-source uniqueness,
+deployment rules, schema contracts, runtime blocklists, and route-pack compactness
+until drift checks are updated. Large moves of runbooks, starters, decisions, or memory docs
 belong in dedicated changes, not mixed with validation, foundation, or CI work.
 Simple answer, scoped edit, plain deploy, and release tasks still use the
 minimal route from `docs/agents/ai-runtime.yaml` and should not load
