@@ -4,17 +4,58 @@ This file is generated from git history after public branch pushes.
 Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` instead.
 
 - Source branch: `main`
-- Source commit analyzed: `8a2d46a`
-- Source commit date: `2026-07-10T11:35:22+08:00`
+- Source commit analyzed: `c723175`
+- Source commit date: `2026-08-18T07:56:32+08:00`
 - Commit window: latest 12 non-merge commits
 
 ## Current Project Version
 
-- Version: `2.8.0`
-- Channel: `precision-efficiency`
-- Positioning: Latest-only precision release with progressive disclosure, evidence-bound memory, change-aware validation, current official foundations, and lower routine token cost.
+- Version: `2.9.1`
+- Channel: `context-intelligence`
+- Positioning: Latest-only AI Agents release with TOML-aware bounded context resolution, declared-local provenance, recoverable execution state, freshness-bound memory, and validation selected by evidence and risk.
 
 ## Recent Commits
+
+### 2026-08-18 - `c723175`
+
+feat: release AI Agents 2.9.1
+
+- Author: `JaredLin1217`
+- Shortstat: `84 files changed, 492 insertions(+), 3112 deletions(-)`
+- Files:
+  - `CHANGELOG.md`
+  - `README.md`
+  - `docs/agents/context-intelligence.yaml`
+  - `docs/agents/decisions/v2-structure-roadmap.md`
+  - `docs/agents/deploy.yaml`
+  - `docs/agents/policy.yaml`
+  - `docs/agents/verify.yaml`
+  - `docs/agents/version.yaml`
+
+### 2026-08-06 - `3e01ede`
+
+feat: release AI Agents 2.9.0
+
+- Author: `JaredLin1217`
+- Shortstat: `65 files changed, 2090 insertions(+), 2410 deletions(-)`
+- Files:
+  - `.agents/skills/project-isolation-workflow/SKILL.md`
+  - `AGENTS.md`
+  - `CHANGELOG.md`
+  - `README.md`
+  - `docs/agents/ai-runtime.yaml`
+  - `docs/agents/context-compact.yaml`
+  - `docs/agents/context-intelligence.yaml`
+  - `docs/agents/deploy.yaml`
+
+### 2026-07-10 - `1c2d7ca`
+
+docs: update GitHub update log [skip ci]
+
+- Author: `github-actions[bot]`
+- Shortstat: `1 file changed, 30 insertions(+), 23 deletions(-)`
+- Files:
+  - `docs/github-updates.md`
 
 ### 2026-07-10 - `8a2d46a`
 
@@ -129,42 +170,5 @@ docs: update GitHub update log [skip ci]
 
 - Author: `JaredLin1217`
 - Shortstat: `1 file changed, 40 insertions(+), 44 deletions(-)`
-- Files:
-  - `docs/github-updates.md`
-
-### 2026-06-09 - `5f7316f`
-
-Harden runtime boundary rules
-
-- Author: `JaredLin1217`
-- Shortstat: `8 files changed, 38 insertions(+), 14 deletions(-)`
-- Files:
-  - `docs/agents/collaborators.yaml`
-  - `docs/agents/deploy.yaml`
-  - `docs/agents/provider-adapters.yaml`
-  - `docs/agents/workflows.yaml`
-  - `docs/templates/agents/agents/collaborators.yaml`
-  - `docs/templates/agents/agents/deploy.yaml`
-  - `docs/templates/agents/agents/provider-adapters.yaml`
-  - `docs/templates/agents/agents/workflows.yaml`
-
-### 2026-06-09 - `268298c`
-
-Fix ai-runtime provider naming drift and release artifact blocklist
-
-- Author: `JaredLin1217`
-- Shortstat: `4 files changed, 17 insertions(+), 6 deletions(-)`
-- Files:
-  - `docs/agents/verify.yaml`
-  - `docs/templates/agents/agents/verify.yaml`
-  - `scripts/export-release-package.ps1`
-  - `scripts/validate.ps1`
-
-### 2026-06-05 - `96d057b`
-
-docs: update GitHub update log [skip ci]
-
-- Author: `github-actions[bot]`
-- Shortstat: `1 file changed, 20 insertions(+), 27 deletions(-)`
 - Files:
   - `docs/github-updates.md`
