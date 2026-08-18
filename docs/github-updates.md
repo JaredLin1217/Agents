@@ -4,8 +4,8 @@ This file is generated from git history after public branch pushes.
 Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` instead.
 
 - Source branch: `main`
-- Source commit analyzed: `c723175`
-- Source commit date: `2026-08-18T07:56:32+08:00`
+- Source commit analyzed: `82140bd`
+- Source commit date: `2026-08-18T09:58:18+08:00`
 - Commit window: latest 12 non-merge commits
 
 ## Current Project Version
@@ -15,6 +15,26 @@ Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` ins
 - Positioning: Latest-only AI Agents release with TOML-aware bounded context resolution, declared-local provenance, recoverable execution state, freshness-bound memory, and validation selected by evidence and risk.
 
 ## Recent Commits
+
+### 2026-08-18 - `82140bd`
+
+fix: harden 2.9.1 deployment verification
+
+- Author: `JaredLin1217`
+- Shortstat: `3 files changed, 30 insertions(+), 2 deletions(-)`
+- Files:
+  - `scripts/deploy-agents-workflow.ps1`
+  - `scripts/validate-changes.ps1`
+  - `scripts/validate.ps1`
+
+### 2026-08-17 - `b68a064`
+
+docs: update GitHub update log [skip ci]
+
+- Author: `github-actions[bot]`
+- Shortstat: `1 file changed, 46 insertions(+), 42 deletions(-)`
+- Files:
+  - `docs/github-updates.md`
 
 ### 2026-08-18 - `c723175`
 
@@ -147,28 +167,3 @@ chore: stabilize agents workflow 2.6.1
   - `docs/agents/openai-foundations.yaml`
   - `docs/agents/schemas.yaml`
   - `docs/agents/verify.yaml`
-
-### 2026-06-23 - `ca454cb`
-
-chore: checkpoint agents workflow 2.6.0
-
-- Author: `JaredLin1217`
-- Shortstat: `41 files changed, 995 insertions(+), 441 deletions(-)`
-- Files:
-  - `AGENTS.md`
-  - `CHANGELOG.md`
-  - `README.md`
-  - `docs/agents/ai-runtime.yaml`
-  - `docs/agents/core-system.yaml`
-  - `docs/agents/decisions/v2-checkpoint-package.md`
-  - `docs/agents/decisions/v2-structure-roadmap.md`
-  - `docs/agents/deploy.yaml`
-
-### 2026-06-09 - `986c98d`
-
-docs: update GitHub update log [skip ci]
-
-- Author: `JaredLin1217`
-- Shortstat: `1 file changed, 40 insertions(+), 44 deletions(-)`
-- Files:
-  - `docs/github-updates.md`
