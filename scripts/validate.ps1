@@ -1786,6 +1786,33 @@ if ($Failures.Count -eq $startFailureCount) {
 Add-Pass "Deployment self-test passed."
 }
 }
+function Test-ChangeValidationSelfTest {
+$startFailureCount = $Failures.Count
+$previousErrorActionPreference = $ErrorActionPreference
+$ErrorActionPreference = "Continue"
+try {
+$output = & (Get-RepoPath "scripts/validate-changes.ps1") -SelfTest -Quiet 2>&1
+$exitCode = $LASTEXITCODE
+}
+finally {
+$ErrorActionPreference = $previousErrorActionPreference
+}
+if ($exitCode -ne 0) {
+Add-Failure "Change-aware validation self-test failed."
+foreach ($line in $output) {
+Add-Failure ("Change-aware validation self-test detail: {0}" -f $line)
+}
+}
+elseif (@($output).Count -gt 0) {
+Add-Failure "Change-aware validation self-test quiet mode produced output."
+foreach ($line in $output) {
+Add-Failure ("Change-aware validation self-test quiet output: {0}" -f $line)
+}
+}
+if ($Failures.Count -eq $startFailureCount) {
+Add-Pass "Change-aware validation self-test passed."
+}
+}
 function Test-MultiAgentWorkflowIntegrity {
 $startFailureCount = $Failures.Count
 $workflowPaths = @("docs/agents/workflows.yaml")
@@ -2033,6 +2060,7 @@ Test-TemplateSourceNeutrality
 Test-SkillMetadata
 Test-DeploymentScriptSafety
 Test-DeploymentSelfTest
+Test-ChangeValidationSelfTest
 Test-MultiAgentWorkflowIntegrity
 Test-AgentCleanupHelperIntegrity
 Test-WorkflowArtifactIntegrity

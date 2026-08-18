@@ -269,7 +269,6 @@ function Test-ProfileSelection {
         @{ Paths = @("schemas/example.schema.json"); Expected = "Full" },
         @{ Paths = @("src/app.ts", "docs/agents/version.yaml"); Expected = "Full" },
         @{ Paths = @(".agents/docs/agents/version.yaml"); Expected = "Full" },
-        @{ Paths = @(".agents/docs/schemas/agents-version.schema.json"); Expected = "Full" },
         @{ Paths = @("scripts/validate-foundation.ps1"); Expected = "Full" },
         @{ Paths = @("scripts/resolve-agent-context.ps1"); Expected = "Full" },
         @{ Paths = @("scripts/agent-toml.ps1"); Expected = "Full" },

@@ -1161,7 +1161,7 @@ $reportLines += @(
 "- Provider environment templates are never deployed; target environments stay local.",
 "- Target-owned historical Agents files are reported separately and remain target-owned."
 )
-$reportContent = ($reportLines -join [System.Environment]::NewLine) + [System.Environment]::NewLine
+$reportContent = ($reportLines -join "`n") + "`n"
 $state = Get-DeployWriteState -Path $reportPath -Content $reportContent
 if ($state -eq "create" -or $state -eq "upgrade_required") {
 $PlannedWrites.Add($reportRelative) | Out-Null
@@ -1438,6 +1438,7 @@ Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents/context-compact
 Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents/collaborators.yaml"
 Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/deployment-feedback.template.md"
 Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents-workflow-deployment.md"
+if ([System.IO.File]::ReadAllBytes((Join-Path $rootTarget "docs/agents-workflow-deployment.md")) -contains 13) { throw "Deployment report must use LF line endings." }
 Assert-SelfTestFile -Root $rootTarget -RelativePath ".codex/environments/root-docs.toml"
 Assert-SelfTestContains -Path (Join-Path $rootTarget "docs/agents-workflow-deployment.md") -Expected "- docs/agents/workflows.yaml"
 Assert-SelfTestContains -Path (Join-Path $rootTarget "docs/agents-workflow-deployment.md") -Expected "## What Changed"
