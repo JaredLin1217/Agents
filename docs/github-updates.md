@@ -4,8 +4,8 @@ This file is generated from git history after public branch pushes.
 Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` instead.
 
 - Source branch: `main`
-- Source commit analyzed: `82140bd`
-- Source commit date: `2026-08-18T09:58:18+08:00`
+- Source commit analyzed: `bf07007`
+- Source commit date: `2026-08-31T06:51:42+08:00`
 - Commit window: latest 12 non-merge commits
 
 ## Current Project Version
@@ -15,6 +15,38 @@ Do not hand-edit routine entries; change `scripts/update-github-updates.ps1` ins
 - Positioning: Latest-only AI Agents release with TOML-aware bounded context resolution, declared-local provenance, recoverable execution state, freshness-bound memory, and validation selected by evidence and risk.
 
 ## Recent Commits
+
+### 2026-08-31 - `bf07007`
+
+test(agents): refresh 2.9.1 runtime evidence
+
+- Author: `JaredLin1217`
+- Shortstat: `1 file changed, 1 insertion(+), 1 deletion(-)`
+- Files:
+  - `docs/evidence/releases/v2.9.1-runtime-evidence.json`
+
+### 2026-08-31 - `726e540`
+
+fix(agents): escape Markdown response prefix
+
+- Author: `JaredLin1217`
+- Shortstat: `6 files changed, 70 insertions(+), 5 deletions(-)`
+- Files:
+  - `AGENTS.md`
+  - `CHANGELOG.md`
+  - `docs/agents/dispatch.yaml`
+  - `schemas/agents-dispatch.schema.json`
+  - `scripts/deploy-agents-workflow.ps1`
+  - `scripts/validate.ps1`
+
+### 2026-08-18 - `73520f4`
+
+docs: update GitHub update log [skip ci]
+
+- Author: `github-actions[bot]`
+- Shortstat: `1 file changed, 22 insertions(+), 27 deletions(-)`
+- Files:
+  - `docs/github-updates.md`
 
 ### 2026-08-18 - `82140bd`
 
@@ -126,44 +158,3 @@ Practice-harden 2.7.0 workflow
   - `docs/evidence/releases/v2.6.2-runtime-evidence.json`
   - `docs/github-updates.md`
   - `docs/runbooks/agents-operator-guide.md`
-
-### 2026-06-24 - `6b1ee53`
-
-Stabilize 2.6.2 runtime evidence
-
-- Author: `JaredLin1217`
-- Shortstat: `23 files changed, 1403 insertions(+), 331 deletions(-)`
-- Files:
-  - `CHANGELOG.md`
-  - `README.md`
-  - `docs/agents/openai-foundations.yaml`
-  - `docs/agents/schemas.yaml`
-  - `docs/agents/verify.yaml`
-  - `docs/agents/version.yaml`
-  - `docs/evidence/releases/v2.6.2-runtime-evidence.json`
-  - `docs/github-updates.md`
-
-### 2026-06-23 - `b85d82e`
-
-docs: update GitHub update log [skip ci]
-
-- Author: `github-actions[bot]`
-- Shortstat: `1 file changed, 45 insertions(+), 44 deletions(-)`
-- Files:
-  - `docs/github-updates.md`
-
-### 2026-06-23 - `e558aef`
-
-chore: stabilize agents workflow 2.6.1
-
-- Author: `JaredLin1217`
-- Shortstat: `23 files changed, 643 insertions(+), 611 deletions(-)`
-- Files:
-  - `.agents/skills/project-isolation-workflow/SKILL.md`
-  - `AGENTS.md`
-  - `CHANGELOG.md`
-  - `README.md`
-  - `docs/agents/deploy.yaml`
-  - `docs/agents/openai-foundations.yaml`
-  - `docs/agents/schemas.yaml`
-  - `docs/agents/verify.yaml`
