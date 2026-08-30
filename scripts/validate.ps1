@@ -1062,13 +1062,23 @@ Add-Pass "AI runtime compact route checks passed."
 }
 function Test-EnterpriseDispatchIntegrity {
 $startFailureCount = $Failures.Count
+$agentsPath = Get-RepoPath "AGENTS.md"
 $orgPath = Get-RepoPath "docs/agents/org.yaml"
 $modelPath = Get-RepoPath "docs/agents/model-policy.yaml"
 $dispatchPath = Get-RepoPath "docs/agents/dispatch.yaml"
 $workflowsPath = Get-RepoPath "docs/agents/workflows.yaml"
-if (-not ((Test-Path -LiteralPath $orgPath -PathType Leaf) -and (Test-Path -LiteralPath $modelPath -PathType Leaf) -and (Test-Path -LiteralPath $dispatchPath -PathType Leaf) -and (Test-Path -LiteralPath $workflowsPath -PathType Leaf))) {
+if (-not ((Test-Path -LiteralPath $agentsPath -PathType Leaf) -and (Test-Path -LiteralPath $orgPath -PathType Leaf) -and (Test-Path -LiteralPath $modelPath -PathType Leaf) -and (Test-Path -LiteralPath $dispatchPath -PathType Leaf) -and (Test-Path -LiteralPath $workflowsPath -PathType Leaf))) {
 Add-Failure "Enterprise dispatch canonical files are incomplete."
 return
+}
+$agentsContent = Get-Content -LiteralPath $agentsPath -Raw
+$escapedPrefixRule = 'Start visible responses with the raw Markdown prefix `\$\$ `'
+if (-not $agentsContent.Contains($escapedPrefixRule)) {
+Add-Failure "AGENTS.md must require the escaped raw Markdown response prefix."
+}
+$barePrefixRule = 'Start visible responses with `' + '$' + '$' + '`'
+if ($agentsContent.Contains($barePrefixRule)) {
+Add-Failure "AGENTS.md must reject the unescaped response prefix contract."
 }
 $org = Get-LightweightYamlPathValues -File (Get-Item -LiteralPath $orgPath)
 $model = Get-LightweightYamlPathValues -File (Get-Item -LiteralPath $modelPath)
@@ -1247,8 +1257,49 @@ Add-Failure ("Dispatch runtime report or validation rule is missing: {0}" -f $pa
 if ($dispatch.ContainsKey("runtime_report_contract.output_format") -and $dispatch["runtime_report_contract.output_format"] -ne "single compact JSON object") {
 Add-Failure "Dispatch runtime report output_format must be a single compact JSON object."
 }
-if ($dispatch.ContainsKey("runtime_report_contract.response_envelope_rule") -and (-not $dispatch["runtime_report_contract.response_envelope_rule"].Contains('strip $$') -or -not $dispatch["runtime_report_contract.response_envelope_rule"].Contains("valid JSON"))) {
+if ($dispatch.ContainsKey("runtime_report_contract.response_envelope_rule") -and (-not $dispatch["runtime_report_contract.response_envelope_rule"].Contains('strip exactly one leading raw Markdown \$\$ prefix') -or -not $dispatch["runtime_report_contract.response_envelope_rule"].Contains("following whitespace") -or -not $dispatch["runtime_report_contract.response_envelope_rule"].Contains("reject the unescaped two-dollar form") -or -not $dispatch["runtime_report_contract.response_envelope_rule"].Contains("valid JSON"))) {
 Add-Failure "Dispatch runtime report contract must normalize the required visible prefix before machine parsing."
+}
+$escapedPrefix = '\$\$'
+$prefixRegex = [regex]::new(('^' + [regex]::Escape($escapedPrefix) + '\s+'))
+$escapedEnvelope = $escapedPrefix + ' {"schema":"agents-dispatch/v2"}'
+$normalizedEnvelope = $prefixRegex.Replace($escapedEnvelope, "", 1)
+$parsedEnvelope = $null
+try {
+$parsedEnvelope = $normalizedEnvelope | ConvertFrom-Json -ErrorAction Stop
+}
+catch {
+Add-Failure "Dispatch escaped-prefix JSON sample must normalize to valid JSON."
+}
+if ($null -ne $parsedEnvelope -and $parsedEnvelope.schema -ne "agents-dispatch/v2") {
+Add-Failure "Dispatch escaped-prefix JSON sample changed after normalization."
+}
+$doubleEnvelope = $escapedPrefix + ' ' + $escapedEnvelope
+$doubleEnvelopeAccepted = $true
+try {
+$null = $prefixRegex.Replace($doubleEnvelope, "", 1) | ConvertFrom-Json -ErrorAction Stop
+}
+catch {
+$doubleEnvelopeAccepted = $false
+}
+if ($doubleEnvelopeAccepted) {
+Add-Failure "Dispatch normalizer must strip the escaped prefix only once."
+}
+$embeddedEnvelope = '{"schema":"agents-dispatch/v2"} ' + $escapedPrefix
+if ($prefixRegex.Replace($embeddedEnvelope, "", 1) -ne $embeddedEnvelope) {
+Add-Failure "Dispatch normalizer must not strip an escaped prefix outside the envelope start."
+}
+$barePrefix = '$' + '$'
+$bareEnvelope = $barePrefix + ' {"schema":"agents-dispatch/v2"}'
+$bareEnvelopeAccepted = $true
+try {
+$null = $prefixRegex.Replace($bareEnvelope, "", 1) | ConvertFrom-Json -ErrorAction Stop
+}
+catch {
+$bareEnvelopeAccepted = $false
+}
+if ($bareEnvelopeAccepted) {
+Add-Failure "Dispatch normalizer must reject the unescaped response prefix."
 }
 if ($dispatch.ContainsKey("runtime_report_contract.response_envelope_rule") -and $dispatch["runtime_report_contract.response_envelope_rule"].Contains("stable fields")) {
 Add-Failure "Dispatch response envelope must not permit ambiguous stable-field parsing."

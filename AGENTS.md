@@ -2,7 +2,8 @@
 Deployable Agents rules. Durable rules/docs/skills/templates are English-only.
 
 ## Prefix
-- Start visible responses with `$$`, unless higher-priority protocol conflicts.
+- Start visible responses with the raw Markdown prefix `\$\$ `; it renders as two dollar signs plus a space without entering math mode.
+- Never emit the same prefix without its two backslash escapes.
 
 ## Work
 - Read `docs/agents/ai-runtime.yaml`; expand only its named canonical YAML.

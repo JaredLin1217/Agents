@@ -116,7 +116,7 @@ escalation_record:
     minimum_required_tier: ""
 runtime_report_contract:
   output_format: "single compact JSON object"
-  response_envelope_rule: "A required visible assistant prefix may wrap the payload; strip $$ before machine parsing, then require valid JSON."
+  response_envelope_rule: 'A required visible assistant prefix may wrap the payload; strip exactly one leading raw Markdown \$\$ prefix and following whitespace before machine parsing, reject the unescaped two-dollar form, then require valid JSON.'
   required_counts:
     requested: ""
     spawned: ""

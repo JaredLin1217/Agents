@@ -1307,6 +1307,12 @@ if ($content.Contains($Unexpected)) {
 throw "Deployment self-test found unexpected content in: $Path"
 }
 }
+function Assert-SelfTestPrefixContract {
+param([string] $Path)
+Assert-SelfTestContains -Path $Path -Expected 'raw Markdown prefix `\$\$ `'
+$barePrefixRule = 'Start visible responses with `' + '$' + '$' + '`'
+Assert-SelfTestNotContains -Path $Path -Unexpected $barePrefixRule
+}
 function Assert-SelfTestLineCount {
 param(
 [string] $Path,
@@ -1431,7 +1437,9 @@ Assert-SelfTestBlockedDeployPath -RelativePath $blockedPath
 $rootTarget = Join-Path $selfTestRoot "root-docs"
 Invoke-ChildDeployment -CommandArgs @{ TargetPath = $rootTarget; Mode = "full_workflow"; CreateTarget = $true; Quiet = $true }
 Assert-SelfTestFile -Root $rootTarget -RelativePath "AGENTS.md"
+Assert-SelfTestPrefixContract -Path (Join-Path $rootTarget "AGENTS.md")
 Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents/ai-runtime.yaml"
+Assert-SelfTestContains -Path (Join-Path $rootTarget "docs/agents/dispatch.yaml") -Expected 'strip exactly one leading raw Markdown \$\$ prefix'
 Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents/workflows.yaml"
 Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents/workflow-artifacts.yaml"
 Assert-SelfTestFile -Root $rootTarget -RelativePath "docs/agents/context-compact.yaml"
@@ -1476,6 +1484,7 @@ Assert-SelfTestTextContains -Text $currentPlan -Expected "[ENV] preserve: .codex
 $templateProviderTarget = Join-Path $selfTestRoot "template-provider"
 Invoke-ChildDeployment -CommandArgs @{ TargetPath = $templateProviderTarget; Mode = "template_provider_mode"; CreateTarget = $true; Quiet = $true }
 Assert-SelfTestFile -Root $templateProviderTarget -RelativePath "AGENTS.md"
+Assert-SelfTestPrefixContract -Path (Join-Path $templateProviderTarget "AGENTS.md")
 Assert-SelfTestFile -Root $templateProviderTarget -RelativePath "docs/agents/deploy.yaml"
 Assert-SelfTestFile -Root $templateProviderTarget -RelativePath "docs/agents/workflow-artifacts.yaml"
 Assert-SelfTestFile -Root $templateProviderTarget -RelativePath "docs/agents/context-compact.yaml"
@@ -1502,6 +1511,8 @@ Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/agents/collabor
 Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/agents-workflow-deployment.md"
 Assert-SelfTestFile -Root $dotTarget -RelativePath "scripts/agents-cleanup.ps1"
 Invoke-ChildDeployment -CommandArgs @{ TargetPath = $dotTarget; Mode = "full_workflow"; Upgrade = $true; Quiet = $true }
+Assert-SelfTestPrefixContract -Path (Join-Path $dotTarget "AGENTS.md")
+Assert-SelfTestContains -Path (Join-Path $dotTarget ".agents/docs/agents/dispatch.yaml") -Expected 'strip exactly one leading raw Markdown \$\$ prefix'
 Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/project-memory.md"
 Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/memory/index.md"
 Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/project-structure.md"
