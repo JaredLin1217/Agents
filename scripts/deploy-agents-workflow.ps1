@@ -668,6 +668,7 @@ $rewritten = $rewritten.Replace("docs/templates/agents/", ".agents/docs/template
 $rewritten = $rewritten.Replace("docs/project-memory.md", ".agents/docs/project-memory.md")
 $rewritten = $rewritten.Replace("docs/memory/index.md", ".agents/docs/memory/index.md")
 $rewritten = $rewritten.Replace("docs/memory/entries/README.md", ".agents/docs/memory/entries/README.md")
+$rewritten = $rewritten.Replace("docs/project-structure.md", ".agents/docs/project-structure.md")
 foreach ($relativePath in @(
 "agent-assignment.template.md",
 "agent-event.template.md",
@@ -1538,6 +1539,7 @@ Assert-SelfTestPrefixContract -Path (Join-Path $dotTarget "AGENTS.md")
 Assert-SelfTestContains -Path (Join-Path $dotTarget ".agents/docs/agents/dispatch.yaml") -Expected 'strip exactly one leading raw Markdown \$\$ prefix'
 Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/project-memory.md"
 Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/memory/index.md"
+Assert-SelfTestMissing -Root $dotTarget -RelativePath ".agents/docs/project-structure.md"
 Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/runbooks/session-handoff.md"
 Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/agent-status.template.md"
 Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/agent-assignment.template.md"
@@ -1557,6 +1559,8 @@ Assert-SelfTestMissing -Root $dotTarget -RelativePath ".agents/docs/templates/ag
 Assert-SelfTestContains -Path (Join-Path $dotTarget "scripts/validate.ps1") -Expected 'Get-RepoPath ".agents/docs/agents/"'
 Assert-SelfTestContains -Path (Join-Path $dotTarget "scripts/validate-size-gates.ps1") -Expected 'Get-RepoPath ".agents/docs/agents/"'
 Assert-SelfTestContains -Path (Join-Path $dotTarget "scripts/validate-residue.ps1") -Expected '".agents/docs/agents/"'
+Assert-SelfTestContains -Path (Join-Path $dotTarget "scripts/validate-required-files.ps1") -Expected '".agents/docs/project-structure.md"'
+Assert-SelfTestContains -Path (Join-Path $dotTarget "scripts/validate-residue.ps1") -Expected '".agents/docs/project-structure.md"'
 $doubleDotDocsPrefix = ".agents/" + ".agents/docs/"
 Assert-SelfTestNotContains -Path (Join-Path $dotTarget "scripts/deploy-agents-workflow.ps1") -Unexpected $doubleDotDocsPrefix
 Assert-SelfTestNotContains -Path (Join-Path $dotTarget "scripts/validate-changes.ps1") -Unexpected $doubleDotDocsPrefix
