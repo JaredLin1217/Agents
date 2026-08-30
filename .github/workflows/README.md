@@ -5,7 +5,8 @@ Workflows:
   to `main` or `master`.
 - `public-updates.yml` regenerates `docs/github-updates.md` after pushes to
   `main` or `master`, validates the generated document, and commits the update
-  back to the pushed branch when the document changed.
+  back to the pushed branch when the document changed. Evidence-only release
+  updates are ignored so the generated commit cannot invalidate final evidence.
 Planned workflows:
 - `release.yml` for deploy bundle and release checks.
 CI should run only checks that already pass locally. Do not add placeholder
