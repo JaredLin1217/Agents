@@ -28,6 +28,7 @@ For upgrades, use the same allowlisted operation and keep the target-owned state
 .\scripts\deploy-agents-workflow.ps1 -TargetPath "D:\target\repo" -Mode core_bootstrap -Upgrade -DryRun
 ```
 Existing deployed files with content changes require `-Upgrade` after dry-run review.
+Project memory and memory index files are seed-once target state: create them when absent, preserve them on every upgrade. `docs/project-structure.md` is target-owned and is never copied from the provider.
 The script refuses to write back into the provider/source repo. For provider self-maintenance, use patches plus validation; use deployment dry-run only as a file-set compatibility check.
 ## Delegated Worker Use
 When the controller receives a request like deploy this project to a target repo, assign at most one `deployment_worker` for the target path. The brief must include the exact target path, selected mode, dry-run/write scope, and the rule that writes stay inside `deployed_file_set`.

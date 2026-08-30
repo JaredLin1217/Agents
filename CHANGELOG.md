@@ -4,6 +4,8 @@ All notable changes to this repository are documented here.
 ## 2.9.1 - 2026-08-17
 - Escaped the required visible Markdown response prefix and aligned dispatch
   parsing, schema validation, and deployment regression coverage.
+- Preserved target-owned project memory, memory indexes, and project structure
+  during workflow upgrades.
 - Added standard-parser TOML evidence for declared local configuration, with
   fixtures, impact coverage, and fail-closed full-validation fallback.
 - Kept `.codex/**` out of artifacts while letting explicit local configuration

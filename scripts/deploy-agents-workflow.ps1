@@ -20,6 +20,7 @@ $DeployedFiles = New-Object System.Collections.Generic.List[string]
 $PlannedWrites = New-Object System.Collections.Generic.List[string]
 $ProtectedExisting = New-Object System.Collections.Generic.List[string]
 $UnchangedExisting = New-Object System.Collections.Generic.List[string]
+$PreservedExisting = New-Object System.Collections.Generic.List[string]
 $TargetHistoricalAgents = New-Object System.Collections.Generic.List[string]
 $ProtectedDirty = New-Object System.Collections.Generic.List[string]
 $TargetLocalEnvironment = New-Object System.Collections.Generic.List[string]
@@ -641,9 +642,6 @@ return ".agents/docs/memory/index.md"
 if ($path -eq "docs/memory/entries/README.md") {
 return ".agents/docs/memory/entries/README.md"
 }
-if ($path -eq "docs/project-structure.md") {
-return ".agents/docs/project-structure.md"
-}
 if ($path -like "docs/*.md") {
 return $path -replace "^docs/", ".agents/docs/"
 }
@@ -670,7 +668,6 @@ $rewritten = $rewritten.Replace("docs/templates/agents/", ".agents/docs/template
 $rewritten = $rewritten.Replace("docs/project-memory.md", ".agents/docs/project-memory.md")
 $rewritten = $rewritten.Replace("docs/memory/index.md", ".agents/docs/memory/index.md")
 $rewritten = $rewritten.Replace("docs/memory/entries/README.md", ".agents/docs/memory/entries/README.md")
-$rewritten = $rewritten.Replace("docs/project-structure.md", ".agents/docs/project-structure.md")
 foreach ($relativePath in @(
 "agent-assignment.template.md",
 "agent-event.template.md",
@@ -904,6 +901,10 @@ throw "Deploy source is missing: $($Entry.From)"
 $targetRelative = Get-TargetRelativePath -ProviderPath $Entry.To -Layout $Layout
 $targetFull = Join-TargetPath -Root $Root -RelativePath $targetRelative
 $DeployedFiles.Add($targetRelative) | Out-Null
+if ((Test-TargetOwnedSeedPath -RelativePath $targetRelative) -and (Test-Path -LiteralPath $targetFull -PathType Leaf)) {
+Add-UniqueListItem -List $PreservedExisting -Value $targetRelative
+return
+}
 $content = Get-Content -LiteralPath $sourcePath -Raw
 $content = Rewrite-ContentForLayout -Content $content -Layout $Layout
 $state = Get-DeployWriteState -Path $targetFull -Content $content
@@ -928,6 +929,16 @@ if (-not (Test-Path -LiteralPath $targetDir -PathType Container)) {
 New-Item -ItemType Directory -Path $targetDir | Out-Null
 }
 Set-Content -LiteralPath $targetFull -Value $content -NoNewline -Encoding utf8
+}
+function Test-TargetOwnedSeedPath {
+param([string] $RelativePath)
+$normalized = Normalize-RepoPath $RelativePath
+return @(
+"docs/project-memory.md",
+".agents/docs/project-memory.md",
+"docs/memory/index.md",
+".agents/docs/memory/index.md"
+) -contains $normalized
 }
 function Write-DeploymentReport {
 param(
@@ -1018,6 +1029,18 @@ $reportLines += @(
 )
 if ($UnchangedExisting.Count -gt 0) {
 foreach ($file in ($UnchangedExisting | Sort-Object -Unique)) {
+$reportLines += ("- {0}" -f $file)
+}
+}
+else {
+$reportLines += "- none observed"
+}
+$reportLines += @(
+"",
+"Preserved target-owned starter files:"
+)
+if ($PreservedExisting.Count -gt 0) {
+foreach ($file in ($PreservedExisting | Sort-Object -Unique)) {
 $reportLines += ("- {0}" -f $file)
 }
 }
@@ -1515,7 +1538,6 @@ Assert-SelfTestPrefixContract -Path (Join-Path $dotTarget "AGENTS.md")
 Assert-SelfTestContains -Path (Join-Path $dotTarget ".agents/docs/agents/dispatch.yaml") -Expected 'strip exactly one leading raw Markdown \$\$ prefix'
 Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/project-memory.md"
 Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/memory/index.md"
-Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/project-structure.md"
 Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/runbooks/session-handoff.md"
 Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/agent-status.template.md"
 Assert-SelfTestFile -Root $dotTarget -RelativePath ".agents/docs/agent-assignment.template.md"
@@ -1571,6 +1593,20 @@ throw "Deployment self-test expected existing target file to require -Upgrade."
 Assert-SelfTestContent -Path (Join-Path $protectedTarget "AGENTS.md") -Expected "target-owned agents"
 Invoke-ChildDeployment -CommandArgs @{ TargetPath = $protectedTarget; Mode = "core_bootstrap"; Upgrade = $true; Quiet = $true }
 Assert-SelfTestFile -Root $protectedTarget -RelativePath "docs/agents/workflows.yaml"
+$preservedSeedTarget = Join-Path $selfTestRoot "preserved-target-seeds"
+Invoke-ChildDeployment -CommandArgs @{ TargetPath = $preservedSeedTarget; Mode = "full_workflow"; CreateTarget = $true; Quiet = $true }
+Set-Content -LiteralPath (Join-Path $preservedSeedTarget "docs/project-memory.md") -Value "target project memory" -NoNewline -Encoding utf8
+Set-Content -LiteralPath (Join-Path $preservedSeedTarget "docs/memory/index.md") -Value "target memory index" -NoNewline -Encoding utf8
+Set-Content -LiteralPath (Join-Path $preservedSeedTarget "docs/project-structure.md") -Value "target project structure" -NoNewline -Encoding utf8
+Invoke-ChildDeployment -CommandArgs @{ TargetPath = $preservedSeedTarget; Mode = "full_workflow"; Upgrade = $true; Quiet = $true }
+Assert-SelfTestContent -Path (Join-Path $preservedSeedTarget "docs/project-memory.md") -Expected "target project memory"
+Assert-SelfTestContent -Path (Join-Path $preservedSeedTarget "docs/memory/index.md") -Expected "target memory index"
+Assert-SelfTestContent -Path (Join-Path $preservedSeedTarget "docs/project-structure.md") -Expected "target project structure"
+Assert-SelfTestContains -Path (Join-Path $preservedSeedTarget "docs/agents-workflow-deployment.md") -Expected "Preserved target-owned starter files:"
+$preservedSeedPlan = Invoke-ChildDeploymentOutput -CommandArgs @{ TargetPath = $preservedSeedTarget; Mode = "full_workflow"; DryRun = $true; Upgrade = $true }
+Assert-SelfTestTextContains -Text $preservedSeedPlan -Expected "[PRESERVED] docs/project-memory.md"
+Assert-SelfTestTextContains -Text $preservedSeedPlan -Expected "[PRESERVED] docs/memory/index.md"
+Assert-SelfTestTextContains -Text $preservedSeedPlan -Expected "[HISTORICAL] docs/project-structure.md"
 $dryRunTarget = Join-Path $selfTestRoot "dry-run"
 New-Item -ItemType Directory -Path $dryRunTarget | Out-Null
 Invoke-ChildDeployment -CommandArgs @{ TargetPath = $dryRunTarget; Mode = "core_bootstrap"; DryRun = $true; Quiet = $true }
@@ -1847,6 +1883,12 @@ if ($UnchangedExisting.Count -gt 0) {
 Write-Step "INFO" "Existing target files already current:"
 foreach ($file in ($UnchangedExisting | Sort-Object -Unique)) {
 Write-Step "CURRENT" $file
+}
+}
+if ($PreservedExisting.Count -gt 0) {
+Write-Step "INFO" "Preserved target-owned starter files:"
+foreach ($file in ($PreservedExisting | Sort-Object -Unique)) {
+Write-Step "PRESERVED" $file
 }
 }
 if ($ProtectedDirty.Count -gt 0) {

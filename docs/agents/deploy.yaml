@@ -31,7 +31,6 @@ target_layout:
       "docs/project-memory.md": "docs/project-memory.md"
       "docs/memory/index.md": "docs/memory/index.md"
       "docs/memory/entries/README.md": "docs/memory/entries/README.md"
-      "docs/project-structure.md": "docs/project-structure.md"
       ".agents/skills/": ".agents/skills/"
     dot_agents_docs:
       "AGENTS.md": "AGENTS.md"
@@ -43,7 +42,6 @@ target_layout:
       "docs/project-memory.md": ".agents/docs/project-memory.md"
       "docs/memory/index.md": ".agents/docs/memory/index.md"
       "docs/memory/entries/README.md": ".agents/docs/memory/entries/README.md"
-      "docs/project-structure.md": ".agents/docs/project-structure.md"
       ".agents/skills/": ".agents/skills/"
   ambiguous: "If both exist, follow AGENTS.md; report other as target-owned historical state."
 dirty_target:
@@ -72,6 +70,7 @@ upgrade:
   no_permission_repair: "No OS permission, ACL, or .git metadata repair."
   same_repo_guard: "Deployment must not write into the provider/source repo."
   target_creation: "Missing target needs explicit non-dry run target-creation switch."
+  target_seed_rule: "Create project memory and memory index starters only when absent; preserve existing target-owned content during upgrades."
 delegated_deployment:
   trigger: "Deploy-to-path request."
   worker_role: "deployment_worker"
@@ -176,8 +175,6 @@ deployable_by_mode:
       to: "docs/runbooks/session-handoff.md"
     - from: "docs/runbooks/skill-authoring.md"
       to: "docs/runbooks/skill-authoring.md"
-    - from: "docs/project-structure.md"
-      to: "docs/project-structure.md"
     schema_bundle: "Copy schemas/README.md + schemas/*.schema.json to schemas/."
     script_bundle: "Copy scripts/README.md + scripts/*.ps1 to scripts/."
   template_provider_additions:
@@ -239,6 +236,7 @@ steps:
   - "Select LayoutProfile auto/root-layout/dot-agents-layout; reject mixed routes."
   - "Choose mode; default core_bootstrap."
   - "Upgrade: dry-run first, preserve target-owned state, update only deployed_file_set."
+  - "Create target-owned memory starters only when absent; never replace existing rows during upgrade."
   - "Build deployed_file_set from mode/mapping."
   - "Rewrite refs for selected layout."
   - "Append/adapt gitignore.fragment; do not replace .gitignore."
@@ -269,6 +267,7 @@ hard_fail_gates:
   - "AGENTS.md routes to both docs/agents and .agents/docs/agents."
   - "Cleanliness claim uses whole target, not deployed_file_set."
   - "Post-deploy snapshot has unexpected business file changes."
+  - "Existing target-owned project memory or memory index content was overwritten."
   - "Cleanup script, workflow cleanup rule, or verify cleanup gate missing."
   - "Runtime closeout claims full deletion without proof."
 validation_levels:
