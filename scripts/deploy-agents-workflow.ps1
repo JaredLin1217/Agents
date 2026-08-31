@@ -934,12 +934,18 @@ Set-Content -LiteralPath $targetFull -Value $content -NoNewline -Encoding utf8
 function Test-TargetOwnedSeedPath {
 param([string] $RelativePath)
 $normalized = Normalize-RepoPath $RelativePath
-return @(
-"docs/project-memory.md",
-".agents/docs/project-memory.md",
-"docs/memory/index.md",
-".agents/docs/memory/index.md"
-) -contains $normalized
+$segments = @($normalized -split "/")
+$docsOffset = if ($segments.Count -ge 2 -and $segments[0] -eq "docs") {
+0
+}
+elseif ($segments.Count -ge 3 -and $segments[0] -eq ".agents" -and $segments[1] -eq "docs") {
+1
+}
+else {
+return $false
+}
+return ($segments.Count -eq ($docsOffset + 2) -and $segments[$docsOffset + 1] -eq "project-memory.md") -or
+($segments.Count -eq ($docsOffset + 3) -and $segments[$docsOffset + 1] -eq "memory" -and $segments[$docsOffset + 2] -eq "index.md")
 }
 function Write-DeploymentReport {
 param(
@@ -1434,6 +1440,16 @@ New-Item -ItemType Directory -Path $projectRoot | Out-Null
 }
 Assert-InsideRoot -Path $selfTestRoot -Root $projectRoot -Label "Self-test root"
 Reset-Directory -Path $selfTestRoot -AllowedRoot $projectRoot
+foreach ($seedPath in @("docs/project-memory.md", ".agents/docs/project-memory.md", "docs/memory/index.md", ".agents/docs/memory/index.md")) {
+if (-not (Test-TargetOwnedSeedPath -RelativePath $seedPath)) {
+throw "Deployment self-test expected target-owned seed recognition: $seedPath"
+}
+}
+foreach ($nonSeedPath in @("docs/project-structure.md", ".agents/docs/project-structure.md", "docs/memory/entries/README.md")) {
+if (Test-TargetOwnedSeedPath -RelativePath $nonSeedPath) {
+throw "Deployment self-test rejected non-seed recognition: $nonSeedPath"
+}
+}
 foreach ($blockedPath in @(
 ".git/HEAD",
 ".codex/config.toml",
@@ -1561,6 +1577,7 @@ Assert-SelfTestContains -Path (Join-Path $dotTarget "scripts/validate-size-gates
 Assert-SelfTestContains -Path (Join-Path $dotTarget "scripts/validate-residue.ps1") -Expected '".agents/docs/agents/"'
 Assert-SelfTestContains -Path (Join-Path $dotTarget "scripts/validate-required-files.ps1") -Expected '".agents/docs/project-structure.md"'
 Assert-SelfTestContains -Path (Join-Path $dotTarget "scripts/validate-residue.ps1") -Expected '".agents/docs/project-structure.md"'
+Assert-SelfTestContains -Path (Join-Path $dotTarget "scripts/deploy-agents-workflow.ps1") -Expected '$segments = @($normalized -split "/")'
 $doubleDotDocsPrefix = ".agents/" + ".agents/docs/"
 Assert-SelfTestNotContains -Path (Join-Path $dotTarget "scripts/deploy-agents-workflow.ps1") -Unexpected $doubleDotDocsPrefix
 Assert-SelfTestNotContains -Path (Join-Path $dotTarget "scripts/validate-changes.ps1") -Unexpected $doubleDotDocsPrefix
