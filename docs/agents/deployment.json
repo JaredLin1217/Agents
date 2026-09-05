@@ -1,0 +1,85 @@
+{
+  "schema_version": "agents-deployment/v3",
+  "files": [
+    {
+      "source": "AGENTS.md",
+      "root-layout": "AGENTS.md",
+      "dot-agents-layout": "AGENTS.md"
+    },
+    {
+      "source": ".agents/skills/project-memory/SKILL.md",
+      "root-layout": ".agents/skills/project-memory/SKILL.md",
+      "dot-agents-layout": ".agents/skills/project-memory/SKILL.md"
+    },
+    {
+      "source": ".agents/skills/project-checkpoint/SKILL.md",
+      "root-layout": ".agents/skills/project-checkpoint/SKILL.md",
+      "dot-agents-layout": ".agents/skills/project-checkpoint/SKILL.md"
+    },
+    {
+      "source": "scripts/agent-core.ps1",
+      "root-layout": "scripts/agent-core.ps1",
+      "dot-agents-layout": ".agents/scripts/agent-core.ps1"
+    },
+    {
+      "source": "scripts/agent-checks.ps1",
+      "root-layout": "scripts/agent-checks.ps1",
+      "dot-agents-layout": ".agents/scripts/agent-checks.ps1"
+    },
+    {
+      "source": "scripts/validate.ps1",
+      "root-layout": "scripts/validate.ps1",
+      "dot-agents-layout": ".agents/scripts/validate.ps1"
+    },
+    {
+      "source": "scripts/resolve-agent-context.ps1",
+      "root-layout": "scripts/resolve-agent-context.ps1",
+      "dot-agents-layout": ".agents/scripts/resolve-agent-context.ps1"
+    },
+    {
+      "source": "scripts/project-memory.ps1",
+      "root-layout": "scripts/project-memory.ps1",
+      "dot-agents-layout": ".agents/scripts/project-memory.ps1"
+    },
+    {
+      "source": "scripts/task-state.ps1",
+      "root-layout": "scripts/task-state.ps1",
+      "dot-agents-layout": ".agents/scripts/task-state.ps1"
+    },
+    {
+      "source": "schemas/knowledge.schema.json",
+      "root-layout": "schemas/knowledge.schema.json",
+      "dot-agents-layout": ".agents/schemas/knowledge.schema.json"
+    },
+    {
+      "source": "schemas/task-state.schema.json",
+      "root-layout": "schemas/task-state.schema.json",
+      "dot-agents-layout": ".agents/schemas/task-state.schema.json"
+    },
+    {
+      "source": "schemas/managed.schema.json",
+      "root-layout": "schemas/managed.schema.json",
+      "dot-agents-layout": ".agents/schemas/managed.schema.json"
+    },
+    {
+      "source": "schemas/sources.schema.json",
+      "root-layout": "schemas/sources.schema.json",
+      "dot-agents-layout": ".agents/schemas/sources.schema.json"
+    },
+    {
+      "source": "docs/agents/sources.json",
+      "root-layout": "docs/agents/sources.json",
+      "dot-agents-layout": ".agents/docs/agents/sources.json"
+    },
+    {
+      "source": "docs/runbooks/agents-operator-guide.md",
+      "root-layout": "docs/runbooks/agents-operator-guide.md",
+      "dot-agents-layout": ".agents/docs/runbooks/agents-operator-guide.md"
+    },
+    {
+      "source": ".agents/deploy-ignore",
+      "root-layout": ".agents/.gitignore",
+      "dot-agents-layout": ".agents/.gitignore"
+    }
+  ]
+}

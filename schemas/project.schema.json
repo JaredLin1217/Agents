@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "version", "knowledge_directory", "runtime_directory", "consumer_checks", "release_evidence"],
+  "properties": {
+    "schema_version": {"const": "agents-project/v3"},
+    "version": {"const": "3.0.0"},
+    "knowledge_directory": {"const": "docs/memory/entries"},
+    "runtime_directory": {"const": ".agents/runtime"},
+    "consumer_checks": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["path", "arguments"], "properties": {"path": {"type": "string", "pattern": "\\.ps1$"}, "arguments": {"type": "array", "items": {"type": "string"}}}}},
+    "release_evidence": {"const": "docs/evidence/releases/v3.0.0-runtime-evidence.json"}
+  }
+}

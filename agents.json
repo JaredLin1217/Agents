@@ -1,0 +1,8 @@
+{
+  "schema_version": "agents-project/v3",
+  "version": "3.0.0",
+  "knowledge_directory": "docs/memory/entries",
+  "runtime_directory": ".agents/runtime",
+  "consumer_checks": [],
+  "release_evidence": "docs/evidence/releases/v3.0.0-runtime-evidence.json"
+}
