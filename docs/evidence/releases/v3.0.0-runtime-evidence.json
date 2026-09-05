@@ -1,18 +1,18 @@
 {
   "schema_version": "agents-runtime-evidence/v5",
   "workflow_version": "3.0.0",
-  "source_commit": "3c3d660e59a47045ac28b05e093acc910820fe8e",
-  "validated_content_digest": "822b1fa0d7498b9e4b06d6092ffad22b1e5079cce65d8bbac330e1996cf30efb",
+  "source_commit": "c93f6f44ce62a188b7f3858dcf959a49a1ce63cb",
+  "validated_content_digest": "383d552265e2e9806eaec2293dbc43c07f7420917ad4939d671850d3f3fdd539",
   "excluded_paths": [
     "docs/evidence/releases/v3.0.0-runtime-evidence.json"
   ],
-  "run_started_utc": "2026-09-05T15:05:03.3092712Z",
-  "run_finished_utc": "2026-09-05T15:05:51.1319170Z",
+  "run_started_utc": "2026-09-05T15:41:49.1077216Z",
+  "run_finished_utc": "2026-09-05T15:42:31.4891136Z",
   "working_tree_status_at_capture": "clean",
-  "duration_ms": 47915,
+  "duration_ms": 42460,
   "host": {
-    "powershell": "7.6.5",
-    "git": "git version 2.51.0.windows.2"
+    "git": "git version 2.51.0.windows.2",
+    "powershell": "7.6.5"
   },
   "commands": [
     {
@@ -20,7 +20,7 @@
       "command": "Test-AgentSyntax",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 126,
+      "duration_ms": 129,
       "retry_count": 0,
       "details": []
     },
@@ -29,7 +29,7 @@
       "command": "Test-AgentSchemas",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 274,
+      "duration_ms": 268,
       "retry_count": 0,
       "details": []
     },
@@ -38,7 +38,7 @@
       "command": "Test-AgentOwnership",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 202,
+      "duration_ms": 207,
       "retry_count": 0,
       "details": []
     },
@@ -47,7 +47,7 @@
       "command": "Test-AgentKnowledge",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 194,
+      "duration_ms": 206,
       "retry_count": 0,
       "details": []
     },
@@ -56,7 +56,7 @@
       "command": "Test-AgentSources",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 45,
+      "duration_ms": 37,
       "retry_count": 0,
       "details": []
     },
@@ -65,7 +65,7 @@
       "command": "Test-AgentSizes",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 397,
+      "duration_ms": 402,
       "retry_count": 0,
       "details": [
         "production_bytes=40324; deployable_bytes=43277"
@@ -76,10 +76,10 @@
       "command": "pwsh -NoProfile -File tests/test-workflow.ps1",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 44772,
+      "duration_ms": 39796,
       "retry_count": 0,
       "details": [
-        "PASS: 170 offline assertions"
+        "PASS: 184 offline assertions"
       ]
     },
     {
@@ -87,7 +87,7 @@
       "command": "Test-AgentEvidence",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 557,
+      "duration_ms": 297,
       "retry_count": 0,
       "details": [
         "Evidence is stale; recapture after the next source checkpoint."
@@ -98,10 +98,10 @@
       "command": "export-release-package.ps1",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 447,
+      "duration_ms": 235,
       "retry_count": 0,
       "details": [
-        "{\"path\":\".agents/runtime/packages/895147f181e143ccbf72b6b641a4ba5f\",\"layout\":\"root-layout\",\"files\":16}"
+        "{\"files\":16,\"layout\":\"root-layout\",\"path\":\".agents/runtime/packages/ede7ec2f5db848278d588f9089fdfd22\"}"
       ]
     },
     {
@@ -109,7 +109,7 @@
       "command": "git diff --check HEAD -- <selected paths>",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 73,
+      "duration_ms": 65,
       "retry_count": 0,
       "details": []
     }
@@ -121,7 +121,7 @@
     "No hard isolation claim. Behavioral boundaries and file ownership checks only."
   ],
   "token_usage": {
-    "reason": "Offline checks do not invoke a model. Real model usage is reported separately by the A/B evaluator.",
-    "status": "unavailable"
+    "status": "unavailable",
+    "reason": "Offline checks do not invoke a model. Real model usage is reported separately by the A/B evaluator."
   }
 }
