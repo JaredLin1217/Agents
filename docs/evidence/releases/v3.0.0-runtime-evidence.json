@@ -1,18 +1,18 @@
 {
   "schema_version": "agents-runtime-evidence/v5",
   "workflow_version": "3.0.0",
-  "source_commit": "c93f6f44ce62a188b7f3858dcf959a49a1ce63cb",
-  "validated_content_digest": "383d552265e2e9806eaec2293dbc43c07f7420917ad4939d671850d3f3fdd539",
+  "source_commit": "472fb2d8d8e0c06212f9bc64d81601ef0a493394",
+  "validated_content_digest": "64a2e54e048fe2b86a2c3533bf73e072a80b0cbd1fe1b484ff17540439aea2b1",
   "excluded_paths": [
     "docs/evidence/releases/v3.0.0-runtime-evidence.json"
   ],
-  "run_started_utc": "2026-09-05T15:41:49.1077216Z",
-  "run_finished_utc": "2026-09-05T15:42:31.4891136Z",
+  "run_started_utc": "2026-09-05T16:05:51.3926918Z",
+  "run_finished_utc": "2026-09-05T16:06:12.6297664Z",
   "working_tree_status_at_capture": "clean",
-  "duration_ms": 42460,
+  "duration_ms": 21273,
   "host": {
-    "git": "git version 2.51.0.windows.2",
-    "powershell": "7.6.5"
+    "powershell": "7.6.5",
+    "git": "git version 2.51.0.windows.2"
   },
   "commands": [
     {
@@ -20,7 +20,7 @@
       "command": "Test-AgentSyntax",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 129,
+      "duration_ms": 47,
       "retry_count": 0,
       "details": []
     },
@@ -29,7 +29,7 @@
       "command": "Test-AgentSchemas",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 268,
+      "duration_ms": 106,
       "retry_count": 0,
       "details": []
     },
@@ -38,7 +38,7 @@
       "command": "Test-AgentOwnership",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 207,
+      "duration_ms": 80,
       "retry_count": 0,
       "details": []
     },
@@ -47,7 +47,7 @@
       "command": "Test-AgentKnowledge",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 206,
+      "duration_ms": 74,
       "retry_count": 0,
       "details": []
     },
@@ -56,7 +56,7 @@
       "command": "Test-AgentSources",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 37,
+      "duration_ms": 13,
       "retry_count": 0,
       "details": []
     },
@@ -65,7 +65,7 @@
       "command": "Test-AgentSizes",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 402,
+      "duration_ms": 151,
       "retry_count": 0,
       "details": [
         "production_bytes=40324; deployable_bytes=43277"
@@ -76,10 +76,10 @@
       "command": "pwsh -NoProfile -File tests/test-workflow.ps1",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 39796,
+      "duration_ms": 20036,
       "retry_count": 0,
       "details": [
-        "PASS: 184 offline assertions"
+        "PASS: 200 offline assertions"
       ]
     },
     {
@@ -87,7 +87,7 @@
       "command": "Test-AgentEvidence",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 297,
+      "duration_ms": 233,
       "retry_count": 0,
       "details": [
         "Evidence is stale; recapture after the next source checkpoint."
@@ -98,10 +98,10 @@
       "command": "export-release-package.ps1",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 235,
+      "duration_ms": 187,
       "retry_count": 0,
       "details": [
-        "{\"files\":16,\"layout\":\"root-layout\",\"path\":\".agents/runtime/packages/ede7ec2f5db848278d588f9089fdfd22\"}"
+        "{\"layout\":\"root-layout\",\"files\":16,\"path\":\".agents/runtime/packages/2c16f97b008044e59d1cc11fbcb344f8\"}"
       ]
     },
     {
@@ -109,7 +109,7 @@
       "command": "git diff --check HEAD -- <selected paths>",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 65,
+      "duration_ms": 29,
       "retry_count": 0,
       "details": []
     }
