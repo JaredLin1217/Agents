@@ -41,12 +41,13 @@ answers/memory are required. See `tests/evaluation/README.md` and the generated
 evaluation report for actual completion, safety and efficiency gates.
 
 Current release status is a candidate, not model-accepted. See
-`docs/evidence/v3-evaluation-status.json` for all four real pilot samples and the
-separate environment preflight. The Windows backend selection now permits ordinary
-file operations, but protected runtime writes were denied; local commit was not
-attempted after that denial. Engineering checkpoint success alone does not authorize
-a v3 release tag or claim the planned token savings. The finalized candidate still
-needs the complete frozen 72-task run in an authorized working CLI environment.
+`docs/evidence/v3-evaluation-status.json` for preserved pilots, stopped runs and
+subsequent diagnostics. The initial runtime-write denial is historical: the scoped
+disposable profile now passes file, runtime and local-commit probes while rejecting
+local-settings and outside writes. Both frozen full validators also qualify before
+model calls. These checks are not model task acceptance or an isolation guarantee.
+Engineering checkpoint success alone does not authorize a v3 release tag or claim
+the planned token savings. A complete frozen 72-task run is still required.
 
 The candidate fixture without task prompts and grading entry points also passed
 its offline checkpoint, complete installation checks and restoration in a separate

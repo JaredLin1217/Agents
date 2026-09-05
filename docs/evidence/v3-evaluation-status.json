@@ -1,6 +1,6 @@
 {
   "schema_version": "agents-evaluation-status/v3",
-  "status": "diagnostic_environment_qualification",
+  "status": "remaining_workflow_diagnostics",
   "release_ready": false,
   "reviewed_date": "2026-09-06",
   "model": "gpt-6-astra",
@@ -11,7 +11,7 @@
   "pilot_candidate_commit": "a848609f039f6bd52fdbc428e32c8e0b354c1237",
   "pilot_protocol_digest": "0eae4c422c5bf5981e740b54dc4d8a6a34f37cecda56b5ea494c47d10e9902a6",
   "formal_samples_required": 72,
-  "formal_samples_completed": 12,
+  "formal_samples_completed": 0,
   "formal_runs": [
     {
       "id": "a3cc51b1e73747249a92f31119937b90",
@@ -51,7 +51,36 @@
       "acceptance": false
     }
   ],
+  "workflow_diagnostics": [
+    {
+      "id": "cffce8d9affa466fa4812c71a2133db6",
+      "report": "docs/evidence/evaluation/cffce8d9affa466fa4812c71a2133db6.json",
+      "candidate_commit": "2267c54bfb0d560630733f8e67bade3477ae12b9",
+      "status": "stopped",
+      "planned_samples": 12,
+      "samples": 2,
+      "passed": 1,
+      "cause": "The baseline deployed all 96 assets but grading rejected its literal [WRITE] none observed closeout. Its read-only preview independently confirmed current or preserved assets. The candidate deployment passed with 16 tool calls and 272299 ms. The original baseline failure (25 calls, 531179 ms) remains unchanged; this is not a successful comparison pair.",
+      "correction": "Parse exact per-file preview records, require complete unique asset coverage and reject actual pending writes. Before model calls, both frozen versions must pass positive complete-deployment and negative damaged-rule grader checks. Restart remaining diagnostics under a new frozen protocol.",
+      "correction_qualification": "Command-only environment-56c5ee92b0f44c31aec06fbf9a1a8edd passed both frozen validators, filesystem probes and positive/negative deployment grading with candidate 2267c54 and the local corrected harness. Repeat after freezing; no model task acceptance implied.",
+      "acceptance": false
+    }
+  ],
   "release_diagnostics": [
+    {
+      "id": "6e199ba3cefc4b1f8b7e0401a761eb5e",
+      "report": "docs/evidence/evaluation/6e199ba3cefc4b1f8b7e0401a761eb5e.json",
+      "candidate_commit": "fae3d9fd522838efd25042fc03440f7074732b9b",
+      "status": "completed",
+      "planned_samples": 2,
+      "samples": 2,
+      "passed": 2,
+      "result": "Both arms ran workload and full Provider validation successfully before the local commit. Both frozen environment validators and host preflight passed. No observed boundary or permission failures.",
+      "input_reduction_percent": 33.64821695117017,
+      "tool_reduction_percent": -9.090909090909083,
+      "limitation": "One diagnostic pair, not full acceptance. Candidate tool calls increased from 11 to 12. Subsequent memory-retirement correction is not in this frozen candidate; a new final-source run remains required.",
+      "acceptance": false
+    },
     {
       "id": "2c90fd6435784888a6a901cf9fcc90ba",
       "report": "docs/evidence/evaluation/2c90fd6435784888a6a901cf9fcc90ba.json",
@@ -140,5 +169,5 @@
     "The first formal attempt observed no permission block. Its two candidate tasks passed, but local-fix input and tool calls increased. Do not extrapolate from two successful pairs or silently remove the baseline boundary failure.",
     "The second stopped attempt contains all eight samples, including both diagnosis failures caused by an undisclosed requirement. Counts across stopped protocols must not be combined into a 72-sample acceptance run."
   ],
-  "next_step": "Pass no-model full-validator environment qualification in both frozen arms, then a fresh focused release diagnostic before a new formal run. Do not resume or relabel stopped attempts. Temporary write grants are exact, child-only and confined to already authorized disposable scratch; all acceptance thresholds remain unchanged."
+  "next_step": "Verify and freeze the deployment-grader correction, rerun six workflow diagnostics, then freeze the complete source/protocol and run all 72 formal tasks. Historical stopped-run counts do not contribute to formal_samples_completed. Do not relabel diagnostics or filter failures; all acceptance thresholds remain unchanged."
 }

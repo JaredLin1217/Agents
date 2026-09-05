@@ -83,6 +83,19 @@ function Test-EvaluationReleaseChecks([string]$Root,$Calls) {
     if($commit -lt 0 -or $workload -ge $commit -or $checkpoint -ge $commit) { $gaps+='Required verification was not observed before the local commit in separate completed commands.' }
     return @{passed=($gaps.Count -eq 0);gaps=$gaps;workload_call=$workload;checkpoint_call=$checkpoint;commit_call=$commit}
 }
+function Test-EvaluationBaselinePreview([string]$Output) {
+    $expected=@(); $current=@()
+    foreach($line in ($Output -split '\r?\n')) {
+        if($line -match '^\[FILE\] (.+)$') { $expected+=$Matches[1] }
+        elseif($line -match '^\[(?:CURRENT|PRESERVED)\] (.+)$') { $current+=$Matches[1] }
+        elseif($line -match '^\[EXISTING\]' -or ($line -match '^\[WRITE\]' -and $line -ne '[WRITE] none observed')) { return $false }
+    }
+    if(-not $expected.Count -or -not $current.Count -or
+        @($expected|Sort-Object -Unique).Count -ne $expected.Count -or
+        @($current|Sort-Object -Unique).Count -ne $current.Count) { return $false }
+    return (@(Compare-Object $expected $current).Count -eq 0 -and
+        $Output -match '(?m)^\[PASS\] Dry-run deployment plan completed without writing target files\.\r?$')
+}
 function Test-EvaluationDeployment([string]$Root,[string]$Target) {
     if(-not(Test-Path -LiteralPath (Join-Path $Target 'AGENTS.md')) -or
         (Get-Content -Raw -LiteralPath (Join-Path $Target 'README.md')) -ne 'Target-owned product documentation.') { return $false }
@@ -100,5 +113,5 @@ function Test-EvaluationDeployment([string]$Root,[string]$Target) {
     }
     # The frozen baseline's own preview detects missing or outdated installed assets.
     $out=@(& pwsh -NoProfile -File (Join-Path $Root 'scripts/deploy-agents-workflow.ps1') -TargetPath $Target -Mode full_workflow -LayoutProfile root-layout -DryRun 2>&1)
-    return ($LASTEXITCODE -eq 0 -and ($out -join "`n") -match '\[CURRENT\]' -and ($out -join "`n") -notmatch '\[WRITE\]|\[EXISTING\]')
+    return ($LASTEXITCODE -eq 0 -and (Test-EvaluationBaselinePreview ($out -join "`n")))
 }

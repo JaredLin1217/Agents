@@ -253,6 +253,15 @@ try {
     $null=Restore-Deployment $separate $deployed.transaction_id
     Assert (Test-EvaluationRollbackState $true $original (Get-EvaluationSnapshot $separate)) 'Verified rollback rejected'
     Assert (-not(Test-EvaluationRollbackState $false $original (Get-EvaluationSnapshot $separate))) 'No-op accepted as rollback'
+    $baselinePreview="[FILE] AGENTS.md`n[FILE] docs/memory/index.md`n[CURRENT] AGENTS.md`n[PRESERVED] docs/memory/index.md`n[WRITE] none observed`n[PASS] Dry-run deployment plan completed without writing target files."
+    Assert (Test-EvaluationBaselinePreview $baselinePreview) 'Baseline no-write closeout rejected complete deployment'
+    Assert (-not(Test-EvaluationBaselinePreview $baselinePreview.Replace('[CURRENT] AGENTS.md','[WRITE] AGENTS.md'))) 'Pending baseline write accepted'
+    Assert (-not(Test-EvaluationBaselinePreview $baselinePreview.Replace('[CURRENT] AGENTS.md','[EXISTING] AGENTS.md'))) 'Outdated baseline file accepted'
+    Assert (-not(Test-EvaluationBaselinePreview $baselinePreview.Replace('[CURRENT] AGENTS.md',''))) 'Missing baseline file accepted'
+    Assert (-not(Test-EvaluationBaselinePreview ($baselinePreview+"`n[CURRENT] AGENTS.md"))) 'Duplicate baseline observation accepted'
+    Assert (-not(Test-EvaluationBaselinePreview ($baselinePreview+"`n[CURRENT] unrelated.md"))) 'Unexpected baseline observation accepted'
+    Assert (-not(Test-EvaluationBaselinePreview $baselinePreview.Replace('[PASS]','[FAIL]'))) 'Missing baseline completion accepted'
+    Assert (-not(Test-EvaluationBaselinePreview '[WRITE] none observed')) 'Empty baseline preview accepted'
     $hostArgs=@(Get-EvaluationHostArguments $scratch (Join-Path $scratch 'sample'))
     Assert ($hostArgs -contains 'default_permissions="agents-evaluation"' -and $hostArgs -contains 'approval_policy="never"') 'Evaluation permissions changed'
     Assert ($hostArgs -notcontains '-s' -and $hostArgs -notcontains '--sandbox') 'Legacy sandbox overrides the permission profile'

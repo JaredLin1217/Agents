@@ -34,6 +34,11 @@ configuration. The parent environment is not changed.
 Before any model call, full validation qualifies both frozen-source fixtures in
 the actual command sandbox with this same temp topology and permissions. A source
 or target mutation, failed validator or failed filesystem probe stops the run.
+After validation, the host deploys each frozen version into its separate reference
+target: grading must accept all current assets and reject a damaged root rule.
+This command-only grader check uses authorized disposable files, not model actions
+or an additional sandbox-enforcement claim. Legacy no-write summary text is not a
+pending file write; every listed asset still needs a current/preserved observation.
 Qualification uses separate fixtures, never task answers or model-task receipts.
 Run `test-environment.ps1 -CodexPath <executable> -CandidateCommit <commit>` for
 this no-model diagnostic alone. It is overhead, not an acceptance sample.

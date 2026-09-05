@@ -19,6 +19,28 @@ function New-EvaluationCheckout([string]$Provider,[string]$Ref,[string]$Root,[st
     $null=Invoke-AgentGit $Root @('add','.')
     $null=Invoke-AgentGit $Root @('commit','-qm','independent evaluation fixture')
 }
+function Test-EvaluationDeploymentProtocol([string]$Root,[string]$Target,[string]$RecordRoot) {
+    $native=Test-Path -LiteralPath (Join-Path $Root 'agents.json')
+    if($native) {
+        $preview=@(& pwsh -NoProfile -File (Join-Path $Root 'scripts/deploy-agents-workflow.ps1') -TargetPath $Target -LayoutProfile root-layout -DryRun)
+        if($LASTEXITCODE -ne 0) { throw 'Reference deployment preview failed.' }
+        $plan=ConvertFrom-Json -AsHashtable -InputObject ($preview -join "`n")
+        $out=@(& pwsh -NoProfile -File (Join-Path $Root 'scripts/deploy-agents-workflow.ps1') -TargetPath $Target -LayoutProfile root-layout -ExpectedPlanDigest $plan.plan_digest 2>&1)
+    } else {
+        $out=@(& pwsh -NoProfile -File (Join-Path $Root 'scripts/deploy-agents-workflow.ps1') -TargetPath $Target -Mode full_workflow -LayoutProfile root-layout -Quiet 2>&1)
+    }
+    $exitCode=$LASTEXITCODE
+    [IO.File]::WriteAllText((Join-Path $RecordRoot 'deployment-protocol.log'),($out -join "`n"))
+    if($exitCode -ne 0) { throw 'Reference deployment failed.' }
+    $valid=Test-EvaluationDeployment $Root $Target
+    $rule=Resolve-SafePath $Target 'AGENTS.md'
+    $original=[IO.File]::ReadAllBytes($rule)
+    try {
+        [IO.File]::WriteAllText($rule,'Invalid reference deployment.')
+        $invalidRejected=-not(Test-EvaluationDeployment $Root $Target)
+    } finally { [IO.File]::WriteAllBytes($rule,$original) }
+    return @{passed=($valid -and $invalidRejected);valid_reference_passed=$valid;invalid_reference_rejected=$invalidRejected;model_started=$false}
+}
 function Test-EvaluationEnvironment([string]$CodexPath,[string]$Provider,[string]$Scratch,[string]$BaselineCommit,[string]$CandidateCommit) {
     $checks=[Collections.Generic.List[object]]::new()
     foreach($group in @('baseline','candidate')) {
@@ -62,11 +84,14 @@ function Test-EvaluationEnvironment([string]$CodexPath,[string]$Provider,[string
                 try { $receipt=ConvertFrom-Json -AsHashtable -InputObject $out -ErrorAction Stop; $success=$receipt.passed -and $receipt.profile -eq 'Checkpoint' } catch {}
             } else { $success=$out -match 'Overall:\s+100\.0/100' -and $out -match '\[PASS\] Full release audit gates passed\.' -and $out -match '(?m)^Validation passed\.\s*$' }
         }
-        $checks.Add(@{group=$group;source_commit=$ref;passed=([bool]$success -and $changes.Count -eq 0);
+        $deployment=$null
+        if($success -and $changes.Count -eq 0) { $deployment=Test-EvaluationDeploymentProtocol $root $target $base }
+        $checks.Add(@{group=$group;source_commit=$ref;passed=([bool]$success -and $changes.Count -eq 0 -and $deployment.passed);
+            deployment_protocol=$deployment;
             filesystem=$filesystem;validator_started=$true;exit_code=$exitCode;timed_out=$timedOut;duration_ms=$timer.ElapsedMilliseconds;
             command=('pwsh -NoProfile -NonInteractive -File scripts/validate.ps1 '+($flags -join ' '));changed_paths=$changes})
         if(-not $checks[-1].passed) { break }
     }
     return @{passed=($checks.Count -eq 2 -and @($checks|Where-Object passed -NE $true).Count -eq 0);checks=@($checks.ToArray());model_started=$false;
-        claims=@('Full validation in independent frozen-source fixtures before model tasks.','Same invocation-only permissions and private temp topology for both arms.','Qualification overhead, not task usage or model correctness evidence.')}
+        claims=@('Full validation in independent frozen-source fixtures before model tasks.','Same invocation-only permissions and private temp topology for both arms.','Deployment grading accepts a complete reference and rejects damaged rules in both frozen versions before model calls.','Qualification overhead, not task usage or model correctness evidence.')}
 }
