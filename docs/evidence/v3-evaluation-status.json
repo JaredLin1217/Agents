@@ -20,7 +20,28 @@
   ],
   "counts": {"pilot_total":4,"passed":2,"failed":2,"environment_blocked":2},
   "efficiency_acceptance": {"passed":false,"input_reduction_percent":null,"tool_reduction_percent":null,"reason":"Only one successful pilot pair; formal acceptance and final-source evaluation have not run."},
-  "blocker": "Both editing pilots had local command creation rejected by the CLI execution policy, including file reads and Git inspection. No file was changed. Host permissions were not bypassed.",
+  "blocker": "Explicitly selecting the provisioned Windows elevated backend restored ordinary fixture reads and writes. A subsequent preflight was denied at .agents/runtime/probe.json and stopped; the local Git commit was not attempted. This workspace-write environment cannot yet support the full task suite. Host permissions were not bypassed.",
+  "environment_preflight": {
+    "id": "b74c97508a2e4bd9aa1ba78d55b6d667",
+    "checked_utc": "2026-09-05T13:52:53.4025988Z",
+    "runtime_report": ".agents/runtime/evaluation/host-b74c97508a2e4bd9aa1ba78d55b6d667.json",
+    "sandbox": "workspace-write",
+    "windows_backend": "elevated",
+    "passed": false,
+    "read_write_passed": true,
+    "runtime_write_passed": false,
+    "local_commit": "not_attempted_after_runtime_denial",
+    "environment_blocked": true,
+    "duration_ms": 32589,
+    "input_tokens": 53137,
+    "cached_input_tokens": 39040,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 308,
+    "reasoning_output_tokens": 0,
+    "completed_tool_items": 3,
+    "event_parse_errors": 0,
+    "scope": "Diagnostic overhead only; not a formal sample or proof of deployment/recovery readiness."
+  },
   "provenance": [
     {"runtime_report":".agents/runtime/evaluation/39a7438dd1b349b8ae75be6bbf3b1717.json","started_utc":"2026-09-05T13:31:14.4380059Z","finished_utc":"2026-09-05T13:31:48.9454321Z"},
     {"runtime_report":".agents/runtime/evaluation/651a2edbaee54d1197a90846159c7fa3.json","started_utc":"2026-09-05T13:32:25.5521857Z","finished_utc":"2026-09-05T13:33:56.9397154Z"}
@@ -32,7 +53,9 @@
     "CLI 0.151.0 rejected GPT-6. A separate existing 0.153.4 executable passed a READY model preflight; neither CLI nor global configuration was installed or changed. Preflight is not an evaluated task.",
     "Post-pilot fixes changed the source and protocol. A new frozen candidate and full 72-sample run are required; these pilots cannot be relabelled as final-source acceptance.",
     "Input includes cached input; output includes reasoning. Separate counters are not added again. No subagents were used.",
-    "Raw events, stderr and independent fixtures remain in temporary project-specific scratch. No OS, network or future-task correctness guarantee is claimed."
+    "Raw events, stderr and independent fixtures remain in temporary project-specific scratch. No OS, network or future-task correctness guarantee is claimed.",
+    "The current preflight retains workspace-write, approval never and host rules. It changes only an invocation-local Windows backend selection, not global settings or permissions.",
+    "The host preflight ran against local evaluator edits, not a frozen release candidate. Later fixture-observation and dependency fixes require a newly frozen protocol. Existing pilots and this diagnostic remain separate."
   ],
-  "next_step": "After the authorized CLI execution environment permits ordinary fixture reads and writes, freeze the final candidate and protocol, run offline regression, then run all 72 samples without sharing answers or memory. Preserve failures and publish the complete new report before a release tag."
+  "next_step": "Use an explicitly authorized evaluation environment supporting ordinary files, protected runtime state and local Git operations. Do not bypass current controls. Require the host preflight and fixture engineering gates, freeze candidate and protocol, then run all 72 samples without sharing answers or memory. Preserve failures and publish the complete new report before a release tag."
 }

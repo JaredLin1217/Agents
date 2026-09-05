@@ -42,6 +42,12 @@ evaluation report for actual completion, safety and efficiency gates.
 
 Current release status is a candidate, not model-accepted. See
 `docs/evidence/v3-evaluation-status.json` for all four real pilot samples and the
-execution-policy blocker. Engineering checkpoint success alone does not authorize
+separate environment preflight. The Windows backend selection now permits ordinary
+file operations, but protected runtime writes were denied; local commit was not
+attempted after that denial. Engineering checkpoint success alone does not authorize
 a v3 release tag or claim the planned token savings. The finalized candidate still
 needs the complete frozen 72-task run in an authorized working CLI environment.
+
+The candidate fixture without task prompts and grading entry points also passed
+its offline checkpoint, complete installation checks and restoration in a separate
+disposable target. This validates the evaluation setup, not model task outcomes.

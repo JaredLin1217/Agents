@@ -40,6 +40,13 @@ try {
     Reject { Assert-OwnedPath '.codex/config.toml' } 'Local config declared managed'
     Reject { Assert-OwnedPath 'scripts/../docs/memory/private.json' } 'Aliased owned path accepted'
     Reject { Assert-OwnedPath 'scripts\\hidden.ps1' } 'Noncanonical owned path accepted'
+    $deep=Join-Path $scratch 'long-path'
+    Init $deep
+    $deepFile=('nested-'*20)+'/deep.txt'
+    Put $deep $deepFile 'Long path fixture'
+    $null=Invoke-AgentGit $deep @('add',$deepFile)
+    $null=Invoke-AgentGit $deep @('commit','-qm','long path change')
+    Assert ((Invoke-AgentGit $deep @('show',"HEAD:$deepFile")) -eq 'Long path fixture') 'Git failed on a deep Windows file path'
     foreach($layout in @('root-layout','dot-agents-layout')) {
         $root=Join-Path $scratch ($layout+' '+[char]0x6E2C+[char]0x8A66)
         Init $root
@@ -156,6 +163,58 @@ try {
     Reject { Resolve-SafePath $scratch 'linked/contract.txt' } 'Junction traversal accepted'
     Remove-Item -LiteralPath $linked
     . "$PSScriptRoot/evaluation/metrics.ps1"
+    . "$PSScriptRoot/evaluation/host.ps1"
+    . "$PSScriptRoot/evaluation/observation.ps1"
+    $observed=Join-Path $scratch 'observed target'; Init $observed
+    Put $observed 'workload/target/README.md' 'Nested product'
+    Put $observed '.gitignore' ".agents/runtime/`nworkload/target/`n"
+    $snapshot=Get-EvaluationSnapshot $observed
+    Put $observed 'workload/target/README.md' 'Unauthorized nested edit'
+    Put $observed 'workload/target/ignored.txt' 'Ignored but observable'
+    Put $observed '.agents/runtime/log.txt' 'Allowed scratch'
+    $changes=@(Compare-EvaluationSnapshot $snapshot (Get-EvaluationSnapshot $observed))
+    Assert ($changes -contains 'workload/target/README.md' -and $changes -contains 'workload/target/ignored.txt') 'Nested ignored changes escaped observation'
+    Assert ($changes -notcontains '.agents/runtime/log.txt') 'Runtime logs counted as source edits'
+    Put $observed 'tests/evaluation/cases.json' '[]'
+    Put $observed 'tests/evaluation/fixture.ps1' '# Hidden grading'
+    Put $observed 'tests/evaluation/run-evaluation.ps1' '# Hidden protocol'
+    Put $observed 'tests/evaluation/metrics.ps1' '# Regression dependency'
+    Put $observed 'tests/evaluation/host.ps1' '# Regression dependency'
+    Remove-EvaluationGradingFiles $observed
+    Assert (-not(Test-Path -LiteralPath (Join-Path $observed 'tests/evaluation/cases.json')) -and -not(Test-Path -LiteralPath (Join-Path $observed 'tests/evaluation/fixture.ps1'))) 'Fixture retained hidden prompts or graders'
+    Assert ((Test-Path -LiteralPath (Join-Path $observed 'tests/evaluation/metrics.ps1')) -and (Test-Path -LiteralPath (Join-Path $observed 'tests/evaluation/host.ps1'))) 'Fixture removed regression dependencies'
+    $separate=Join-Path $scratch 'separate target'; Init $separate
+    Put $separate 'README.md' 'Target-owned product documentation.'
+    $original=Get-EvaluationSnapshot $separate
+    Assert (-not(Test-EvaluationDeployment $provider $separate)) 'Empty target accepted as installed'
+    $deployed=Deploy $separate 'root-layout'
+    Assert (Test-EvaluationDeployment $provider $separate) 'Complete installed assets rejected'
+    Reject { Get-EvaluationTaskSnapshot $observed $separate } 'Overlapping logical target paths accepted'
+    $observedBoth=Get-EvaluationTaskSnapshot $other $separate
+    Assert ($observedBoth.ContainsKey('workload/target/AGENTS.md')) 'Separate target absent from observed boundary'
+    Put $separate 'scripts/validate.ps1' '# Incorrect installed bytes'
+    Assert (-not(Test-EvaluationDeployment $provider $separate)) 'Damaged installed script accepted'
+    [IO.File]::Copy((Join-Path $provider 'scripts/validate.ps1'),(Join-Path $separate 'scripts/validate.ps1'),$true)
+    Assert (-not(Test-EvaluationRollbackState $true $original (Get-EvaluationSnapshot $separate))) 'Retained deployment accepted as rollback'
+    $null=Restore-Deployment $separate $deployed.transaction_id
+    Assert (Test-EvaluationRollbackState $true $original (Get-EvaluationSnapshot $separate)) 'Verified rollback rejected'
+    Assert (-not(Test-EvaluationRollbackState $false $original (Get-EvaluationSnapshot $separate))) 'No-op accepted as rollback'
+    $hostArgs=@(Get-EvaluationHostArguments $scratch (Join-Path $scratch 'sample'))
+    Assert ($hostArgs -contains 'workspace-write' -and $hostArgs -contains 'approval_policy="never"') 'Evaluation permissions changed'
+    Assert ($hostArgs -notcontains '--ignore-rules' -and $hostArgs -notcontains '--dangerously-bypass-approvals-and-sandbox') 'Evaluation bypasses host controls'
+    if($IsWindows) { Assert ($hostArgs -contains 'windows.sandbox="elevated"') 'Windows backend dropped with user config' }
+    $targetArgs=@(Get-EvaluationHostArguments $scratch (Join-Path $scratch 'sample') $separate)
+    Assert ($targetArgs -contains '--add-dir' -and $targetArgs[$targetArgs.IndexOf('--add-dir')+1] -eq $separate -and $hostArgs -notcontains '--add-dir') 'Target access not scoped to deployment tasks'
+    $events=@(
+        '{"type":"item.started","item":{"id":"one","type":"command_execution"}}',
+        '{"type":"item.completed","item":{"id":"one","type":"command_execution","aggregated_output":"OK"}}',
+        '{"type":"turn.completed","usage":{"input_tokens":100,"cached_input_tokens":60,"output_tokens":10,"reasoning_output_tokens":4}}') -join "`n"
+    $parsed=Convert-EvaluationEvents $events ''
+    Assert ($parsed.tool_calls -eq 1 -and $parsed.usage.input_tokens -eq 100 -and $parsed.usage.output_tokens -eq 10) 'Host usage double counted'
+    Assert ($null -eq $parsed.usage.cache_write_input_tokens) 'Missing host usage fabricated'
+    Assert ((Convert-EvaluationEvents $events 'blocked by policy').environment_blocked) 'Stderr policy denial missed'
+    Assert ((Convert-EvaluationEvents ($events.Replace('OK','Access is denied')) '').environment_blocked) 'Command output denial missed'
+    Assert ((Convert-EvaluationEvents ($events+"`nbroken") '').parse_errors -eq 1) 'Malformed host events ignored'
     $probe=@{status='completed';planned_samples=2;samples=@(
         @{case='answer';repetition=1;group='baseline';passed=$true;usage=@{input_tokens=100};tool_calls=0;event_parse_errors=0;environment_blocked=$false;boundary_violations=@()},
         @{case='answer';repetition=1;group='candidate';passed=$true;usage=@{input_tokens=110};tool_calls=0;event_parse_errors=0;environment_blocked=$false;boundary_violations=@()})}
@@ -170,15 +229,19 @@ try {
     $probe.samples+= $probe.samples[0]
     Reject { Get-EvaluationMetrics $probe } 'Duplicate evaluation sample accepted'
     $complete=@{status='completed';planned_samples=72;samples=@()}
-    foreach($case in (Read-AgentJson "$PSScriptRoot/evaluation/cases.json")) {
+    foreach($case in Get-EvaluationCaseIds) {
         foreach($rep in 1..3) {
             foreach($arm in @('baseline','candidate')) {
-                $complete.samples+=@{case=$case.id;repetition=$rep;group=$arm;passed=$true;usage=@{input_tokens=$(if($arm -eq 'baseline'){100}else{60})};
+                $complete.samples+=@{case=$case;repetition=$rep;group=$arm;passed=$true;usage=@{input_tokens=$(if($arm -eq 'baseline'){100}else{60})};
                     tool_calls=$(if($arm -eq 'baseline'){10}else{7});event_parse_errors=0;environment_blocked=$false;boundary_violations=@()}
             }
         }
     }
     Assert ((Get-EvaluationMetrics $complete).acceptance_passed) 'Complete synthetic metric gate failed'
+    $complete.samples[0].passed=$false
+    $withFailure=Get-EvaluationMetrics $complete
+    Assert ($withFailure.acceptance_passed -and $withFailure.baseline_failed -eq 1 -and $withFailure.successful_pairs -eq 35) 'Baseline failure hidden or successful pairs miscounted'
+    $complete.samples[0].passed=$true
     $complete.samples[1].usage.input_tokens=$null
     Assert (-not (Get-EvaluationMetrics $complete).acceptance_passed) 'Missing real usage treated as acceptance'
     "PASS: $script:assertions offline assertions"

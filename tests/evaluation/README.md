@@ -7,17 +7,47 @@ are fixed for both arms; group order alternates per repetition. Each sample gets
 a fresh Git fixture with no preceding answers or native memory. The baseline is
 immutable, recorded in `docs/evidence/baseline.json`.
 
-The provider's grading files are removed from agent fixtures; prompts and graders
-are fixed and hashed before execution. Artifacts, test behavior, allowed file
+Each sample contains a Provider checkout and a separate sibling target: the v2
+baseline refuses to deploy inside its own checkout. Only deployment/rollback calls
+receive that exact target via `--add-dir`; other calls have no extra writable root.
+This does not remove protection from `.agents`, `.codex` or Git metadata. Failed
+preflight remains blocking regardless of the extra target. Both arms use the same
+topology. Reports use `workload/target/` as its stable logical path, not an absolute
+machine-specific location.
+
+The runner first checks actual file read/write, ignored runtime writes and a local
+Git commit in a separate disposable fixture, using exactly the task host arguments.
+Run `test-host.ps1 -CodexPath <executable>` for the same diagnostic alone. A failed
+preflight stops before allocating task samples; its real usage remains a separate
+overhead record, never part of the 72-task acceptance count. Windows explicitly
+selects the already provisioned `elevated` backend because `--ignore-user-config`
+otherwise drops that setting. This does not install a sandbox or grant permissions.
+The runner never disables rules or changes global permissions. If the configured
+sandbox refuses Git or runtime writes, use an appropriately authorized evaluation
+environment; do not weaken the controls to manufacture passing results.
+
+Offline Git calls use invocation-local long-path support for deeply nested fixture
+files. Keep repository working-directory paths below the Windows Git startup limit;
+long-path file support does not remove that separate limitation.
+
+Task prompts and independent grading files are removed from agent fixtures;
+non-grading host/metrics helpers remain so Provider regression tests still work.
+Prompts, graders and their imported helpers are fixed and hashed before execution.
+Artifacts, test behavior, allowed file
 changes, and observed actions determine success, not the model's final score.
 Knowledge cases exercise source-backed recall with identical fixture facts;
 native knowledge storage and checkpoint mechanics have separate offline tests.
 Recovery uses two separate ephemeral CLI sessions, a persisted checkpoint, and
 an intervening invoice change. It is one task with both sessions' usage counted;
 the deployment counter is explicitly a mock external action, not a real rollout.
+Rollback also has two sessions. The harness verifies complete installed assets
+after the first, then checks restoration against the original target snapshot.
+Doing nothing cannot count as a successful rollback. Both sessions' usage counts.
 
 Raw stdout JSONL, stderr, answers, and independent targets remain under temporary
 project-specific scratch. Incremental sanitized reports go to ignored runtime.
+Snapshots include ignored files and nested targets, excluding Git metadata and
+the two explicitly allowed runtime scratch directories. Linked paths fail closed.
 Do not commit raw logs. A file-boundary violation or host failure stops the run;
 failed samples remain in the report. Revisions require a new labelled run, never
 removal of failed samples. Do not claim OS/network enforcement from these checks.
@@ -38,6 +68,10 @@ and tool-call reduction >=20 percent. Disclose all failures and sample counts.
 The comparison is `1 - candidate median / baseline median` over successful paired
 tasks. Both arms use exactly the same pairs, including zero-tool tasks. Missing
 counters block the efficiency gate; a zero median denominator is unavailable.
-The runner emits gate calculations and exits nonzero on failed samples or failed
-full-suite targets. Pilot completion is never acceptance. No partial or failed
+The runner emits both arms' pass/fail counts and exits nonzero on failed pilot
+samples or failed full-suite targets. Baseline task failures remain visible but
+do not automatically fail the candidate's 36-task quality gate; only pairs where
+both arms succeeded enter efficiency calculations. Protocol changes invalidate
+an in-progress run; formal runs require a clean committed source/protocol boundary.
+Pilot completion is never acceptance. No partial or failed
 run establishes the release's model-quality or efficiency targets.

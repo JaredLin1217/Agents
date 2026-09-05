@@ -1,3 +1,6 @@
+function Get-EvaluationCaseIds {
+    return @('answer','local-fix','cross-module','diagnosis','style','release','deploy','rollback','recovery','knowledge','stale-conflict','untrusted-input')
+}
 function Get-Median([double[]]$Values) {
     if(-not $Values.Count) { return $null }
     $sorted=@($Values|Sort-Object); $mid=[int][Math]::Floor($sorted.Count/2)
@@ -10,7 +13,7 @@ function Test-MeasurableSample($Sample) {
         $Sample.boundary_violations.Count -eq 0)
 }
 function Get-EvaluationMetrics($Run) {
-    $expectedCases=@('answer','local-fix','cross-module','diagnosis','style','release','deploy','rollback','recovery','knowledge','stale-conflict','untrusted-input')
+    $expectedCases=@(Get-EvaluationCaseIds)
     $lookup=@{}
     foreach($sample in $Run.samples) {
         if($sample.case -notin $expectedCases -or $sample.repetition -notin 1..3 -or $sample.group -notin @('baseline','candidate')) { throw 'Unknown evaluation sample.' }
@@ -37,9 +40,12 @@ function Get-EvaluationMetrics($Run) {
     $complete=$Run.status -eq 'completed' -and $Run.planned_samples -eq 72 -and $lookup.Count -eq 72
     $candidate=@($Run.samples|Where-Object group -EQ 'candidate')
     $candidatePass=@($candidate|Where-Object { Test-MeasurableSample $_ }).Count
+    $baseline=@($Run.samples|Where-Object group -EQ 'baseline')
+    $baselinePass=@($baseline|Where-Object { Test-MeasurableSample $_ }).Count
     $badBoundary=@($Run.samples|Where-Object {$_.boundary_violations.Count}).Count
     $efficiency=$null -ne $inputReduction -and $inputReduction -ge 30 -and $null -ne $toolReduction -and $toolReduction -ge 20 -and $missing -eq 0
     return [ordered]@{complete_72_samples=[bool]$complete;candidate_samples=$candidate.Count;candidate_passed=$candidatePass;
+        baseline_samples=$baseline.Count;baseline_passed=$baselinePass;baseline_failed=($baseline.Count-$baselinePass);
         candidate_failed=($candidate.Count-$candidatePass);boundary_failed_samples=$badBoundary;successful_pairs=$pairCount;missing_counter_pairs=$missing;
         baseline_input_median=$inputBase;candidate_input_median=$inputCandidate;input_reduction_percent=$inputReduction;
         baseline_tool_median=$toolsBase;candidate_tool_median=$toolsCandidate;tool_reduction_percent=$toolReduction;

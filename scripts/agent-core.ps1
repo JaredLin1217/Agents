@@ -67,7 +67,7 @@ function Get-TextHash {
 }
 function Invoke-AgentGit {
     param([string]$Root, [string[]]$Arguments)
-    $out = @(& git -c core.quotepath=false -C $Root @Arguments 2>&1)
+    $out = @(& git -c core.quotepath=false -c core.longpaths=true -C $Root @Arguments 2>&1)
     if ($LASTEXITCODE -ne 0) { throw "git $($Arguments -join ' ') failed: $($out -join ' ')" }
     return $out
 }
