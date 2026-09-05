@@ -138,6 +138,26 @@ try {
     Write-AgentJson (Join-Path $root 'docs/memory/entries/cycle-two.json') $entry
     Assert ((Recall $root).entries.Count -eq 0 -and (Recall $root).gaps.Count -gt 0) 'Cyclic knowledge failed silently'
     Remove-Item -LiteralPath (Join-Path $root 'docs/memory/entries/cycle-one.json'),(Join-Path $root 'docs/memory/entries/cycle-two.json')
+    $retirement=Join-Path $scratch 'memory retirement'; Init $retirement; $null=Deploy $retirement 'root-layout'
+    foreach($id in @('old','new')) {
+        Put $retirement "$id.txt" "$id policy"
+        $retiredEntry=@{schema_version='agents-knowledge/v3';id=$id;type='fact';conclusion="$id policy";scope='retention';
+            sources=@(@{path="$id.txt";sha256=(Get-AgentHash (Join-Path $retirement "$id.txt"));commit=([string](Invoke-AgentGit $retirement @('rev-parse','HEAD')))});
+            verified_utc=[DateTime]::UtcNow.ToString('o');verification='Retirement regression';status='active';
+            supersedes=@($(if($id -eq 'new'){'old'}));sensitive=$false}
+        Write-AgentJson (Join-Path $retirement "docs/memory/entries/$id.json") $retiredEntry
+    }
+    Assert ((Recall $retirement).entries.id -eq 'new') 'Replacement was not selected'
+    Put $retirement 'new.txt' 'Unverified update'
+    $staleReplacement=Recall $retirement
+    Assert ($staleReplacement.entries.Count -eq 0 -and $staleReplacement.gaps -contains 'Source changed: new') 'Stale replacement resurrected retired knowledge'
+    Remove-Item -LiteralPath (Join-Path $retirement 'new.txt')
+    Assert ((Recall $retirement).entries.Count -eq 0) 'Missing replacement source resurrected retired knowledge'
+    Put $retirement 'new.txt' 'new policy'
+    Assert ((Recall $retirement).entries.id -eq 'new') 'Reverified replacement failed to recover'
+    Put $retirement 'docs/memory/entries/new.json' '{broken'
+    $invalidReplacement=Recall $retirement
+    Assert ($invalidReplacement.entries.Count -eq 0 -and $invalidReplacement.gaps -contains 'Invalid knowledge: new.json') 'Unreadable replacement resurrected retired knowledge'
     Write-AgentJson (Join-Path $root '.agents/runtime/immutable.json') @{value=1}
     Reject { Write-AgentJson (Join-Path $root '.agents/runtime/immutable.json') @{value=2} -NoClobber } 'Exclusive JSON creation overwrote a file'
     $state=@{id='resume-test';objective='Finish task';latest_adjustment='Preserve user work';boundaries=@('contract.txt');completed=@('inspect');open_issues=@();next_steps=@('verify')}

@@ -29,6 +29,11 @@ the project-memory skill to recall, promote or supersede a verified finding.
 The runtime index can always be rebuilt. Changed sources make entries unusable
 until reverified. Conflicted entries suspend their scope. Mechanical validation
 does not prove a conclusion; a person or agent must check the cited evidence.
+Replacing a fact permanently retires its earlier entries. A stale or missing
+replacement source does not revive old conclusions; reverify the replacement or
+promote a newly reviewed entry. Explicit conflicts still need a fresh resolution.
+Unreadable knowledge records suspend recall until repaired, because their affected
+scopes and retirement relationships cannot be established safely.
 
 Use task-state checkpoints for long work. Resume checks the actual commit and
 file hashes and identifies required reinspection. Completed external actions must

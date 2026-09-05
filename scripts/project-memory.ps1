@@ -27,6 +27,7 @@ if($Action -eq 'Promote') {
 }
 $entries=[Collections.Generic.List[object]]::new()
 $gaps=[Collections.Generic.List[string]]::new()
+$invalidKnowledge=$false
 if(Test-Path -LiteralPath $directory) {
     foreach($file in Get-ChildItem -LiteralPath $directory -Filter '*.json' -File) {
         try {
@@ -35,7 +36,7 @@ if(Test-Path -LiteralPath $directory) {
             $entry['path']=$relative
             $entry['fresh']=Test-KnowledgeSources $entry
             $entries.Add($entry)
-        } catch { $gaps.Add("Invalid knowledge: $($file.Name)") }
+        } catch { $invalidKnowledge=$true; $gaps.Add("Invalid knowledge: $($file.Name)") }
     }
 }
 $duplicates=@($entries | Group-Object id | Where-Object Count -GT 1 | ForEach-Object Name)
@@ -53,14 +54,18 @@ foreach($entry in $entries) {
     }
 }
 $superseded=@($entries | Where-Object { $_.fresh -and $_.status -eq 'active' } | ForEach-Object { $_.supersedes })
+# Retirement survives source drift; only fresh replacements resolve an explicit conflict.
+$retired=@($entries | Where-Object { $_.status -in @('active','superseded') } | ForEach-Object { $_.supersedes })
 foreach($entry in $entries) {
-    if(-not $entry.fresh -and $entry.status -ne 'superseded' -and $entry.id -notin $superseded) { $gaps.Add("Source changed: $($entry.id)") }
+    if(-not $entry.fresh -and $entry.status -ne 'superseded' -and $entry.id -notin $retired) { $gaps.Add("Source changed: $($entry.id)") }
 }
-$active=@($entries | Where-Object { $_.fresh -and $_.status -eq 'active' -and $_.id -notin $superseded })
+$active=@($entries | Where-Object { $_.fresh -and $_.status -eq 'active' -and $_.id -notin $retired })
 # Explicit same-scope conflicts are suspended, not resolved by timestamp.
 $conflicts=@($entries | Where-Object { $_.status -eq 'conflicted' -and $_.id -notin $superseded } | ForEach-Object scope)
 $active=@($active | Where-Object { $_.scope -notin $conflicts })
 foreach($scope in $conflicts) { $gaps.Add("Conflicted scope suppressed: $scope") }
+# An unreadable record may contain a retirement or conflict affecting any other entry.
+if($invalidKnowledge) { $active=@() }
 $index=@($active | Sort-Object id | ForEach-Object { @{id=$_.id;type=$_.type;conclusion=$_.conclusion;scope=$_.scope;path=$_.path} })
 if($Action -in @('Index','Promote')) {
     $indexPath=Resolve-SafePath $Root "$($settings.runtime_directory)/memory-index.json"
