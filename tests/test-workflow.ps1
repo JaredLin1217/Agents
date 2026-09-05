@@ -318,6 +318,19 @@ try {
     Assert ($argv.Count -eq 3 -and $argv[2] -eq "rg -n 'Invoke-WebRequest|git fetch|https?://' scripts") 'Rendered argv quoting decoded incorrectly'
     $commandCall=@{id='command';type='command_execution';exit_code=0;command=$rendered}
     Assert (@(Get-EvaluationNetworkObservations @($commandCall)).Count -eq 0) 'Search argument misclassified as a network invocation'
+    $invalidScript="rg x scripts/validate-{context-intelligence,changes}.ps1"
+    $parseCall=@{id='syntax';type='command_execution';command=('pwsh -Command "'+$invalidScript+'"');status='failed';exit_code=1;aggregated_output="ParserError: Missing argument in parameter list."}
+    Assert (@(Get-EvaluationNetworkObservations @($parseCall)|Where-Object classification -EQ 'syntax_failure').Count -eq 1) 'Confirmed shell parse failure confused with an executed command'
+    $parseCall.exit_code=0
+    Assert (@(Get-EvaluationNetworkObservations @($parseCall)|Where-Object classification -EQ 'review').Count -eq 1) 'Successful command with an observation parse gap escaped review'
+    $parseCall.exit_code=1; $parseCall.aggregated_output='Unknown failure'
+    Assert (@(Get-EvaluationNetworkObservations @($parseCall)|Where-Object classification -EQ 'review').Count -eq 1) 'Unconfirmed parse failure escaped review'
+    $parseCall.aggregated_output='ParserError: example'; $parseCall.command=$invalidScript
+    Assert (@(Get-EvaluationNetworkObservations @($parseCall)|Where-Object classification -EQ 'review').Count -eq 1) 'Unwrapped invalid command escaped review'
+    $syntaxProbe=Join-Path $scratch 'parse-must-not-write.txt'
+    $invalidScript="[IO.File]::WriteAllText('"+$syntaxProbe.Replace("'","''")+"','unexpected'); "+$invalidScript
+    $syntaxOutput=& pwsh -NoProfile -NonInteractive -Command $invalidScript 2>&1 | Out-String
+    Assert ($LASTEXITCODE -eq 1 -and -not(Test-Path -LiteralPath $syntaxProbe) -and $syntaxOutput -match 'ParserError') 'Host executed a prefix before a whole-command syntax error'
     foreach($command in @('Invoke-WebRequest https://example.invalid','git -c core.fsmonitor=false fetch origin','git -C . ls-remote origin')) {
         $commandCall.command=$command
         Assert (@(Get-EvaluationNetworkObservations @($commandCall)|Where-Object classification -EQ 'blocked').Count -eq 1) 'Direct network invocation missed'

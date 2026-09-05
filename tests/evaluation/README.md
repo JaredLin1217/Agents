@@ -137,7 +137,13 @@ Command observation decodes the CLI's rendered argv as data, then uses the nativ
 PowerShell AST to distinguish invocations from search arguments and quoted text.
 An `rg` search for `Invoke-WebRequest` is not a network call. Direct network and
 Git transport invocations stop the run; unsupported shell wrappers, malformed
-quoting and dynamic Git operations stop for review. This bounded observer does
+quoting and dynamic Git operations stop for review. An actual PowerShell wrapper
+with native parse errors, failed exit 1 and leading host ParserError is recorded
+as a non-executed syntax failure, not an unknown executed command. The failed
+tool remains counted; a later correction may finish the task. A regression checks
+that this host rejects a script before even its valid leading write executes.
+Without all those observations the parser gap still requires review. Raw source
+or a successful command containing error words is not enough. This bounded observer does
 not inspect transitive script behavior or prove network isolation. The configured
 network restriction remains separate from observations.
 

@@ -53,6 +53,20 @@
   ],
   "workflow_diagnostics": [
     {
+      "id": "addb12dc06f54816a40ed02d2b8d1ff7",
+      "report": "docs/evidence/evaluation/addb12dc06f54816a40ed02d2b8d1ff7.json",
+      "candidate_commit": "55c4c96b670bee3d00ee0ad1dde1ab2dbb03ca24",
+      "status": "stopped",
+      "planned_samples": 12,
+      "samples": 3,
+      "passed": 2,
+      "timeout_seconds_per_cli_session": 1200,
+      "cause": "Both deployment tasks passed. Baseline rollback preparation used Bash brace expansion in PowerShell; native parsing rejected that command with exit 1. The agent continued, but the observer classified the non-executed syntax error as an unresolved command gap and stopped before the rollback phase. No collaboration or file-boundary failure was observed. Original outcomes remain unchanged.",
+      "correction": "Record confirmed whole-command PowerShell ParserError failures separately, retaining their tool cost. Native parse errors plus the actual shell wrapper, failed exit 1 and leading ParserError are all required; all other observation gaps still stop for review. Add a host regression proving a valid leading write cannot execute before the syntax error. A new run is required.",
+      "limitation": "The one deployment pair reduced observed input by 46.42 percent and calls by 33.33 percent, but a single diagnostic pair does not establish release acceptance.",
+      "acceptance": false
+    },
+    {
       "id": "c463476b161f4afb914fbcc06cb81f87",
       "report": "docs/evidence/evaluation/c463476b161f4afb914fbcc06cb81f87.json",
       "candidate_commit": "eb5ce978512559215b992f342c1aa5049d2cf056",
@@ -182,5 +196,5 @@
     "The first formal attempt observed no permission block. Its two candidate tasks passed, but local-fix input and tool calls increased. Do not extrapolate from two successful pairs or silently remove the baseline boundary failure.",
     "The second stopped attempt contains all eight samples, including both diagnosis failures caused by an undisclosed requirement. Counts across stopped protocols must not be combined into a 72-sample acceptance run."
   ],
-  "next_step": "Verify and freeze current single-agent host configuration and collaboration-error observation, rerun remaining workflow diagnostics with an explicitly recorded shared timeout, then freeze the complete source/protocol and run all 72 formal tasks. Historical stopped-run counts do not contribute to formal_samples_completed. Do not relabel diagnostics or filter failures; all acceptance thresholds remain unchanged."
+  "next_step": "Freeze the confirmed non-executed syntax-failure observer correction (225 offline assertions passed). Continue rollback, recovery, knowledge, stale-conflict and untrusted-input diagnostics with the recorded shared 1200-second timeout, then run all 72 tasks on a fixed source/protocol. Deployment passed in both arms of addb12dc06f54816a40ed02d2b8d1ff7, but all tasks must be repeated for formal acceptance. Historical counts do not contribute to formal_samples_completed; do not relabel diagnostics or filter failures."
 }

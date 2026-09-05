@@ -35,7 +35,16 @@ function Get-EvaluationNetworkObservations($Calls) {
             }
             $errors=$null; $tokens=$null
             $ast=[Management.Automation.Language.Parser]::ParseInput($script,[ref]$tokens,[ref]$errors)
-            if($errors.Count) { throw 'PowerShell command parse failed.' }
+            if($errors.Count) {
+                $output=if($call.Contains('aggregated_output')){[string]$call.aggregated_output}else{''}
+                $output=$output -replace '\x1B\[[0-9;]*m',''
+                if($program -in @('pwsh','powershell') -and $call.Contains('exit_code') -and $call.exit_code -eq 1 -and
+                    $call.Contains('status') -and $call.status -eq 'failed' -and $output -match '^\s*ParserError:') {
+                    $observations.Add(@{item_id=$call.id;classification='syntax_failure';basis='PowerShell rejected the whole command before execution; failed tool cost remains counted.'})
+                    continue
+                }
+                throw 'PowerShell command parse failed.'
+            }
             foreach($command in $ast.FindAll({param($n) $n -is [Management.Automation.Language.CommandAst]},$true)) {
                 $name=($command.GetCommandName() -split '[/\\]')[-1] -replace '\.exe$',''
                 if($name -in @('Invoke-WebRequest','Invoke-RestMethod','curl','wget','iwr','irm')) {
