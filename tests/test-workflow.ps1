@@ -263,6 +263,8 @@ try {
     Assert (-not(Test-EvaluationBaselinePreview $baselinePreview.Replace('[PASS]','[FAIL]'))) 'Missing baseline completion accepted'
     Assert (-not(Test-EvaluationBaselinePreview '[WRITE] none observed')) 'Empty baseline preview accepted'
     $hostArgs=@(Get-EvaluationHostArguments $scratch (Join-Path $scratch 'sample'))
+    Assert ($hostArgs -contains 'agents.enabled=false' -and $hostArgs -notcontains 'features.multi_agent=false') 'Single-agent comparison uses obsolete configuration'
+    Assert ((Get-EvaluationTaskBoundary @()).Contains('delegation is not authorized')) 'Single-agent comparison scope omitted'
     Assert ($hostArgs -contains 'default_permissions="agents-evaluation"' -and $hostArgs -contains 'approval_policy="never"') 'Evaluation permissions changed'
     Assert ($hostArgs -notcontains '-s' -and $hostArgs -notcontains '--sandbox') 'Legacy sandbox overrides the permission profile'
     $permissionConfig=@($hostArgs|Where-Object { $_.StartsWith('permissions=') })
@@ -288,6 +290,13 @@ try {
     $parsed=Convert-EvaluationEvents $events ''
     Assert ($parsed.tool_calls -eq 1 -and $parsed.usage.input_tokens -eq 100 -and $parsed.usage.output_tokens -eq 10) 'Host usage double counted'
     Assert ($null -eq $parsed.usage.cache_write_input_tokens) 'Missing host usage fabricated'
+    $spawnError='2026-09-05T16:41:20Z ERROR codex_core::tools::router: error=collab spawn failed: no thread with id: example'
+    $spawn=Convert-EvaluationEvents $events $spawnError
+    Assert ($spawn.collaboration_review_required -and $null -eq $spawn.usage -and $spawn.collaboration_observations[0].channel -eq 'stderr') 'Failed spawn without a tool event did not stop cost accounting'
+    $collabEvent='{"type":"item.started","item":{"id":"worker","type":"collab_tool_call"}}'
+    Assert ((Convert-EvaluationEvents ($events+"`n"+$collabEvent) '').collaboration_review_required) 'Unfinished collaboration tool ignored'
+    Assert (-not (Convert-EvaluationEvents ($events.Replace('OK',$spawnError)) '').collaboration_review_required) 'Source text mistaken for a collaboration invocation'
+    Assert (-not (Convert-EvaluationEvents '{"type":"item.completed","item":{"id":"text","type":"agent_message","text":"The worker could not start."}}' '').collaboration_review_required) 'Agent narration treated as tool evidence'
     Assert ((Convert-EvaluationEvents $events 'blocked by policy').environment_blocked) 'Stderr policy denial missed'
     $deniedEvents=$events.Replace('OK','Access is denied').Replace('"exit_code":0','"exit_code":1').Replace('"status":"completed"','"status":"failed"')
     Assert ((Convert-EvaluationEvents $deniedEvents '').environment_blocked) 'Failed command denial missed'

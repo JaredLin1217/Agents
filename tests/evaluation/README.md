@@ -2,7 +2,12 @@
 
 Run `run-evaluation.ps1 -CodexPath <verified executable> -CandidateCommit <commit>`.
 Defaults are 12 cases, both arms, three repetitions: 72 real tasks. Pilot filters
-are diagnostic and never satisfy full acceptance. GPT-6/xhigh and the same CLI
+are diagnostic and never satisfy full acceptance. `-TimeoutSeconds` defaults to
+600 per CLI session, identically for both arms; each report records the budget.
+Two-session tasks receive that budget per phase. A timeout remains failed even
+when artifacts pass; absent turn usage stays unavailable. Changing the budget
+requires a new labelled run, without relabeling earlier outcomes.
+GPT-6/xhigh and the same CLI
 are fixed for both arms; group order alternates per repetition. Each sample gets
 a fresh Git fixture with no preceding answers or native memory. The baseline is
 immutable, recorded in `docs/evidence/baseline.json`.
@@ -111,7 +116,14 @@ input, so caching is reported separately, not subtracted. Output already include
 reasoning; reasoning is reported separately and never added a second time.
 Missing counters remain null, not zero. Completed tool item IDs are counted once;
 the CLI event categories counted are documented in the runner. Cache state is
-observed through counters, not assumed cold. Subagents are disabled in both arms.
+observed through counters, not assumed cold. Both arms explicitly receive
+`agents.enabled=false` and a single-agent task boundary, following
+https://learn.chatgpt.com/docs/agent-configuration/subagents (checked 2026-09-06).
+The old `features.multi_agent` flag did not prevent a failed spawn in CLI 0.153.4.
+Configuration is not proof of every tool's runtime state. Collaboration tool
+events or the observed stderr router failure stop the suite for review and make
+aggregate usage unavailable; parent-only usage cannot prove total delegated cost.
+Agent narration and matching text in source reads do not prove a tool invocation.
 Execution-policy denials can occur before tool-item events exist. Such runs stop
 the suite and report tool calls as unavailable rather than claiming zero attempts.
 Do not bypass host policies or weaken permissions to make an evaluation pass.

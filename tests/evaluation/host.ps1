@@ -25,7 +25,7 @@ function Get-EvaluationTaskBoundary([string[]]$Allowed,[string]$Target='',[strin
     if($TempRoot) {
         $temporary+=" The exact private validation temp $TempRoot is also authorized for temporary validation files. TEMP, TMP and TMPDIR already point there; preserve those values and use the validator's default temp selection, without a -TempRoot override."
     }
-    return "`n$scope. Writable task files: $writes. All other non-runtime files must remain unchanged, including tests not listed here. Git metadata may change only through Git for an explicitly requested local commit. $temporary No network, global settings, other projects, or shared memory. Do not inspect parent/sibling directories or grading material. Preserve existing work and local configuration. This is a disposable task, not permission to publish."
+    return "`n$scope. Writable task files: $writes. All other non-runtime files must remain unchanged, including tests not listed here. Git metadata may change only through Git for an explicitly requested local commit. $temporary Use one agent only; delegation is not authorized in this comparison. No network, global settings, other projects, or shared memory. Do not inspect parent/sibling directories or grading material. Preserve existing work and local configuration. This is a disposable task, not permission to publish."
 }
 function Get-EvaluationPermissionArguments([string]$TempRoot='') {
     # Explicit roots avoid inheriting writable system temp directories.
@@ -64,7 +64,7 @@ function Get-EvaluationHostArguments([string]$Root,[string]$LogPrefix,[string]$T
     $arguments=@('exec','--strict-config','--ignore-user-config','--ephemeral','--json','--color','never',
         '-C',$Root,'-m','gpt-6-astra','-c','model_reasoning_effort="xhigh"',
         '-c','memories.use_memories=false','-c','memories.generate_memories=false','-c','web_search="disabled"',
-        '-c','features.multi_agent=false','-c','approval_policy="never"')
+        '-c','agents.enabled=false','-c','approval_policy="never"')
     $arguments+=Get-EvaluationPermissionArguments $TempRoot
     # Ignoring user config must not silently omit the provisioned Windows backend.
     if($IsWindows) { $arguments+=@('-c','windows.sandbox="elevated"') }
@@ -113,6 +113,19 @@ function Get-EvaluationDenials($Calls,$Errors,[string]$ErrorOutput) {
     }
     return @($observations.ToArray())
 }
+function Get-EvaluationCollaborationObservations($Events,[string]$ErrorOutput) {
+    $observations=[Collections.Generic.List[object]]::new()
+    foreach($event in $Events) {
+        if($event.type -in @('item.started','item.completed') -and $event.item.type -eq 'collab_tool_call') {
+            $observations.Add(@{channel='tool_event';item_id=$event.item.id;basis='Collaboration tool observed in a single-agent comparison.'})
+        }
+    }
+    # The CLI can report a failed spawn only on stderr, without a tool item.
+    if($ErrorOutput -match '(?im)^.*\bERROR\s+codex_core::tools::router:.*\bcollab\s+spawn\s+failed:') {
+        $observations.Add(@{channel='stderr';item_id=$null;basis='Host router reported a failed collaboration spawn.'})
+    }
+    return @($observations.ToArray())
+}
 function Convert-EvaluationEvents([string]$Output,[string]$ErrorOutput) {
     $events=@(); $parseErrors=0
     foreach($line in ($Output -split "`n"|Where-Object {$_})) {
@@ -130,10 +143,13 @@ function Convert-EvaluationEvents([string]$Output,[string]$ErrorOutput) {
     $errors=@($events|Where-Object type -In @('error','turn.failed'))
     $denials=@(Get-EvaluationDenials $calls $errors $ErrorOutput)
     $network=@(Get-EvaluationNetworkObservations $calls)
+    $collaboration=@(Get-EvaluationCollaborationObservations $events $ErrorOutput)
+    if($collaboration.Count) { $usage=$null }
     return @{usage=$usage;tool_calls=@($calls|Group-Object id).Count;parse_errors=$parseErrors;calls=$calls;
         environment_blocked=(@($denials|Where-Object classification -EQ 'blocked').Count -gt 0);
         environment_review_required=(@($denials|Where-Object classification -EQ 'review').Count -gt 0);
         denial_observations=$denials;network_observations=$network;
+        collaboration_review_required=($collaboration.Count -gt 0);collaboration_observations=$collaboration;
         command_review_required=(@($network|Where-Object classification -EQ 'review').Count -gt 0);
         turn_completed=($usages.Count -gt 0);error_events=$errors}
 }
@@ -227,11 +243,12 @@ function Test-EvaluationHost([string]$CodexPath,[string]$Scratch,[int]$TimeoutSe
     $paths=@(Invoke-AgentGit $root @('show','--pretty=format:','--name-only','HEAD')|Where-Object {$_})
     $committed=$committed -and $paths.Count -eq 1 -and $paths[0] -eq 'output.txt'
     return @{passed=($copy -and $state -and $committed -and $execution.exit_code -eq 0 -and -not $execution.timed_out -and
-        -not $execution.environment_blocked -and -not $execution.environment_review_required -and -not $execution.command_review_required -and $execution.network_observations.Count -eq 0 -and $execution.turn_completed -and $execution.parse_errors -eq 0 -and $execution.error_events.Count -eq 0);
+        -not $execution.environment_blocked -and -not $execution.environment_review_required -and -not $execution.command_review_required -and -not $execution.collaboration_review_required -and $execution.network_observations.Count -eq 0 -and $execution.turn_completed -and $execution.parse_errors -eq 0 -and $execution.error_events.Count -eq 0);
         filesystem=$filesystem;model_started=$true;read_write_passed=$copy;runtime_write_passed=$state;local_commit_passed=$committed;
         environment_blocked=$execution.environment_blocked;environment_review_required=$execution.environment_review_required;
         denial_observations=$execution.denial_observations;duration_ms=$execution.duration_ms;usage=$execution.usage;
         command_review_required=$execution.command_review_required;network_observations=$execution.network_observations;
+        collaboration_review_required=$execution.collaboration_review_required;collaboration_observations=$execution.collaboration_observations;
         tool_calls=$(if($execution.environment_blocked){$null}else{$execution.tool_calls});completed_tool_items=$execution.tool_calls;
         exit_code=$execution.exit_code;timed_out=$execution.timed_out;event_parse_errors=$execution.parse_errors;
         permission_profile='agents-evaluation';command_network_enabled=$false;codex_settings_access='read';

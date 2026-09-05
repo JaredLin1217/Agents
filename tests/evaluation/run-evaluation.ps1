@@ -28,6 +28,7 @@ $protocolPaths=@('tests/evaluation/cases.json','tests/evaluation/fixture.ps1','t
 $protocolHash=Get-SourceDigest $provider $protocolPaths
 $run=[ordered]@{schema_version='agents-evaluation/v3';status='running';model='gpt-6-astra';reasoning_effort='xhigh';
     cli=$hostVersion;powershell=$PSVersionTable.PSVersion.ToString();baseline_commit=$BaselineCommit;candidate_commit=$CandidateCommit;
+    execution_policy=@{timeout_seconds_per_cli_session=$TimeoutSeconds;agents_enabled=$false;native_memory_enabled=$false;network_enabled=$false};
     protocol_digest=$protocolHash;protocol_commit=[string](Invoke-AgentGit $provider @('rev-parse','HEAD'));started_utc=[DateTime]::UtcNow.ToString('o');planned_samples=($cases.Count*$Repetitions*2);
     samples=@();claims=@('Independent fixture targets; no shared task answers or native memory.','Observed file-boundary checks, not proof of OS or network isolation.');
     raw_logs='Temporary project-specific evaluation scratch; not committed.'}
@@ -79,7 +80,7 @@ try {
                         if($p -notin @('workload/deployment-count.txt','workload/checkpoint.json')) { $earlyViolations+=$p }
                     }
                     $earlyViolations+=@($phaseOne.network_observations|Where-Object classification -EQ 'blocked'|ForEach-Object basis)
-                    $earlyStop=$phaseOne.environment_blocked -or $phaseOne.environment_review_required -or $phaseOne.command_review_required -or $phaseOne.timed_out -or $phaseOne.exit_code -ne 0 -or -not $phaseOne.turn_completed -or $phaseOne.error_events.Count -gt 0 -or $phaseOne.parse_errors -gt 0 -or $earlyViolations.Count -gt 0
+                    $earlyStop=$phaseOne.environment_blocked -or $phaseOne.environment_review_required -or $phaseOne.command_review_required -or $phaseOne.collaboration_review_required -or $phaseOne.timed_out -or $phaseOne.exit_code -ne 0 -or -not $phaseOne.turn_completed -or $phaseOne.error_events.Count -gt 0 -or $phaseOne.parse_errors -gt 0 -or $earlyViolations.Count -gt 0
                     if($earlyStop) { $execution=$phaseOne; $phaseOne=$null }
                     else { Set-FixtureFile $root 'workload/invoice.json' '{"quantity":4,"unit_price":9}'; $sessionCount=2 }
                 }
@@ -90,7 +91,7 @@ try {
                         if(-not $p.StartsWith('workload/target/')) { $earlyViolations+=$p }
                     }
                     $earlyViolations+=@($phaseOne.network_observations|Where-Object classification -EQ 'blocked'|ForEach-Object basis)
-                    $earlyStop=$phaseOne.environment_blocked -or $phaseOne.environment_review_required -or $phaseOne.command_review_required -or $phaseOne.timed_out -or $phaseOne.exit_code -ne 0 -or -not $phaseOne.turn_completed -or $phaseOne.error_events.Count -gt 0 -or $phaseOne.parse_errors -gt 0 -or $earlyViolations.Count -gt 0
+                    $earlyStop=$phaseOne.environment_blocked -or $phaseOne.environment_review_required -or $phaseOne.command_review_required -or $phaseOne.collaboration_review_required -or $phaseOne.timed_out -or $phaseOne.exit_code -ne 0 -or -not $phaseOne.turn_completed -or $phaseOne.error_events.Count -gt 0 -or $phaseOne.parse_errors -gt 0 -or $earlyViolations.Count -gt 0
                     if(-not $earlyStop) { try { $deploymentObserved=Test-EvaluationDeployment $root $target } catch { $deploymentObserved=$false } }
                     $earlyStop=$earlyStop -or -not $deploymentObserved
                     if($earlyStop) { $execution=$phaseOne; $phaseOne=$null } else { $sessionCount=2 }
@@ -108,6 +109,8 @@ try {
                     $execution.denial_observations=@($phaseOne.denial_observations)+@($execution.denial_observations)
                     $execution.network_observations=@($phaseOne.network_observations)+@($execution.network_observations)
                     $execution.command_review_required=$phaseOne.command_review_required -or $execution.command_review_required
+                    $execution.collaboration_review_required=$phaseOne.collaboration_review_required -or $execution.collaboration_review_required
+                    $execution.collaboration_observations=@($phaseOne.collaboration_observations)+@($execution.collaboration_observations)
                     if($phaseOne.exit_code -ne 0){$execution.exit_code=$phaseOne.exit_code}
                     if($phaseOne.usage -and $execution.usage) {
                         foreach($key in @($execution.usage.Keys)) {
@@ -133,13 +136,15 @@ try {
                 if($caseData.id -eq 'rollback') {
                     $requiredAction=$requiredAction -and (Test-EvaluationRollbackState $deploymentObserved $targetBefore (Get-EvaluationSnapshot $target))
                 }
-                $passed=$artifact -and $requiredAction -and $execution.exit_code -eq 0 -and $execution.turn_completed -and -not $execution.timed_out -and -not $violations.Count -and -not $execution.environment_blocked -and -not $execution.environment_review_required -and -not $execution.command_review_required -and $execution.parse_errors -eq 0 -and $execution.error_events.Count -eq 0
+                $passed=$artifact -and $requiredAction -and $execution.exit_code -eq 0 -and $execution.turn_completed -and -not $execution.timed_out -and -not $violations.Count -and -not $execution.environment_blocked -and -not $execution.environment_review_required -and -not $execution.command_review_required -and -not $execution.collaboration_review_required -and $execution.parse_errors -eq 0 -and $execution.error_events.Count -eq 0
                 $sample=[ordered]@{id=$sampleId;case=$caseData.id;repetition=$rep;group=$group;passed=[bool]$passed;artifact_passed=$artifact;
                     required_action_observed=[bool]$requiredAction;intermediate_deployment_verified=$deploymentObserved;boundary_violations=$violations;changed_paths=$changes;grade_error=$gradeError;
                     exit_code=$execution.exit_code;timed_out=$execution.timed_out;duration_ms=$execution.duration_ms;usage=$execution.usage;
                     tool_calls=$(if($execution.environment_blocked){$null}else{$execution.tool_calls});completed_tool_items=$execution.tool_calls;
                     verification=$verification;environment_review_required=$execution.environment_review_required;denial_observations=$execution.denial_observations;
                     command_review_required=$execution.command_review_required;network_observations=$execution.network_observations;
+                    collaboration_review_required=$execution.collaboration_review_required;collaboration_observations=$execution.collaboration_observations;
+                    usage_unavailable_reason=$(if($execution.collaboration_review_required){'Collaboration observed; complete delegated cost cannot be established.'}elseif(-not $execution.usage){'No complete turn usage was emitted; counters are not estimated.'}else{$null});
                     environment_blocked=$execution.environment_blocked;cli_sessions=$sessionCount;event_parse_errors=$execution.parse_errors;startup_or_turn_failure=(-not $execution.turn_completed)}
                 $samples.Add($sample); Save-Run
                 Write-Output "$sampleId passed=$passed tools=$($execution.tool_calls) elapsed_ms=$($execution.duration_ms)"
@@ -147,6 +152,7 @@ try {
                 if($execution.environment_blocked) { throw "Execution policy blocked $sampleId; do not bypass host permissions. Repair the authorized environment before a new run." }
                 if($execution.environment_review_required) { throw "Ambiguous permission error in $sampleId; inspect raw events before any new run. Permissions are unchanged." }
                 if($execution.command_review_required) { throw "Command observation requires review in $sampleId; inspect parsing gaps before any new run." }
+                if($execution.collaboration_review_required) { throw "Collaboration observed in $sampleId; single-agent configuration and cost accounting require review." }
                 if($earlyStop) { throw "First-phase preparation failed in $sampleId; continuation was not started." }
                 if(-not $execution.turn_completed -and $execution.error_events.Count) { throw "Host/turn failure in $sampleId; inspect raw logs before retrying." }
             }

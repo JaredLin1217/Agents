@@ -53,6 +53,19 @@
   ],
   "workflow_diagnostics": [
     {
+      "id": "c463476b161f4afb914fbcc06cb81f87",
+      "report": "docs/evidence/evaluation/c463476b161f4afb914fbcc06cb81f87.json",
+      "candidate_commit": "eb5ce978512559215b992f342c1aa5049d2cf056",
+      "status": "stopped",
+      "planned_samples": 12,
+      "samples": 2,
+      "passed": 1,
+      "timeout_seconds_per_cli_session": 600,
+      "cause": "Baseline deployment artifacts passed but the turn timed out at 600116 ms (21 completed tool items, no final usage). Candidate deployment passed in 394203 ms with 18 completed tool items. The operator stopped after the candidate finished. Baseline stderr independently records a collab spawn failure; the old features.multi_agent flag did not disable that tool. Original outcomes are unchanged and no delegated-cost or efficiency claim is justified.",
+      "correction": "Use documented agents.enabled=false and the same explicit single-agent task scope for both arms. Collaboration tool events and the observed stderr router failure now stop for review with aggregate usage unavailable. Record per-session timeout in every run. Any larger shared diagnostic budget starts a separate run; original timeouts are not relabeled.",
+      "acceptance": false
+    },
+    {
       "id": "cffce8d9affa466fa4812c71a2133db6",
       "report": "docs/evidence/evaluation/cffce8d9affa466fa4812c71a2133db6.json",
       "candidate_commit": "2267c54bfb0d560630733f8e67bade3477ae12b9",
@@ -162,12 +175,12 @@
     "The initial runner counted zero completed tool items during denied attempts. This report marks actual tool-call counts unavailable after reviewing stderr; original raw records are retained unchanged.",
     "CLI 0.151.0 rejected GPT-6. A separate existing 0.153.4 executable passed a READY model preflight; neither CLI nor global configuration was installed or changed. Preflight is not an evaluated task.",
     "Post-pilot fixes changed the source and protocol. A new frozen candidate and full 72-sample run are required; these pilots cannot be relabelled as final-source acceptance.",
-    "Input includes cached input; output includes reasoning. Separate counters are not added again. No subagents were used.",
+    "Input includes cached input; output includes reasoning. Separate counters are not added again. Earlier runs configured the obsolete features.multi_agent flag; c463476b161f4afb914fbcc06cb81f87 stderr proves a failed spawn attempt absent from JSON tool items. Do not claim that the flag disabled delegation or that parent usage covers all delegated costs. A new single-agent protocol is required.",
     "Raw events, stderr and independent fixtures remain in temporary project-specific scratch. No OS, network or future-task correctness guarantee is claimed.",
     "The failed workspace-write preflight is retained as historical evidence. After explicit authorization, the invocation-only agents-evaluation profile passed file/runtime/Git operations and the expected filesystem denials. No global or production permissions were changed.",
     "The diagnostic host preflight ran against local evaluator edits. The stopped formal attempt subsequently passed a fresh host preflight on its frozen protocol. Neither preflight counts as a task sample.",
     "The first formal attempt observed no permission block. Its two candidate tasks passed, but local-fix input and tool calls increased. Do not extrapolate from two successful pairs or silently remove the baseline boundary failure.",
     "The second stopped attempt contains all eight samples, including both diagnosis failures caused by an undisclosed requirement. Counts across stopped protocols must not be combined into a 72-sample acceptance run."
   ],
-  "next_step": "Verify and freeze the deployment-grader correction, rerun six workflow diagnostics, then freeze the complete source/protocol and run all 72 formal tasks. Historical stopped-run counts do not contribute to formal_samples_completed. Do not relabel diagnostics or filter failures; all acceptance thresholds remain unchanged."
+  "next_step": "Verify and freeze current single-agent host configuration and collaboration-error observation, rerun remaining workflow diagnostics with an explicitly recorded shared timeout, then freeze the complete source/protocol and run all 72 formal tasks. Historical stopped-run counts do not contribute to formal_samples_completed. Do not relabel diagnostics or filter failures; all acceptance thresholds remain unchanged."
 }
