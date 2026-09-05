@@ -22,7 +22,7 @@ $evidence=[ordered]@{schema_version='agents-runtime-evidence/v5';workflow_versio
     working_tree_status_at_capture='clean';duration_ms=$timer.ElapsedMilliseconds;host=$report.host;commands=$report.checks;
     result=$(if($report.passed){'passed'}else{'failed'});scope='Provider and disposable local targets only';
     claims=@('Offline regression evidence; not model task accuracy or an external project pilot.','No hard isolation claim. Behavioral boundaries and file ownership checks only.');
-    token_usage=@{status='unavailable';reason='Offline checks do not invoke a model. Real model usage is reported separately by the A/B evaluator.'}}
+    token_usage=@{status='unavailable';reason='Current-version offline checks do not invoke a model or measure token savings.'}}
 # Raw failures can contain local paths; keep those details in ignored state only.
 Write-AgentJson (Resolve-SafePath $root '.agents/runtime/checkpoint-last.json') $report
 foreach($receipt in $evidence.commands) {

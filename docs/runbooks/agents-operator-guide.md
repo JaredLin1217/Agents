@@ -58,12 +58,14 @@ rolled back before new deployment. Never remove a lock while a deployment proces
 is still active. These guards are behavioral/file ownership controls, not a hard
 security sandbox against an adversarial process racing file writes.
 
-## Evidence Levels
-Static checks establish syntax and contracts. Offline regression exercises
-disposable targets and recovery. Model evaluation measures the fixed tasks with
-real usage. None proves arbitrary future accuracy, external project compatibility,
-or enforced OS isolation. Missing usage is unavailable, never estimated as savings.
+## Evidence Boundaries
+Static checks establish syntax and contracts. Core offline regression exercises
+both layouts, ownership conflicts, deployment rollback, source-checked memory and
+task recovery. These run through the same checkpoint registry, not separate nested
+validation commands. No model comparison is a release prerequisite. Passing these
+checks does not establish model task accuracy, token savings, external project
+compatibility or enforced OS isolation. Token usage remains unavailable.
 
-Sources are reviewed when used or released: model/configuration/event references
+Sources are reviewed when used or released: model/configuration references
 every 30 days, stable workflow references every 90. Stale claims need fresh official
 documentation; unrelated local edits are not blocked merely by a stale reference.

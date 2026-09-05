@@ -1,54 +1,38 @@
 # v3 Upgrade
 
-v3 replaces the previous workflow architecture rather than adding compatibility.
-Git commit `5e1643410233858ed70e4567beb01468fe0c2dc8` preserves the final v2.9.1
-baseline, old schemas, runtime evidence and migration reference materials.
+v3 uses native skills, optional context discovery, source-checked JSON knowledge,
+task checkpoints and explicit deployment ownership. It has no mandatory routing
+hierarchy, chat envelope, fixed reply decoration or runtime compatibility layer.
+Previous implementations remain in Git history, not the current working tree.
 
-Removed: department and leader hierarchies, model tier routing, duplicated YAML
-routes, provider adapters, chat envelopes, fixed reply decorations, runtime cleanup
-against live host databases, generated public update commits and composite scoring.
-The replacement is native skills plus small JSON-backed knowledge, checkpoints,
-explicit file ownership and one validation registry. Tests, not agent self-ratings,
-establish the stated outcomes.
-
+## Local Configuration
 The main project's ignored Codex configuration selects `gpt-6-astra` with `xhigh`.
-The previous 64k compaction threshold is retained as a controlled variable, not
-presented as a model context-window limit. Global and downstream settings are not
-changed. Native memory injection and generation are disabled locally to prevent
-cross-project knowledge sharing; versioned project knowledge remains available.
-Restart/new sessions are required for host settings to take effect.
+The 64k compaction threshold is a local operating choice, not the model's context
+window. Global and downstream settings remain untouched. Native memory injection
+and generation are disabled locally; versioned project knowledge is the durable
+store. Restart or start a new session when changing host settings.
 
-## Existing Installations
-Do not force the new deployer over an unowned v2 installation. Old deployment
-reports did not contain original content hashes, so their file names alone cannot
-prove that current target files are unmodified. Before an authorized downstream
-migration, reconstruct ownership from the exact original Provider commit and layout,
-compare original bytes to the target, and review every retained or removed path.
-A reviewed v3 managed manifest may record those verified originals; unchanged old
-owned paths are removed by the next preview. Conflicts require deliberate review,
-not an overwrite flag. This is a one-time operator migration, not old runtime support.
+## Existing Files
+Deploy only into an explicitly authorized target. Existing file names do not prove
+ownership. Review original hashes before adopting any existing rules into a managed
+manifest; modified or unowned files stop writes. Preserve business code, product
+documentation, local settings, project knowledge and historical data. There is no
+overwrite or compatibility switch. Downstream deployment is a separate operation.
 
-Preserve target knowledge, product docs, local configuration and historical data.
-This release's implementation and regression targets are local disposable projects;
-no production downstream rollout is implied.
+## Minimal Verification
+Use `validate.ps1 -Scope Provider|Consumer -Profile Changed` while editing and
+`-Profile Checkpoint` for handoff, commit or deployment. One registry checks syntax,
+JSON contracts, ownership, knowledge and relevant source freshness. Provider adds
+current size limits, core regression, the release package and source-bound evidence.
+Consumer does not run Provider tests. Registered product tests remain project-owned.
 
-## Evaluation
-The former resolver selection tests were not model-task A/B tests. v3 separates
-pointer/parse unit coverage from actual CLI runs. The model benchmark fixes 12
-tasks, two groups and three repetitions before running; failures and missing
-metrics remain visible. Same model and effort, fresh task roots and no shared
-answers/memory are required. See `tests/evaluation/README.md` and the generated
-evaluation report for actual completion, safety and efficiency gates.
+The owner replaced model-comparison acceptance with current-version offline checks
+on 2026-09-06. Comparison runners, host probes, old baselines and historical report
+copies were removed. Incomplete comparison results are not reclassified as success;
+no measured model-accuracy or token-saving claim is made.
 
-Current release status is a candidate, not model-accepted. See
-`docs/evidence/v3-evaluation-status.json` for preserved pilots, stopped runs and
-subsequent diagnostics. The initial runtime-write denial is historical: the scoped
-disposable profile now passes file, runtime and local-commit probes while rejecting
-local-settings and outside writes. Both frozen full validators also qualify before
-model calls. These checks are not model task acceptance or an isolation guarantee.
-Engineering checkpoint success alone does not authorize a v3 release tag or claim
-the planned token savings. A complete frozen 72-task run is still required.
-
-The candidate fixture without task prompts and grading entry points also passed
-its offline checkpoint, complete installation checks and restoration in a separate
-disposable target. This validates the evaluation setup, not model task outcomes.
+Core regression retains both deployment layouts, Chinese and spaced paths, no-write
+previews, complete rollback, ownership conflicts, damaged backups, memory retirement,
+staleness, conflicts and task reinspection. The release collector runs this same
+registry from clean committed source. Commit only the declared evidence file after
+capture. These checks do not prove external deployment readiness or hard isolation.

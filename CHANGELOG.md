@@ -11,14 +11,15 @@
 - Unify Changed/Checkpoint validation and separate Provider/Consumer scopes.
 - Deploy explicit hashed ownership maps with conflict detection, approved preview
   digests, rollback journals, and no source-code path rewriting.
-- Replace simulated accuracy and synthetic scores with offline regression receipts
-  and a real GPT-6 A/B evaluation protocol. Acceptance depends on measured results.
-- Preflight model-host access before evaluation, retain failed diagnostics, and
-  independently verify complete deployment and rollback in separate target fixtures.
+- Keep current-version offline regression receipts instead of synthetic scores.
+  Verify deployment, rollback, memory and recovery in disposable local targets.
+- Retire old-version comparison runners, model-host probes, historical report
+  copies and relative baseline gates. Validation no longer launches model tasks;
+  prior incomplete runs do not establish task accuracy or token savings.
 - Support deep Git file paths without changing persistent user configuration.
 - Remove fixed response decorations and retain natural user-language communication.
 - Configure only this project's ignored local host settings for GPT-6/xhigh;
   do not distribute model settings or enable shared native memory.
 
-Previous releases are preserved in Git at the immutable baseline recorded in
-`docs/evidence/baseline.json`. This release has no legacy runtime compatibility.
+Previous implementations and results remain in Git history, not runtime
+compatibility code or mandatory validation dependencies.
