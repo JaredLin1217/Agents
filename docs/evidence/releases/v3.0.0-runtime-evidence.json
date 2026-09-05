@@ -1,15 +1,15 @@
 {
   "schema_version": "agents-runtime-evidence/v5",
   "workflow_version": "3.0.0",
-  "source_commit": "472fb2d8d8e0c06212f9bc64d81601ef0a493394",
-  "validated_content_digest": "64a2e54e048fe2b86a2c3533bf73e072a80b0cbd1fe1b484ff17540439aea2b1",
+  "source_commit": "a4e09273a01f36e7ccd3630b3b27fda7794fa608",
+  "validated_content_digest": "24e2dd1738b4407c142a3f688459d74c637cda3bc202dee09a26110211ef75de",
   "excluded_paths": [
     "docs/evidence/releases/v3.0.0-runtime-evidence.json"
   ],
-  "run_started_utc": "2026-09-05T16:05:51.3926918Z",
-  "run_finished_utc": "2026-09-05T16:06:12.6297664Z",
+  "run_started_utc": "2026-09-05T16:36:37.1317358Z",
+  "run_finished_utc": "2026-09-05T16:36:57.2982296Z",
   "working_tree_status_at_capture": "clean",
-  "duration_ms": 21273,
+  "duration_ms": 20205,
   "host": {
     "powershell": "7.6.5",
     "git": "git version 2.51.0.windows.2"
@@ -20,7 +20,7 @@
       "command": "Test-AgentSyntax",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 47,
+      "duration_ms": 46,
       "retry_count": 0,
       "details": []
     },
@@ -29,7 +29,7 @@
       "command": "Test-AgentSchemas",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 106,
+      "duration_ms": 110,
       "retry_count": 0,
       "details": []
     },
@@ -38,7 +38,7 @@
       "command": "Test-AgentOwnership",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 80,
+      "duration_ms": 64,
       "retry_count": 0,
       "details": []
     },
@@ -47,7 +47,7 @@
       "command": "Test-AgentKnowledge",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 74,
+      "duration_ms": 63,
       "retry_count": 0,
       "details": []
     },
@@ -56,7 +56,7 @@
       "command": "Test-AgentSources",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 13,
+      "duration_ms": 11,
       "retry_count": 0,
       "details": []
     },
@@ -65,10 +65,10 @@
       "command": "Test-AgentSizes",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 151,
+      "duration_ms": 140,
       "retry_count": 0,
       "details": [
-        "production_bytes=40324; deployable_bytes=43277"
+        "production_bytes=40697; deployable_bytes=44038"
       ]
     },
     {
@@ -76,10 +76,10 @@
       "command": "pwsh -NoProfile -File tests/test-workflow.ps1",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 20036,
+      "duration_ms": 19026,
       "retry_count": 0,
       "details": [
-        "PASS: 200 offline assertions"
+        "PASS: 214 offline assertions"
       ]
     },
     {
@@ -87,7 +87,7 @@
       "command": "Test-AgentEvidence",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 233,
+      "duration_ms": 222,
       "retry_count": 0,
       "details": [
         "Evidence is stale; recapture after the next source checkpoint."
@@ -98,10 +98,10 @@
       "command": "export-release-package.ps1",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 187,
+      "duration_ms": 173,
       "retry_count": 0,
       "details": [
-        "{\"layout\":\"root-layout\",\"files\":16,\"path\":\".agents/runtime/packages/2c16f97b008044e59d1cc11fbcb344f8\"}"
+        "{\"files\":16,\"path\":\".agents/runtime/packages/72625afea3be49aabf38dba8134a0d1f\",\"layout\":\"root-layout\"}"
       ]
     },
     {
@@ -109,7 +109,7 @@
       "command": "git diff --check HEAD -- <selected paths>",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 29,
+      "duration_ms": 33,
       "retry_count": 0,
       "details": []
     }
@@ -121,7 +121,7 @@
     "No hard isolation claim. Behavioral boundaries and file ownership checks only."
   ],
   "token_usage": {
-    "status": "unavailable",
-    "reason": "Offline checks do not invoke a model. Real model usage is reported separately by the A/B evaluator."
+    "reason": "Offline checks do not invoke a model. Real model usage is reported separately by the A/B evaluator.",
+    "status": "unavailable"
   }
 }
