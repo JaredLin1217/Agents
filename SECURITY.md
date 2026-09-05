@@ -26,7 +26,7 @@ The project intentionally treats these as local-only or protected:
 - `.agents/runtime/`
 - `.codex/config.toml`
 - `.codex/environments/environment.toml`
-- secrets, credentials, and deployment evidence
+- secrets, credentials, and unsanitized deployment evidence
 - target-owned app code and Git metadata
 If any of these appear in a proposed deployment, commit, issue, or pull request,
 stop and remove the sensitive material before continuing.

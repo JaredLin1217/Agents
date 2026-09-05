@@ -9,15 +9,8 @@ docs/agent-events/
 .codex/environments/environment.toml
 .codex/environments/*.toml
 
-# Project-local agent ledger and runtime coordination state
+# Project-local runtime state, including all historical subdirectories
 .agents/runtime/
-.agents/runtime/collaborators.jsonl
-.agents/runtime/workflows/
-.agents/runtime/executions/
-.agents/runtime/knowledge/
-.agents/runtime/route-packs/
-.agents/runtime/tool-evidence/
-.agents/runtime/deployments/
 .workflow/
 
 # Temporary controller/employee approval reports

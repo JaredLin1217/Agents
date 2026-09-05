@@ -2,6 +2,9 @@
 
 Project-local operating rules, recoverable knowledge, and safe deployment for
 Codex engineering work. Version **3.0.0**, defined in `agents.json`.
+Status: engineering candidate; formal model acceptance is blocked. The
+[evaluation status](docs/evidence/v3-evaluation-status.json) includes every pilot
+sample and the remaining release gate. No token-saving claim is established.
 
 ## Start Here
 

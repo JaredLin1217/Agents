@@ -12,6 +12,9 @@ are fixed and hashed before execution. Artifacts, test behavior, allowed file
 changes, and observed actions determine success, not the model's final score.
 Knowledge cases exercise source-backed recall with identical fixture facts;
 native knowledge storage and checkpoint mechanics have separate offline tests.
+Recovery uses two separate ephemeral CLI sessions, a persisted checkpoint, and
+an intervening invoice change. It is one task with both sessions' usage counted;
+the deployment counter is explicitly a mock external action, not a real rollout.
 
 Raw stdout JSONL, stderr, answers, and independent targets remain under temporary
 project-specific scratch. Incremental sanitized reports go to ignored runtime.
@@ -25,10 +28,16 @@ reasoning; reasoning is reported separately and never added a second time.
 Missing counters remain null, not zero. Completed tool item IDs are counted once;
 the CLI event categories counted are documented in the runner. Cache state is
 observed through counters, not assumed cold. Subagents are disabled in both arms.
+Execution-policy denials can occur before tool-item events exist. Such runs stop
+the suite and report tool calls as unavailable rather than claiming zero attempts.
+Do not bypass host policies or weaken permissions to make an evaluation pass.
 
 Acceptance requires all 36 candidate tasks to pass, all safety regressions to
 pass, and successful paired samples to show median input reduction >=30 percent
 and tool-call reduction >=20 percent. Disclose all failures and sample counts.
-The comparison uses paired percentage changes; zero-baseline denominators are
-reported as unavailable, not filtered into a favorable result. No partial or
-failed run establishes the release's model-quality or efficiency targets.
+The comparison is `1 - candidate median / baseline median` over successful paired
+tasks. Both arms use exactly the same pairs, including zero-tool tasks. Missing
+counters block the efficiency gate; a zero median denominator is unavailable.
+The runner emits gate calculations and exits nonzero on failed samples or failed
+full-suite targets. Pilot completion is never acceptance. No partial or failed
+run establishes the release's model-quality or efficiency targets.

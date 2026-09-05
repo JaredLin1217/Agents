@@ -39,3 +39,9 @@ tasks, two groups and three repetitions before running; failures and missing
 metrics remain visible. Same model and effort, fresh task roots and no shared
 answers/memory are required. See `tests/evaluation/README.md` and the generated
 evaluation report for actual completion, safety and efficiency gates.
+
+Current release status is a candidate, not model-accepted. See
+`docs/evidence/v3-evaluation-status.json` for all four real pilot samples and the
+execution-policy blocker. Engineering checkpoint success alone does not authorize
+a v3 release tag or claim the planned token savings. The finalized candidate still
+needs the complete frozen 72-task run in an authorized working CLI environment.

@@ -1,5 +1,6 @@
 . "$PSScriptRoot/agent-core.ps1"
 function Assert-OwnedPath([string]$Path) {
+    if($Path -match '\\|(^|/)\.\.?(/|$)|:|//' -or $Path.EndsWith('/')) { throw "Noncanonical owned path: $Path" }
     if ($Path -match '(^|/)memory(/|\.)|^\.codex/|^\.git/|^\.agents/runtime/|(^|/)README\.md$|(^|/)agents\.json$') {
         throw "Protected target data: $Path"
     }
@@ -10,12 +11,14 @@ function Assert-OwnedPath([string]$Path) {
 function Get-DeploymentEntries([string]$Provider, [string]$Layout) {
     $catalog=Read-AgentJson (Resolve-SafePath $Provider 'docs/agents/deployment.json') (Resolve-SafePath $Provider 'schemas/deployment.schema.json')
     $seen=@{}
+    $sources=@{}
     foreach($file in $catalog.files) {
         $path=[string]$file[$Layout]
         Assert-OwnedPath $path
         if($seen.ContainsKey($path)) { throw "Duplicate destination: $path" }
         $seen[$path]=$true
         $source=Resolve-SafePath $Provider $file.source
+        if($sources.ContainsKey($file.source)) { throw "Duplicate source: $($file.source)" }; $sources[$file.source]=$true
         $hash=Get-AgentHash $source
         if($hash -eq 'missing') { throw "Missing deployment source: $($file.source)" }
         [ordered]@{source=$file.source;path=$path;sha256=$hash}

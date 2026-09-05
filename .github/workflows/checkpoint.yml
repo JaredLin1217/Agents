@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - name: Run Agents workflow validation
         shell: pwsh
         run: .\scripts\validate.ps1 -Scope Provider -Profile Checkpoint

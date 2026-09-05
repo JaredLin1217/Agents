@@ -34,8 +34,12 @@ function Recall([string]$Root) { (& "$provider/scripts/project-memory.ps1" -Root
 try {
     Reject { Resolve-SafePath $provider '../outside' } 'Traversal accepted'
     Reject { Resolve-SafePath $provider 'C:/outside' } 'Absolute path accepted'
+    Reject { Resolve-SafePath $provider 'scripts/.. /outside' } 'Windows trailing-space traversal accepted'
+    Reject { Resolve-SafePath $provider 'scripts/NUL.txt' } 'Windows device path accepted'
     Reject { Assert-OwnedPath 'docs/memory/entries/private.json' } 'Knowledge declared managed'
     Reject { Assert-OwnedPath '.codex/config.toml' } 'Local config declared managed'
+    Reject { Assert-OwnedPath 'scripts/../docs/memory/private.json' } 'Aliased owned path accepted'
+    Reject { Assert-OwnedPath 'scripts\\hidden.ps1' } 'Noncanonical owned path accepted'
     foreach($layout in @('root-layout','dot-agents-layout')) {
         $root=Join-Path $scratch ($layout+' '+[char]0x6E2C+[char]0x8A66)
         Init $root
@@ -82,6 +86,12 @@ try {
         Put $root 'scripts/retired.ps1' '# prior managed file'
         $upgrade=Deploy $root
         Assert (-not(Test-Path -LiteralPath (Join-Path $root 'scripts/retired.ps1'))) 'Retired file retained'
+        $upgradeJournal=Join-Path $root ".agents/runtime/deployments/$($upgrade.transaction_id).json"
+        $backupJournal=Read-AgentJson $upgradeJournal
+        $damaged=Read-AgentJson $upgradeJournal
+        $damaged.entries[0].backup='YmFk'; Write-AgentJson $upgradeJournal $damaged
+        Reject { Restore-Deployment $root $upgrade.transaction_id } 'Damaged rollback backup accepted'
+        Write-AgentJson $upgradeJournal $backupJournal
         $null=Restore-Deployment $root $upgrade.transaction_id
         Assert (Test-Path -LiteralPath (Join-Path $root 'scripts/retired.ps1')) 'Retired file not restored'
     }
@@ -107,6 +117,18 @@ try {
     $entry.id='conflict'; $entry.status='conflicted'; $entry.supersedes=@()
     Write-AgentJson (Join-Path $root 'docs/memory/entries/conflict.json') $entry
     Assert ((Recall $root).entries.Count -eq 0) 'Conflicted knowledge recalled'
+    $entry.id='resolved'; $entry.status='active'; $entry.supersedes=@('fact-two','conflict')
+    Write-AgentJson (Join-Path $root '.agents/runtime/input.json') $entry
+    $null=& $memory -Action Promote -Root $root -InputPath '.agents/runtime/input.json'
+    Assert ((Recall $root).entries.Count -eq 1 -and (Recall $root).gaps.Count -eq 0) 'Reviewed replacement could not resolve a conflict'
+    $entry.id='cycle-one'; $entry.supersedes=@('cycle-two')
+    Write-AgentJson (Join-Path $root 'docs/memory/entries/cycle-one.json') $entry
+    $entry.id='cycle-two'; $entry.supersedes=@('cycle-one')
+    Write-AgentJson (Join-Path $root 'docs/memory/entries/cycle-two.json') $entry
+    Assert ((Recall $root).entries.Count -eq 0 -and (Recall $root).gaps.Count -gt 0) 'Cyclic knowledge failed silently'
+    Remove-Item -LiteralPath (Join-Path $root 'docs/memory/entries/cycle-one.json'),(Join-Path $root 'docs/memory/entries/cycle-two.json')
+    Write-AgentJson (Join-Path $root '.agents/runtime/immutable.json') @{value=1}
+    Reject { Write-AgentJson (Join-Path $root '.agents/runtime/immutable.json') @{value=2} -NoClobber } 'Exclusive JSON creation overwrote a file'
     $state=@{id='resume-test';objective='Finish task';latest_adjustment='Preserve user work';boundaries=@('contract.txt');completed=@('inspect');open_issues=@();next_steps=@('verify')}
     Write-AgentJson (Join-Path $root '.agents/runtime/task.json') $state
     $task=Get-AgentAsset $root 'scripts/task-state.ps1'
@@ -125,6 +147,40 @@ try {
     Assert ([Text.Encoding]::UTF8.GetByteCount($small) -le 512) 'Context budget exceeded'
     $other=Join-Path $scratch 'unowned'; Init $other; Put $other 'AGENTS.md' 'Private rules'
     Assert ((Get-DeploymentPlan $provider $other 'root-layout').conflicts.Count -gt 0) 'Unowned rules accepted'
+    Put $other 'agents.json' '{"runtime_directory":".git"}'
+    Reject { Get-ProjectSettings $other } 'Runtime redirected into Git metadata'
+    Put $other 'agents.json' '{"knowledge_directory":"business"}'
+    Reject { Get-ProjectSettings $other } 'Knowledge redirected into business files'
+    $linked=Join-Path $scratch 'linked'
+    $null=New-Item -ItemType Junction -Path $linked -Target $root
+    Reject { Resolve-SafePath $scratch 'linked/contract.txt' } 'Junction traversal accepted'
+    Remove-Item -LiteralPath $linked
+    . "$PSScriptRoot/evaluation/metrics.ps1"
+    $probe=@{status='completed';planned_samples=2;samples=@(
+        @{case='answer';repetition=1;group='baseline';passed=$true;usage=@{input_tokens=100};tool_calls=0;event_parse_errors=0;environment_blocked=$false;boundary_violations=@()},
+        @{case='answer';repetition=1;group='candidate';passed=$true;usage=@{input_tokens=110};tool_calls=0;event_parse_errors=0;environment_blocked=$false;boundary_violations=@()})}
+    $metrics=Get-EvaluationMetrics $probe
+    Assert (-not $metrics.acceptance_passed -and -not $metrics.complete_72_samples) 'Pilot reported as full acceptance'
+    Assert ([Math]::Abs($metrics.input_reduction_percent + 10) -lt 0.001) 'Input increase misreported as savings'
+    Assert ($null -eq $metrics.tool_reduction_percent) 'Zero tool denominator treated as savings'
+    $probe.samples[1].environment_blocked=$true
+    Assert ((Get-EvaluationMetrics $probe).successful_pairs -eq 0) 'Policy-blocked sample counted as successful'
+    $probe.samples[1].environment_blocked=$false; $probe.samples[1].event_parse_errors=1
+    Assert ((Get-EvaluationMetrics $probe).successful_pairs -eq 0) 'Damaged event stream counted as successful'
+    $probe.samples+= $probe.samples[0]
+    Reject { Get-EvaluationMetrics $probe } 'Duplicate evaluation sample accepted'
+    $complete=@{status='completed';planned_samples=72;samples=@()}
+    foreach($case in (Read-AgentJson "$PSScriptRoot/evaluation/cases.json")) {
+        foreach($rep in 1..3) {
+            foreach($arm in @('baseline','candidate')) {
+                $complete.samples+=@{case=$case.id;repetition=$rep;group=$arm;passed=$true;usage=@{input_tokens=$(if($arm -eq 'baseline'){100}else{60})};
+                    tool_calls=$(if($arm -eq 'baseline'){10}else{7});event_parse_errors=0;environment_blocked=$false;boundary_violations=@()}
+            }
+        }
+    }
+    Assert ((Get-EvaluationMetrics $complete).acceptance_passed) 'Complete synthetic metric gate failed'
+    $complete.samples[1].usage.input_tokens=$null
+    Assert (-not (Get-EvaluationMetrics $complete).acceptance_passed) 'Missing real usage treated as acceptance'
     "PASS: $script:assertions offline assertions"
 } finally {
     $full=[IO.Path]::GetFullPath($scratch)

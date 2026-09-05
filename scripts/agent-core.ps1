@@ -6,7 +6,13 @@ function Resolve-SafePath {
     param([string]$Root, [string]$Path)
     $rootFull = [IO.Path]::GetFullPath($Root).TrimEnd('/','\')
     if ([string]::IsNullOrWhiteSpace($Path) -or [IO.Path]::IsPathRooted($Path) -or
-        $Path -match '(^|[\\/])\.\.([\\/]|$)|:') { throw "Unsafe relative path: $Path" }
+        $Path -match '(^|[\\/])\.\.([\\/]|$)|:|[\x00-\x1F]') { throw "Unsafe relative path: $Path" }
+    foreach($part in ($Path -split '[\\/]')) {
+        if($part -eq '.') { continue }
+        if($part -ne $part.TrimEnd(' ','.') -or $part -match '^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\.|$)') {
+            throw "Unsafe Windows path component: $Path"
+        }
+    }
     $full = [IO.Path]::GetFullPath([IO.Path]::Combine($rootFull, $Path))
     if (-not $full.StartsWith($rootFull + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
         throw "Path escapes root: $Path"
@@ -41,13 +47,13 @@ function Read-AgentJson {
     return ConvertFrom-Json -InputObject $text -AsHashtable -Depth 80 -ErrorAction Stop
 }
 function Write-AgentJson {
-    param([string]$Path, $Value)
+    param([string]$Path, $Value, [switch]$NoClobber)
     $parent = Split-Path -Parent $Path
     [IO.Directory]::CreateDirectory($parent) | Out-Null
     $temp = "$Path.$([guid]::NewGuid().ToString('N')).tmp"
     try {
         [IO.File]::WriteAllText($temp, (($Value | ConvertTo-Json -Depth 80) + "`n"), [Text.UTF8Encoding]::new($false))
-        [IO.File]::Move($temp, $Path, $true)
+        [IO.File]::Move($temp, $Path, -not $NoClobber)
     } finally { if (Test-Path -LiteralPath $temp) { Remove-Item -LiteralPath $temp } }
 }
 function Get-AgentHash {
@@ -92,6 +98,9 @@ function Get-ProjectSettings {
     if (Test-Path -LiteralPath $path) {
         $read = Read-AgentJson $path
         foreach ($key in @($settings.Keys)) { if ($read.ContainsKey($key)) { $settings[$key] = $read[$key] } }
+    }
+    if($settings.runtime_directory -ne '.agents/runtime' -or $settings.knowledge_directory -ne 'docs/memory/entries') {
+        throw 'Project state and knowledge paths are fixed protected boundaries.'
     }
     return $settings
 }

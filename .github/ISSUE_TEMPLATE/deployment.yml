@@ -8,13 +8,13 @@ body:
       value: |
         Sanitize target paths and outputs when needed. Do not include secrets, private target app code, `.codex/*`, or `.agents/runtime/*` content.
   - type: dropdown
-    id: mode
+    id: layout
     attributes:
-      label: Deployment mode
+      label: Deployment layout
       options:
-        - core_bootstrap
-        - full_workflow
-        - template_provider_mode
+        - auto
+        - root-layout
+        - dot-agents-layout
     validations:
       required: true
   - type: textarea
@@ -22,7 +22,7 @@ body:
     attributes:
       label: Command
       description: Paste the sanitized command you ran.
-      placeholder: .\scripts\deploy-agents-workflow.ps1 -TargetPath "D:\target\repo" -Mode core_bootstrap -DryRun
+      placeholder: .\scripts\deploy-agents-workflow.ps1 -TargetPath "D:\target\repo" -LayoutProfile auto -DryRun
     validations:
       required: true
   - type: textarea
@@ -37,7 +37,7 @@ body:
     attributes:
       label: Target layout
       description: Which layout did the script detect?
-      placeholder: root_docs or dot_agents_docs
+      placeholder: root-layout or dot-agents-layout
   - type: textarea
     id: problem
     attributes:

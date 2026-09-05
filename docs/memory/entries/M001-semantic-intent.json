@@ -4,9 +4,9 @@
   "type": "lesson",
   "conclusion": "Keep durable guidance in English and interpret user intent semantically; do not implement language-specific keyword triggers for delegation.",
   "scope": "Durable guidance and explicit delegation requests; not permission to infer authorization.",
-  "sources": [{"path": "AGENTS.md", "sha256": "dc6806cd14e4aa228ddaed523dae8affe15494b55fda564f4c32669f237b646e", "commit": "5e1643410233858ed70e4567beb01468fe0c2dc8"}],
+  "sources": [{"path": "AGENTS.md", "sha256": "dc6806cd14e4aa228ddaed523dae8affe15494b55fda564f4c32669f237b646e", "commit": "a848609f039f6bd52fdbc428e32c8e0b354c1237"}],
   "verified_utc": "2026-09-05T13:30:00Z",
-  "verification": "Reviewed the v3 root rules: English durable content, explicit delegation, and natural user-language replies. Migrates the valid lesson from the baseline; the hash binds the reviewed working content, not the historical source bytes.",
+  "verification": "Reviewed the committed v3 root rules: English durable content, explicit delegation, and natural user-language replies. Migrates the valid lesson from the v2 baseline; the source commit contains the reviewed rule content.",
   "status": "active",
   "supersedes": [],
   "sensitive": false
