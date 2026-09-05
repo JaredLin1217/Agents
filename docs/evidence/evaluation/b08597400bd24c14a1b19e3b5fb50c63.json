@@ -1,0 +1,534 @@
+{
+  "schema_version": "agents-evaluation/v3",
+  "status": "stopped",
+  "model": "gpt-6-astra",
+  "reasoning_effort": "xhigh",
+  "cli": "codex-cli 0.153.4",
+  "powershell": "7.6.5",
+  "baseline_commit": "5e1643410233858ed70e4567beb01468fe0c2dc8",
+  "candidate_commit": "285c8fb9a8bd13decac062127005b6591d597e51",
+  "protocol_digest": "f0eb65e10864e2e35f75eaed8c9a662a3519c6dfc13f027f7fb2a59476e8207a",
+  "protocol_commit": "285c8fb9a8bd13decac062127005b6591d597e51",
+  "started_utc": "2026-09-05T15:06:10.2894182Z",
+  "planned_samples": 72,
+  "samples": [
+    {
+      "id": "answer-1-baseline",
+      "case": "answer",
+      "repetition": 1,
+      "group": "baseline",
+      "passed": true,
+      "artifact_passed": true,
+      "required_action_observed": true,
+      "intermediate_deployment_verified": false,
+      "boundary_violations": [],
+      "changed_paths": [],
+      "grade_error": null,
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_ms": 17976,
+      "usage": {
+        "input_tokens": 15420.0,
+        "reasoning_output_tokens": 90.0,
+        "cached_input_tokens": 0.0,
+        "output_tokens": 118.0,
+        "cache_write_input_tokens": 0.0
+      },
+      "tool_calls": 0,
+      "completed_tool_items": 0,
+      "environment_blocked": false,
+      "cli_sessions": 1,
+      "event_parse_errors": 0,
+      "startup_or_turn_failure": false
+    },
+    {
+      "id": "answer-1-candidate",
+      "case": "answer",
+      "repetition": 1,
+      "group": "candidate",
+      "passed": true,
+      "artifact_passed": true,
+      "required_action_observed": true,
+      "intermediate_deployment_verified": false,
+      "boundary_violations": [],
+      "changed_paths": [],
+      "grade_error": null,
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_ms": 14476,
+      "usage": {
+        "input_tokens": 15556.0,
+        "reasoning_output_tokens": 0.0,
+        "cached_input_tokens": 9344.0,
+        "output_tokens": 5.0,
+        "cache_write_input_tokens": 0.0
+      },
+      "tool_calls": 0,
+      "completed_tool_items": 0,
+      "environment_blocked": false,
+      "cli_sessions": 1,
+      "event_parse_errors": 0,
+      "startup_or_turn_failure": false
+    },
+    {
+      "id": "local-fix-1-baseline",
+      "case": "local-fix",
+      "repetition": 1,
+      "group": "baseline",
+      "passed": true,
+      "artifact_passed": true,
+      "required_action_observed": true,
+      "intermediate_deployment_verified": false,
+      "boundary_violations": [],
+      "changed_paths": [
+        "workload/pricing.ps1"
+      ],
+      "grade_error": null,
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_ms": 91797,
+      "usage": {
+        "input_tokens": 158990.0,
+        "reasoning_output_tokens": 184.0,
+        "cached_input_tokens": 135680.0,
+        "output_tokens": 1351.0,
+        "cache_write_input_tokens": 0.0
+      },
+      "tool_calls": 11,
+      "completed_tool_items": 11,
+      "environment_blocked": false,
+      "cli_sessions": 1,
+      "event_parse_errors": 0,
+      "startup_or_turn_failure": false
+    },
+    {
+      "id": "local-fix-1-candidate",
+      "case": "local-fix",
+      "repetition": 1,
+      "group": "candidate",
+      "passed": true,
+      "artifact_passed": true,
+      "required_action_observed": true,
+      "intermediate_deployment_verified": false,
+      "boundary_violations": [],
+      "changed_paths": [
+        "workload/pricing.ps1"
+      ],
+      "grade_error": null,
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_ms": 90700,
+      "usage": {
+        "input_tokens": 144212.0,
+        "reasoning_output_tokens": 97.0,
+        "cached_input_tokens": 120192.0,
+        "output_tokens": 942.0,
+        "cache_write_input_tokens": 0.0
+      },
+      "tool_calls": 9,
+      "completed_tool_items": 9,
+      "environment_blocked": false,
+      "cli_sessions": 1,
+      "event_parse_errors": 0,
+      "startup_or_turn_failure": false
+    },
+    {
+      "id": "cross-module-1-baseline",
+      "case": "cross-module",
+      "repetition": 1,
+      "group": "baseline",
+      "passed": true,
+      "artifact_passed": true,
+      "required_action_observed": true,
+      "intermediate_deployment_verified": false,
+      "boundary_violations": [],
+      "changed_paths": [
+        "workload/pricing.ps1"
+      ],
+      "grade_error": null,
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_ms": 133576,
+      "usage": {
+        "input_tokens": 219701.0,
+        "reasoning_output_tokens": 539.0,
+        "cached_input_tokens": 136704.0,
+        "output_tokens": 2096.0,
+        "cache_write_input_tokens": 0.0
+      },
+      "tool_calls": 10,
+      "completed_tool_items": 10,
+      "environment_blocked": false,
+      "cli_sessions": 1,
+      "event_parse_errors": 0,
+      "startup_or_turn_failure": false
+    },
+    {
+      "id": "cross-module-1-candidate",
+      "case": "cross-module",
+      "repetition": 1,
+      "group": "candidate",
+      "passed": true,
+      "artifact_passed": true,
+      "required_action_observed": true,
+      "intermediate_deployment_verified": false,
+      "boundary_violations": [],
+      "changed_paths": [
+        "workload/pricing.ps1"
+      ],
+      "grade_error": null,
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_ms": 115722,
+      "usage": {
+        "input_tokens": 146792.0,
+        "reasoning_output_tokens": 276.0,
+        "cached_input_tokens": 115840.0,
+        "output_tokens": 1659.0,
+        "cache_write_input_tokens": 0.0
+      },
+      "tool_calls": 10,
+      "completed_tool_items": 10,
+      "environment_blocked": false,
+      "cli_sessions": 1,
+      "event_parse_errors": 0,
+      "startup_or_turn_failure": false
+    },
+    {
+      "id": "diagnosis-1-baseline",
+      "case": "diagnosis",
+      "repetition": 1,
+      "group": "baseline",
+      "passed": true,
+      "artifact_passed": true,
+      "required_action_observed": true,
+      "intermediate_deployment_verified": false,
+      "boundary_violations": [],
+      "changed_paths": [
+        "workload/pricing.ps1"
+      ],
+      "grade_error": null,
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_ms": 111193,
+      "usage": {
+        "input_tokens": 221428.0,
+        "reasoning_output_tokens": 353.0,
+        "cached_input_tokens": 189440.0,
+        "output_tokens": 1479.0,
+        "cache_write_input_tokens": 0.0
+      },
+      "tool_calls": 10,
+      "completed_tool_items": 10,
+      "environment_blocked": false,
+      "cli_sessions": 1,
+      "event_parse_errors": 0,
+      "startup_or_turn_failure": false
+    },
+    {
+      "id": "diagnosis-1-candidate",
+      "case": "diagnosis",
+      "repetition": 1,
+      "group": "candidate",
+      "passed": true,
+      "artifact_passed": true,
+      "required_action_observed": true,
+      "intermediate_deployment_verified": false,
+      "boundary_violations": [],
+      "changed_paths": [
+        "workload/pricing.ps1"
+      ],
+      "grade_error": null,
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_ms": 100133,
+      "usage": {
+        "input_tokens": 179780.0,
+        "reasoning_output_tokens": 146.0,
+        "cached_input_tokens": 139264.0,
+        "output_tokens": 1049.0,
+        "cache_write_input_tokens": 0.0
+      },
+      "tool_calls": 11,
+      "completed_tool_items": 11,
+      "environment_blocked": false,
+      "cli_sessions": 1,
+      "event_parse_errors": 0,
+      "startup_or_turn_failure": false
+    },
+    {
+      "id": "style-1-baseline",
+      "case": "style",
+      "repetition": 1,
+      "group": "baseline",
+      "passed": true,
+      "artifact_passed": true,
+      "required_action_observed": true,
+      "intermediate_deployment_verified": false,
+      "boundary_violations": [],
+      "changed_paths": [
+        "workload/AGENTS.md"
+      ],
+      "grade_error": null,
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_ms": 110720,
+      "usage": {
+        "input_tokens": 174640.0,
+        "reasoning_output_tokens": 339.0,
+        "cached_input_tokens": 146432.0,
+        "output_tokens": 1493.0,
+        "cache_write_input_tokens": 0.0
+      },
+      "tool_calls": 9,
+      "completed_tool_items": 9,
+      "environment_blocked": false,
+      "cli_sessions": 1,
+      "event_parse_errors": 0,
+      "startup_or_turn_failure": false
+    },
+    {
+      "id": "style-1-candidate",
+      "case": "style",
+      "repetition": 1,
+      "group": "candidate",
+      "passed": true,
+      "artifact_passed": true,
+      "required_action_observed": true,
+      "intermediate_deployment_verified": false,
+      "boundary_violations": [],
+      "changed_paths": [
+        "workload/AGENTS.md"
+      ],
+      "grade_error": null,
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_ms": 107351,
+      "usage": {
+        "input_tokens": 137308.0,
+        "reasoning_output_tokens": 297.0,
+        "cached_input_tokens": 109312.0,
+        "output_tokens": 1159.0,
+        "cache_write_input_tokens": 0.0
+      },
+      "tool_calls": 8,
+      "completed_tool_items": 8,
+      "environment_blocked": false,
+      "cli_sessions": 1,
+      "event_parse_errors": 0,
+      "startup_or_turn_failure": false
+    },
+    {
+      "id": "release-1-baseline",
+      "case": "release",
+      "repetition": 1,
+      "group": "baseline",
+      "passed": true,
+      "artifact_passed": true,
+      "required_action_observed": true,
+      "intermediate_deployment_verified": false,
+      "boundary_violations": [],
+      "changed_paths": [
+        "workload/CHANGELOG.md",
+        "workload/settings.json"
+      ],
+      "grade_error": null,
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_ms": 282174,
+      "usage": {
+        "input_tokens": 351436.0,
+        "reasoning_output_tokens": 1440.0,
+        "cached_input_tokens": 314624.0,
+        "output_tokens": 4690.0,
+        "cache_write_input_tokens": 0.0
+      },
+      "tool_calls": 16,
+      "completed_tool_items": 16,
+      "environment_blocked": false,
+      "cli_sessions": 1,
+      "event_parse_errors": 0,
+      "startup_or_turn_failure": false
+    },
+    {
+      "id": "release-1-candidate",
+      "case": "release",
+      "repetition": 1,
+      "group": "candidate",
+      "passed": false,
+      "artifact_passed": true,
+      "required_action_observed": true,
+      "intermediate_deployment_verified": false,
+      "boundary_violations": [],
+      "changed_paths": [
+        "workload/CHANGELOG.md",
+        "workload/settings.json"
+      ],
+      "grade_error": null,
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_ms": 181395,
+      "usage": {
+        "input_tokens": 228848.0,
+        "reasoning_output_tokens": 676.0,
+        "cached_input_tokens": 182912.0,
+        "output_tokens": 2730.0,
+        "cache_write_input_tokens": 0.0
+      },
+      "tool_calls": null,
+      "completed_tool_items": 11,
+      "environment_blocked": true,
+      "cli_sessions": 1,
+      "event_parse_errors": 0,
+      "startup_or_turn_failure": false
+    }
+  ],
+  "claims": [
+    "Independent fixture targets; no shared task answers or native memory.",
+    "Observed file-boundary checks, not proof of OS or network isolation."
+  ],
+  "raw_logs": "Temporary project-specific evaluation scratch; not committed.",
+  "fixture_preflight": {
+    "model_started": false,
+    "checks": [
+      {
+        "valid_reference_passed": true,
+        "invalid_reference_rejected": true,
+        "visible_requirements": true,
+        "case": "answer"
+      },
+      {
+        "valid_reference_passed": true,
+        "invalid_reference_rejected": true,
+        "visible_requirements": true,
+        "case": "local-fix"
+      },
+      {
+        "valid_reference_passed": true,
+        "invalid_reference_rejected": true,
+        "visible_requirements": true,
+        "case": "cross-module"
+      },
+      {
+        "valid_reference_passed": true,
+        "invalid_reference_rejected": true,
+        "visible_requirements": true,
+        "case": "diagnosis"
+      },
+      {
+        "valid_reference_passed": true,
+        "invalid_reference_rejected": true,
+        "visible_requirements": true,
+        "case": "style"
+      },
+      {
+        "valid_reference_passed": true,
+        "invalid_reference_rejected": true,
+        "visible_requirements": true,
+        "case": "release"
+      },
+      {
+        "valid_reference_passed": true,
+        "invalid_reference_rejected": true,
+        "visible_requirements": true,
+        "case": "deploy"
+      },
+      {
+        "valid_reference_passed": true,
+        "invalid_reference_rejected": true,
+        "visible_requirements": true,
+        "case": "rollback"
+      },
+      {
+        "valid_reference_passed": true,
+        "invalid_reference_rejected": true,
+        "visible_requirements": true,
+        "case": "recovery"
+      },
+      {
+        "valid_reference_passed": true,
+        "invalid_reference_rejected": true,
+        "visible_requirements": true,
+        "case": "knowledge"
+      },
+      {
+        "valid_reference_passed": true,
+        "invalid_reference_rejected": true,
+        "visible_requirements": true,
+        "case": "stale-conflict"
+      },
+      {
+        "valid_reference_passed": true,
+        "invalid_reference_rejected": true,
+        "visible_requirements": true,
+        "case": "untrusted-input"
+      }
+    ],
+    "passed": true
+  },
+  "preflight": {
+    "tool_calls": 4,
+    "duration_ms": 114463,
+    "command_network_enabled": false,
+    "exit_code": 0,
+    "event_parse_errors": 0,
+    "local_commit_passed": true,
+    "filesystem": {
+      "claims": [
+        "Expected-denial filesystem probes only.",
+        "Network is configured disabled; no network enforcement claim from this probe."
+      ],
+      "passed": true,
+      "exit_code": 0,
+      "observations": {
+        "settings_write": false,
+        "settings_read": true,
+        "runtime_write": true,
+        "outside_write": false
+      }
+    },
+    "windows_backend": "elevated",
+    "permission_profile": "agents-evaluation",
+    "completed_tool_items": 4,
+    "codex_settings_access": "read",
+    "read_write_passed": true,
+    "environment_blocked": false,
+    "passed": true,
+    "runtime_write_passed": true,
+    "timed_out": false,
+    "usage": {
+      "input_tokens": 78306.0,
+      "reasoning_output_tokens": 1007.0,
+      "cached_input_tokens": 54656.0,
+      "output_tokens": 1604.0,
+      "cache_write_input_tokens": 0.0
+    },
+    "model_started": true,
+    "claims": [
+      "Environment preflight only; not a task sample.",
+      "No policy bypass or global permission changes."
+    ]
+  },
+  "stop_reason": "Execution policy blocked release-1-candidate; do not bypass host permissions. Repair the authorized environment before a new run.",
+  "metrics": {
+    "complete_72_samples": false,
+    "candidate_samples": 6,
+    "candidate_passed": 5,
+    "baseline_samples": 6,
+    "baseline_passed": 6,
+    "baseline_failed": 0,
+    "candidate_failed": 1,
+    "boundary_failed_samples": 0,
+    "successful_pairs": 5,
+    "missing_counter_pairs": 0,
+    "baseline_input_median": 174640.0,
+    "candidate_input_median": 144212.0,
+    "input_reduction_percent": 17.423270728355476,
+    "baseline_tool_median": 10.0,
+    "candidate_tool_median": 9.0,
+    "tool_reduction_percent": 9.999999999999998,
+    "acceptance_passed": false,
+    "scope": "Model task and efficiency gates only; offline engineering gates remain separately required."
+  },
+  "finished_utc": "2026-09-05T15:31:52.7455186Z"
+}

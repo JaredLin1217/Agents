@@ -43,6 +43,38 @@ function Remove-EvaluationGradingFiles([string]$Root) {
 function Test-EvaluationRollbackState([bool]$DeploymentVerified,$Before,$After) {
     return ($DeploymentVerified -and @(Compare-EvaluationSnapshot $Before $After).Count -eq 0)
 }
+function Test-EvaluationReleaseChecks([string]$Root,$Calls) {
+    $checkpoint=-1; $workload=-1; $commit=-1; $gaps=@()
+    $native=Test-Path -LiteralPath (Join-Path $Root 'agents.json')
+    for($i=0;$i -lt $Calls.Count;$i++) {
+        $call=$Calls[$i]
+        if($call.type -ne 'command_execution' -or -not $call.Contains('command') -or
+            -not $call.Contains('exit_code') -or $call.exit_code -ne 0 -or -not $call.Contains('aggregated_output')) { continue }
+        $command=$call.command; $output=$call.aggregated_output
+        if($command -match '(?i)\bgit\b[^;\r\n]*?\bcommit\b' -and $output -match '(?m)^\[[^\]\r\n]+ [0-9a-f]{7,40}\] ' -and $commit -lt 0) { $commit=$i }
+        if($workload -lt 0 -and $command -match '(?i)(?:-File\s+|&\s+)[\x22\x27]*[.\\/]*workload[\\/]+check\.ps1\b' -and $output -match '(?m)^PASS\s*$') { $workload=$i }
+        if($checkpoint -ge 0) { continue }
+        if($command -notmatch '(?i)(?:-File\s+|&\s+)[\x22\x27]*[.\\/]*scripts[\\/]+validate\.ps1\b') { continue }
+        if($native) {
+            if($command -notmatch '(?i)-Scope\s+Provider\b' -or $command -notmatch '(?i)-Profile\s+Checkpoint\b' -or $command -notmatch '(?i)-Json\b') { continue }
+            try {
+                $receipt=ConvertFrom-Json -InputObject $output -AsHashtable -ErrorAction Stop
+                $expected=@('syntax','json-schema','ownership','knowledge','sources','size','regression','evidence','package','diff')
+                if($receipt.scope -ne 'Provider' -or $receipt.profile -ne 'Checkpoint' -or $receipt.passed -cne $true -or
+                    @($receipt.checks|Where-Object { $_.result -ne 'passed' -or $_.exit_code -ne 0 }).Count -or
+                    @($receipt.checks|Group-Object id|Where-Object Count -NE 1).Count -or
+                    @(Compare-Object $expected @($receipt.checks.id)).Count -or
+                    $receipt.input_digest -ne (Get-SourceDigest $Root @(Get-AgentFiles $Root))) { continue }
+                $checkpoint=$i
+            } catch { continue }
+        } elseif($command -match '(?i)-Full\b' -and $command -match '(?i)-Score\b' -and
+            $output -match '\[PASS\] Full release audit gates passed\.' -and $output -match '(?m)^Validation passed\.\s*$') { $checkpoint=$i }
+    }
+    if($workload -lt 0) { $gaps+='No successful workload check invocation and PASS output observed.' }
+    if($checkpoint -lt 0) { $gaps+='No successful full Provider checkpoint with matching output observed.' }
+    if($commit -lt 0 -or $workload -ge $commit -or $checkpoint -ge $commit) { $gaps+='Required verification was not observed before the local commit in separate completed commands.' }
+    return @{passed=($gaps.Count -eq 0);gaps=$gaps;workload_call=$workload;checkpoint_call=$checkpoint;commit_call=$commit}
+}
 function Test-EvaluationDeployment([string]$Root,[string]$Target) {
     if(-not(Test-Path -LiteralPath (Join-Path $Target 'AGENTS.md')) -or
         (Get-Content -Raw -LiteralPath (Join-Path $Target 'README.md')) -ne 'Target-owned product documentation.') { return $false }

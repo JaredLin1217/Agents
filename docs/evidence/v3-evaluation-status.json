@@ -11,7 +11,7 @@
   "pilot_candidate_commit": "a848609f039f6bd52fdbc428e32c8e0b354c1237",
   "pilot_protocol_digest": "0eae4c422c5bf5981e740b54dc4d8a6a34f37cecda56b5ea494c47d10e9902a6",
   "formal_samples_required": 72,
-  "formal_samples_completed": 8,
+  "formal_samples_completed": 12,
   "formal_runs": [
     {
       "id": "a3cc51b1e73747249a92f31119937b90",
@@ -36,6 +36,19 @@
       "cause": "Both diagnosis samples passed the visible check but failed an undisclosed negative-quantity requirement. The operator stopped after the active eighth sample was recorded. No boundary or permission violation occurred; all original outcomes remain unchanged.",
       "correction": "Publish acceptance criteria for all twelve tasks, align diagnosis with its read-only check, add valid/invalid fixture preflights for every case and cooperative between-sample stopping. A new run is required; these outcomes cannot establish model-quality acceptance.",
       "acceptance": false
+    },
+    {
+      "id": "b08597400bd24c14a1b19e3b5fb50c63",
+      "report": "docs/evidence/evaluation/b08597400bd24c14a1b19e3b5fb50c63.json",
+      "candidate_commit": "285c8fb9a8bd13decac062127005b6591d597e51",
+      "status": "stopped",
+      "samples": 12,
+      "passed": 11,
+      "failed": 1,
+      "cause": "A successful Get-Content of tests/test-workflow.ps1 included literal denial examples. The evaluator misclassified these source strings as a policy failure. The only matching command completed with exit zero; the host stderr contained only the PowerShell snapshot warning. The original report remains unchanged.",
+      "additional_gap": "The candidate release passed artifact checks but invoked Changed, not the mandatory Provider Checkpoint. The baseline also lacked an observed full validator invocation. Artifact success is not complete workflow compliance; the prior required-action grader did not catch these omissions.",
+      "correction": "Classify permission observations by event channel and failure evidence; stop ambiguous error-shaped output for review. Make pre-commit full verification explicit for both arms and independently check its completed command output, native receipt digest and ordering. Diagnose before starting a new formal run.",
+      "acceptance": false
     }
   ],
   "pilot_samples": [
@@ -45,7 +58,7 @@
     {"id":"local-fix-1-candidate","passed":false,"environment_blocked":true,"input_tokens":72552,"cached_input_tokens":58368,"cache_write_input_tokens":0,"output_tokens":629,"reasoning_output_tokens":215,"tool_calls":null,"duration_ms":45423}
   ],
   "counts": {"pilot_total":4,"passed":2,"failed":2,"environment_blocked":2},
-  "efficiency_acceptance": {"passed":false,"input_reduction_percent":14.015808650991602,"tool_reduction_percent":25.0,"reason":"Only three successful pairs in the second stopped attempt; both diagnosis samples were invalidly specified. These incomplete, superseded-protocol observations are not release efficiency claims. Original reports retain all failures."},
+  "efficiency_acceptance": {"passed":false,"input_reduction_percent":17.423270728355476,"tool_reduction_percent":9.999999999999998,"reason":"Only five successful pairs in the third stopped attempt. Permission classification and release-action grading require correction. These incomplete, superseded-protocol observations are not release efficiency claims. Original reports retain all failures."},
   "blocker": null,
   "latest_environment_preflight": {
     "id": "fa42d70e045b4ee281b2638f3092c3c2",
@@ -102,5 +115,5 @@
     "The first formal attempt observed no permission block. Its two candidate tasks passed, but local-fix input and tool calls increased. Do not extrapolate from two successful pairs or silently remove the baseline boundary failure.",
     "The second stopped attempt contains all eight samples, including both diagnosis failures caused by an undisclosed requirement. Counts across stopped protocols must not be combined into a 72-sample acceptance run."
   ],
-  "next_step": "Validate and freeze the corrected shared fixture/prompt protocol, then start a new complete run with fresh fixture and host preflights. Do not resume or relabel the stopped attempt. Child-only permissions and all grading thresholds remain unchanged."
+  "next_step": "Pass offline denial/action regressions and a focused release diagnostic before freezing a new formal candidate. Do not resume or relabel any stopped attempt. Child-only permissions and all acceptance thresholds remain unchanged."
 }

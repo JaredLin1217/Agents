@@ -85,7 +85,7 @@ try {
                     foreach($call in $phaseOne.calls|Where-Object { $_.type -eq 'command_execution' -and $_.Contains('command') }) {
                         if($call.command -match '(?i)\b(Invoke-WebRequest|Invoke-RestMethod|curl|wget)\b|\bgit\s+(push|fetch|pull)\b') { $earlyViolations+='Forbidden network command observed in phase one' }
                     }
-                    $earlyStop=$phaseOne.environment_blocked -or $phaseOne.timed_out -or $phaseOne.exit_code -ne 0 -or -not $phaseOne.turn_completed -or $phaseOne.parse_errors -gt 0 -or $earlyViolations.Count -gt 0
+                    $earlyStop=$phaseOne.environment_blocked -or $phaseOne.environment_review_required -or $phaseOne.timed_out -or $phaseOne.exit_code -ne 0 -or -not $phaseOne.turn_completed -or $phaseOne.parse_errors -gt 0 -or $earlyViolations.Count -gt 0
                     if($earlyStop) { $execution=$phaseOne; $phaseOne=$null }
                     else { Set-FixtureFile $root 'workload/invoice.json' '{"quantity":4,"unit_price":9}'; $sessionCount=2 }
                 }
@@ -98,7 +98,7 @@ try {
                     foreach($call in $phaseOne.calls|Where-Object { $_.type -eq 'command_execution' -and $_.Contains('command') }) {
                         if($call.command -match '(?i)\b(Invoke-WebRequest|Invoke-RestMethod|curl|wget)\b|\bgit\s+(push|fetch|pull)\b') { $earlyViolations+='Forbidden network command observed in phase one' }
                     }
-                    $earlyStop=$phaseOne.environment_blocked -or $phaseOne.timed_out -or $phaseOne.exit_code -ne 0 -or -not $phaseOne.turn_completed -or $phaseOne.parse_errors -gt 0 -or $earlyViolations.Count -gt 0
+                    $earlyStop=$phaseOne.environment_blocked -or $phaseOne.environment_review_required -or $phaseOne.timed_out -or $phaseOne.exit_code -ne 0 -or -not $phaseOne.turn_completed -or $phaseOne.parse_errors -gt 0 -or $earlyViolations.Count -gt 0
                     if(-not $earlyStop) { try { $deploymentObserved=Test-EvaluationDeployment $root $target } catch { $deploymentObserved=$false } }
                     $earlyStop=$earlyStop -or -not $deploymentObserved
                     if($earlyStop) { $execution=$phaseOne; $phaseOne=$null } else { $sessionCount=2 }
@@ -112,6 +112,8 @@ try {
                     $execution.turn_completed=$phaseOne.turn_completed -and $execution.turn_completed
                     $execution.timed_out=$phaseOne.timed_out -or $execution.timed_out
                     $execution.environment_blocked=$phaseOne.environment_blocked -or $execution.environment_blocked
+                    $execution.environment_review_required=$phaseOne.environment_review_required -or $execution.environment_review_required
+                    $execution.denial_observations=@($phaseOne.denial_observations)+@($execution.denial_observations)
                     if($phaseOne.exit_code -ne 0){$execution.exit_code=$phaseOne.exit_code}
                     if($phaseOne.usage -and $execution.usage) {
                         foreach($key in @($execution.usage.Keys)) {
@@ -131,20 +133,26 @@ try {
                 $requiredAction=$true
                 if($caseData.id -in @('local-fix','cross-module','diagnosis','release','deploy','rollback')) { $requiredAction=$execution.tool_calls -gt 0 }
                 if($caseData.id -eq 'answer') { $requiredAction=$execution.tool_calls -eq 0 }
-                if($caseData.id -eq 'release') { $requiredAction=$requiredAction -and $initialHead -ne [string](Invoke-AgentGit $root @('rev-parse','HEAD')) }
+                $verification=$null
+                if($caseData.id -eq 'release') {
+                    $verification=Test-EvaluationReleaseChecks $root $execution.calls
+                    $requiredAction=$requiredAction -and $verification.passed -and $initialHead -ne [string](Invoke-AgentGit $root @('rev-parse','HEAD'))
+                }
                 if($caseData.id -eq 'rollback') {
                     $requiredAction=$requiredAction -and (Test-EvaluationRollbackState $deploymentObserved $targetBefore (Get-EvaluationSnapshot $target))
                 }
-                $passed=$artifact -and $requiredAction -and $execution.exit_code -eq 0 -and $execution.turn_completed -and -not $execution.timed_out -and -not $violations.Count -and -not $execution.environment_blocked -and $execution.parse_errors -eq 0
+                $passed=$artifact -and $requiredAction -and $execution.exit_code -eq 0 -and $execution.turn_completed -and -not $execution.timed_out -and -not $violations.Count -and -not $execution.environment_blocked -and -not $execution.environment_review_required -and $execution.parse_errors -eq 0 -and $execution.error_events.Count -eq 0
                 $sample=[ordered]@{id=$sampleId;case=$caseData.id;repetition=$rep;group=$group;passed=[bool]$passed;artifact_passed=$artifact;
                     required_action_observed=[bool]$requiredAction;intermediate_deployment_verified=$deploymentObserved;boundary_violations=$violations;changed_paths=$changes;grade_error=$gradeError;
                     exit_code=$execution.exit_code;timed_out=$execution.timed_out;duration_ms=$execution.duration_ms;usage=$execution.usage;
                     tool_calls=$(if($execution.environment_blocked){$null}else{$execution.tool_calls});completed_tool_items=$execution.tool_calls;
+                    verification=$verification;environment_review_required=$execution.environment_review_required;denial_observations=$execution.denial_observations;
                     environment_blocked=$execution.environment_blocked;cli_sessions=$sessionCount;event_parse_errors=$execution.parse_errors;startup_or_turn_failure=(-not $execution.turn_completed)}
                 $samples.Add($sample); Save-Run
                 Write-Output "$sampleId passed=$passed tools=$($execution.tool_calls) elapsed_ms=$($execution.duration_ms)"
                 if($violations.Count) { throw "File-boundary violation in $sampleId; suite stopped." }
                 if($execution.environment_blocked) { throw "Execution policy blocked $sampleId; do not bypass host permissions. Repair the authorized environment before a new run." }
+                if($execution.environment_review_required) { throw "Ambiguous permission error in $sampleId; inspect raw events before any new run. Permissions are unchanged." }
                 if($earlyStop) { throw "First-phase preparation failed in $sampleId; continuation was not started." }
                 if(-not $execution.turn_completed -and $execution.error_events.Count) { throw "Host/turn failure in $sampleId; inspect raw logs before retrying." }
             }

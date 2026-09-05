@@ -243,14 +243,51 @@ try {
     Assert ($targetArgs -contains '--add-dir' -and $targetArgs[$targetArgs.IndexOf('--add-dir')+1] -eq $separate -and $hostArgs -notcontains '--add-dir') 'Target access not scoped to deployment tasks'
     $events=@(
         '{"type":"item.started","item":{"id":"one","type":"command_execution"}}',
-        '{"type":"item.completed","item":{"id":"one","type":"command_execution","aggregated_output":"OK"}}',
+        '{"type":"item.completed","item":{"id":"one","type":"command_execution","status":"completed","exit_code":0,"aggregated_output":"OK"}}',
         '{"type":"turn.completed","usage":{"input_tokens":100,"cached_input_tokens":60,"output_tokens":10,"reasoning_output_tokens":4}}') -join "`n"
     $parsed=Convert-EvaluationEvents $events ''
     Assert ($parsed.tool_calls -eq 1 -and $parsed.usage.input_tokens -eq 100 -and $parsed.usage.output_tokens -eq 10) 'Host usage double counted'
     Assert ($null -eq $parsed.usage.cache_write_input_tokens) 'Missing host usage fabricated'
     Assert ((Convert-EvaluationEvents $events 'blocked by policy').environment_blocked) 'Stderr policy denial missed'
-    Assert ((Convert-EvaluationEvents ($events.Replace('OK','Access is denied')) '').environment_blocked) 'Command output denial missed'
+    $deniedEvents=$events.Replace('OK','Access is denied').Replace('"exit_code":0','"exit_code":1').Replace('"status":"completed"','"status":"failed"')
+    Assert ((Convert-EvaluationEvents $deniedEvents '').environment_blocked) 'Failed command denial missed'
+    $zeroExit=Convert-EvaluationEvents ($events.Replace('OK','Set-Content: Access to the path x is denied.')) ''
+    Assert ($zeroExit.environment_review_required -and -not $zeroExit.environment_blocked) 'Zero-exit error silently accepted or overclaimed'
+    $literal=Convert-EvaluationEvents ($events.Replace('OK',"Assert (Test-Error 'Access is denied') 'Expected denial'")) ''
+    Assert (-not $literal.environment_blocked -and -not $literal.environment_review_required -and $literal.denial_observations[0].classification -eq 'mention') 'Source literal misclassified as execution failure'
+    $sourceText=Get-Content -Raw -LiteralPath $PSCommandPath
+    $sourceEvent=@{type='item.completed';item=@{id='source';type='command_execution';status='completed';exit_code=0;aggregated_output=$sourceText}}|ConvertTo-Json -Depth 6 -Compress
+    $sourceRead=Convert-EvaluationEvents $sourceEvent ''
+    Assert (-not $sourceRead.environment_blocked -and -not $sourceRead.environment_review_required) 'Reading regression source triggers a policy failure'
+    Assert ((Convert-EvaluationEvents '{"type":"turn.failed","error":{"message":"Command blocked by policy"}}' '').environment_blocked) 'Structured turn denial missed'
+    Assert ((Convert-EvaluationEvents '{"type":"item.completed","item":{"id":"denied","type":"tool_call","error":{"message":"permission denied"}}}' '').environment_blocked) 'Structured tool denial missed'
     Assert ((Convert-EvaluationEvents ($events+"`nbroken") '').parse_errors -eq 1) 'Malformed host events ignored'
+    $releaseRoot=Join-Path $scratch 'release observation'; Init $releaseRoot
+    Put $releaseRoot 'agents.json' '{}'
+    $ids=@('syntax','json-schema','ownership','knowledge','sources','size','regression','evidence','package','diff')
+    $receipt=@{scope='Provider';profile='Checkpoint';passed=$true;input_digest=(Get-SourceDigest $releaseRoot @(Get-AgentFiles $releaseRoot));
+        checks=@($ids|ForEach-Object {@{id=$_;result='passed';exit_code=0}})}
+    $releaseCalls=@(
+        @{id='check';type='command_execution';exit_code=0;command='pwsh -NoProfile -File workload/check.ps1';aggregated_output='PASS'},
+        @{id='checkpoint';type='command_execution';exit_code=0;command='pwsh -NoProfile -File scripts/validate.ps1 -Scope Provider -Profile Checkpoint -Json';aggregated_output=($receipt|ConvertTo-Json -Depth 6)},
+        @{id='commit';type='command_execution';exit_code=0;command='git -c core.fsmonitor=false commit -m release';aggregated_output='[main abc1234] release'})
+    Assert ((Test-EvaluationReleaseChecks $releaseRoot $releaseCalls).passed) 'Observed complete release rejected'
+    Assert ((Test-EvaluationReleaseChecks $releaseRoot @($releaseCalls+$releaseCalls[0..1])).passed) 'Post-commit recheck erased valid pre-commit evidence'
+    Assert (-not(Test-EvaluationReleaseChecks $releaseRoot @($releaseCalls[0],$releaseCalls[2])).passed) 'Missing checkpoint accepted'
+    Assert (-not(Test-EvaluationReleaseChecks $releaseRoot @($releaseCalls[2],$releaseCalls[0],$releaseCalls[1])).passed) 'Post-commit validation accepted'
+    $releaseCalls[1].command='pwsh -NoProfile -File scripts/validate.ps1 -Scope Provider -Profile Changed -Json'
+    Assert (-not(Test-EvaluationReleaseChecks $releaseRoot $releaseCalls).passed) 'Changed substituted for Checkpoint'
+    $releaseCalls[1].command='Get-Content -LiteralPath scripts/validate.ps1 -Scope Provider -Profile Checkpoint -Json'
+    Assert (-not(Test-EvaluationReleaseChecks $releaseRoot $releaseCalls).passed) 'Reading a validator counted as running it'
+    $releaseCalls[1].command='pwsh -NoProfile -File scripts/validate.ps1 -Scope Provider -Profile Checkpoint -Json'
+    Put $releaseRoot 'changed.txt' 'Invalidate receipt'
+    Assert (-not(Test-EvaluationReleaseChecks $releaseRoot $releaseCalls).passed) 'Stale validation receipt accepted'
+    $baselineRoot=Join-Path $scratch 'baseline release observation'; Init $baselineRoot
+    $releaseCalls[1].command='pwsh -NoProfile -File scripts/validate.ps1 -Full -Score'
+    $releaseCalls[1].aggregated_output="[PASS] Full release audit gates passed.`nValidation passed.`n"
+    Assert ((Test-EvaluationReleaseChecks $baselineRoot $releaseCalls).passed) 'Frozen baseline full validation rejected'
+    $releaseCalls[1].aggregated_output='Validation passed.'
+    Assert (-not(Test-EvaluationReleaseChecks $baselineRoot $releaseCalls).passed) 'Baseline partial validation accepted'
     $probe=@{status='completed';planned_samples=2;samples=@(
         @{case='answer';repetition=1;group='baseline';passed=$true;usage=@{input_tokens=100};tool_calls=0;event_parse_errors=0;environment_blocked=$false;boundary_violations=@()},
         @{case='answer';repetition=1;group='candidate';passed=$true;usage=@{input_tokens=110};tool_calls=0;event_parse_errors=0;environment_blocked=$false;boundary_violations=@()})}

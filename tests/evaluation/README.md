@@ -91,6 +91,19 @@ observed through counters, not assumed cold. Subagents are disabled in both arms
 Execution-policy denials can occur before tool-item events exist. Such runs stop
 the suite and report tool calls as unavailable rather than claiming zero attempts.
 Do not bypass host policies or weaken permissions to make an evaluation pass.
+Permission words inside successful source reads are recorded as mentions, not
+denials. Structured failures and failed commands with error-shaped output block
+execution. Ambiguous error-shaped output (including PowerShell errors with exit
+zero) stops for review without claiming that a policy denial was proven. This is
+diagnostic classification, not an isolation enforcement mechanism.
+
+Release grading independently requires successful workload and full Provider
+validation before the local commit, in separate completed command events. The
+native JSON receipt must cover every checkpoint check and match final input
+content; the frozen baseline must emit its full-audit success output. These
+requirements are visible to both arms. Reading scripts, using Changed, stale
+receipts and post-commit checks do not pass. Command/output observation is bounded
+evidence, not an adversarial proof that arbitrary shell output cannot be forged.
 
 Acceptance requires all 36 candidate tasks to pass, all safety regressions to
 pass, and successful paired samples to show median input reduction >=30 percent

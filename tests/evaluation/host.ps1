@@ -61,6 +61,33 @@ function New-EvaluationProcessInfo([string]$CodexPath,[string]$Root) {
     foreach($name in @('TEMP','TMP','TMPDIR')) { $psi.Environment[$name]=$temp }
     return $psi
 }
+function Get-EvaluationDenials($Calls,$Errors,[string]$ErrorOutput) {
+    $phrase='(?i)blocked by policy|access is denied|permission denied|Access to the path .+ is denied'
+    $direct='(?im)^\s*(?:(?:[\w.-]+):\s*)?(?:blocked by policy|access is denied|permission denied|Access to the path .+ is denied)[.!]?\s*$|^\s*\+?\s*CategoryInfo\s*:\s*PermissionDenied\b'
+    $observations=[Collections.Generic.List[object]]::new()
+    if($ErrorOutput -match $phrase) {
+        $observations.Add(@{channel='stderr';item_id=$null;classification='blocked';basis='Host error channel contains a permission denial.'})
+    }
+    foreach($event in $Errors) {
+        if(($event|ConvertTo-Json -Depth 20 -Compress) -match $phrase) {
+            $observations.Add(@{channel='error_event';item_id=$null;classification='blocked';basis='Structured host failure reports a permission denial.'})
+        }
+    }
+    foreach($call in $Calls) {
+        $text=if($call.Contains('aggregated_output')){[string]$call.aggregated_output}else{''}
+        $text=$text -replace '\x1B\[[0-9;]*m',''
+        $structured=$call.Contains('error') -and ($call.error|ConvertTo-Json -Depth 20 -Compress) -match $phrase
+        if(-not $structured -and $text -notmatch $phrase) { continue }
+        $failed=($call.Contains('status') -and $call.status -in @('failed','declined')) -or
+            ($call.Contains('exit_code') -and $null -ne $call.exit_code -and $call.exit_code -ne 0)
+        # Successful reads of source/examples are data, not evidence of a failed operation.
+        # A zero exit can still contain a PowerShell nonterminating error; stop for review.
+        $classification=if($structured -or ($failed -and $text -match $direct)){'blocked'}elseif($failed -or $text -match $direct){'review'}else{'mention'}
+        $observations.Add(@{channel='tool_output';item_id=$call.id;classification=$classification;
+            basis=$(if($structured){'Structured tool error.'}elseif($text -match $direct){'Error-shaped output; inspect exit status and raw event.'}else{'Permission words only; not classified as a denial.'})})
+    }
+    return @($observations.ToArray())
+}
 function Convert-EvaluationEvents([string]$Output,[string]$ErrorOutput) {
     $events=@(); $parseErrors=0
     foreach($line in ($Output -split "`n"|Where-Object {$_})) {
@@ -75,13 +102,12 @@ function Convert-EvaluationEvents([string]$Output,[string]$ErrorOutput) {
             $usage[$key]=if($values.Count -eq $usages.Count){($values|Measure-Object -Sum).Sum}else{$null}
         }
     }
-    $denied=$ErrorOutput -match '(?i)blocked by policy|access is denied|permission denied|Access to the path .+ is denied'
-    foreach($call in $calls) {
-        if($call.Contains('aggregated_output') -and $call.aggregated_output -match '(?i)blocked by policy|access is denied|permission denied|Access to the path .+ is denied') { $denied=$true }
-    }
+    $errors=@($events|Where-Object type -In @('error','turn.failed'))
+    $denials=@(Get-EvaluationDenials $calls $errors $ErrorOutput)
     return @{usage=$usage;tool_calls=@($calls|Group-Object id).Count;parse_errors=$parseErrors;calls=$calls;
-        environment_blocked=[bool]$denied;turn_completed=($usages.Count -gt 0);
-        error_events=@($events|Where-Object type -In @('error','turn.failed'))}
+        environment_blocked=(@($denials|Where-Object classification -EQ 'blocked').Count -gt 0);
+        environment_review_required=(@($denials|Where-Object classification -EQ 'review').Count -gt 0);
+        denial_observations=$denials;turn_completed=($usages.Count -gt 0);error_events=$errors}
 }
 function Invoke-EvaluationHost {
     param([string]$CodexPath,[string]$Root,[string]$Prompt,[string]$LogPrefix,[int]$TimeoutSeconds=600,[string]$Target='')
@@ -170,9 +196,10 @@ function Test-EvaluationHost([string]$CodexPath,[string]$Scratch,[int]$TimeoutSe
     $paths=@(Invoke-AgentGit $root @('show','--pretty=format:','--name-only','HEAD')|Where-Object {$_})
     $committed=$committed -and $paths.Count -eq 1 -and $paths[0] -eq 'output.txt'
     return @{passed=($copy -and $state -and $committed -and $execution.exit_code -eq 0 -and -not $execution.timed_out -and
-        -not $execution.environment_blocked -and $execution.turn_completed -and $execution.parse_errors -eq 0 -and $execution.error_events.Count -eq 0);
+        -not $execution.environment_blocked -and -not $execution.environment_review_required -and $execution.turn_completed -and $execution.parse_errors -eq 0 -and $execution.error_events.Count -eq 0);
         filesystem=$filesystem;model_started=$true;read_write_passed=$copy;runtime_write_passed=$state;local_commit_passed=$committed;
-        environment_blocked=$execution.environment_blocked;duration_ms=$execution.duration_ms;usage=$execution.usage;
+        environment_blocked=$execution.environment_blocked;environment_review_required=$execution.environment_review_required;
+        denial_observations=$execution.denial_observations;duration_ms=$execution.duration_ms;usage=$execution.usage;
         tool_calls=$(if($execution.environment_blocked){$null}else{$execution.tool_calls});completed_tool_items=$execution.tool_calls;
         exit_code=$execution.exit_code;timed_out=$execution.timed_out;event_parse_errors=$execution.parse_errors;
         permission_profile='agents-evaluation';command_network_enabled=$false;codex_settings_access='read';
