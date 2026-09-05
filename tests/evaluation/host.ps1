@@ -1,4 +1,16 @@
 . "$PSScriptRoot/../../scripts/agent-core.ps1"
+function Get-EvaluationTaskBoundary([string[]]$Allowed,[string]$Target='') {
+    $scope='Only this Provider fixture workspace is authorized'
+    if($Target) { $scope+=" together with the exact disposable target $Target" }
+    $paths=@($Allowed|ForEach-Object {
+        if($_ -eq 'workload/target/') {
+            if(-not $Target) { throw 'A deployment boundary requires its exact target.' }
+            'the managed deployment file set under '+$Target
+        } else { $_ }
+    })
+    $writes=if($paths.Count){$paths -join '; '}else{'none'}
+    return "`n$scope. Writable task files: $writes. All other non-runtime files must remain unchanged, including tests not listed here. Git metadata may change only through Git for an explicitly requested local commit. Put temporary verification output only in .agents/runtime/ inside authorized roots. No network, global settings, other projects, or shared memory. Do not inspect parent/sibling directories or grading material. Preserve existing work and local configuration. This is a disposable task, not permission to publish."
+}
 function Get-EvaluationPermissionArguments {
     # Explicit roots avoid inheriting writable system temp directories.
     # Pass the whole TOML value: dotted CLI keys do not preserve quoted path keys.

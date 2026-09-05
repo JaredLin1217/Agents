@@ -165,6 +165,12 @@ try {
     . "$PSScriptRoot/evaluation/metrics.ps1"
     . "$PSScriptRoot/evaluation/host.ps1"
     . "$PSScriptRoot/evaluation/observation.ps1"
+    $taskBoundary=Get-EvaluationTaskBoundary @('workload/pricing.ps1','workload/order.ps1')
+    Assert ($taskBoundary.Contains('workload/pricing.ps1; workload/order.ps1')) 'Task write scope hidden from the evaluated agent'
+    Assert ($taskBoundary.Contains('including tests not listed here') -and $taskBoundary.Contains('.agents/runtime/')) 'Task read-only and temporary-write boundaries missing'
+    Assert ((Get-EvaluationTaskBoundary @()).Contains('Writable task files: none.')) 'Read-only task received write authority'
+    Reject { Get-EvaluationTaskBoundary @('workload/target/') } 'Deployment boundary accepted without target'
+    Assert ((Get-EvaluationTaskBoundary @('workload/target/') 'exact disposable target').Contains('managed deployment file set under exact disposable target')) 'Logical target path leaked into the physical authorization'
     $observed=Join-Path $scratch 'observed target'; Init $observed
     Put $observed 'workload/target/README.md' 'Nested product'
     Put $observed '.gitignore' ".agents/runtime/`nworkload/target/`n"

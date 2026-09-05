@@ -45,6 +45,13 @@ long-path file support does not remove that separate limitation.
 Task prompts and independent grading files are removed from agent fixtures;
 non-grading host/metrics helpers remain so Provider regression tests still work.
 Prompts, graders and their imported helpers are fixed and hashed before execution.
+Every task receives its allowed write set as explicit instructions; the same set
+still drives independent post-run checks. Read-only tests are not hidden scope
+constraints. The cross-module fixture starts with a failing integration check for
+the requested new behavior (33), not the obsolete behavior (21). A command-only
+fixture preflight proves the application fix passes that unchanged test before
+starting model calls. Corrected protocols start new runs; stopped reports remain
+unchanged and never count toward the replacement run.
 Artifacts, test behavior, allowed file
 changes, and observed actions determine success, not the model's final score.
 Knowledge cases exercise source-backed recall with identical fixture facts;

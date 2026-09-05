@@ -1,6 +1,6 @@
 {
   "schema_version": "agents-evaluation-status/v3",
-  "status": "pending_frozen_formal_acceptance",
+  "status": "formal_run_stopped_protocol_review",
   "release_ready": false,
   "reviewed_date": "2026-09-05",
   "model": "gpt-6-astra",
@@ -11,7 +11,21 @@
   "pilot_candidate_commit": "a848609f039f6bd52fdbc428e32c8e0b354c1237",
   "pilot_protocol_digest": "0eae4c422c5bf5981e740b54dc4d8a6a34f37cecda56b5ea494c47d10e9902a6",
   "formal_samples_required": 72,
-  "formal_samples_completed": 0,
+  "formal_samples_completed": 5,
+  "formal_runs": [
+    {
+      "id": "a3cc51b1e73747249a92f31119937b90",
+      "report": "docs/evidence/evaluation/a3cc51b1e73747249a92f31119937b90.json",
+      "candidate_commit": "2e07e876451e2397e9b3d78c541f01d1f21cebfb",
+      "status": "stopped",
+      "samples": 5,
+      "passed": 4,
+      "failed": 1,
+      "cause": "Baseline cross-module changed workload/check.ps1 outside the grading allowlist. The prompt omitted that constraint and the existing check still required obsolete behavior (21 instead of 33). The run stopped; its original failure remains unchanged.",
+      "correction": "Both arms receive the exact allowed write set. The cross-module check now asserts requested behavior before execution. A fixture preflight proves it fails initially and passes after only the application fix. Grading boundaries, stop rules and thresholds are unchanged.",
+      "acceptance": false
+    }
+  ],
   "pilot_samples": [
     {"id":"answer-1-baseline","passed":true,"environment_blocked":false,"input_tokens":13084,"cached_input_tokens":9344,"cache_write_input_tokens":0,"output_tokens":148,"reasoning_output_tokens":120,"tool_calls":0,"duration_ms":18327},
     {"id":"answer-1-candidate","passed":true,"environment_blocked":false,"input_tokens":13220,"cached_input_tokens":9344,"cache_write_input_tokens":0,"output_tokens":5,"reasoning_output_tokens":0,"tool_calls":0,"duration_ms":8507},
@@ -19,7 +33,7 @@
     {"id":"local-fix-1-candidate","passed":false,"environment_blocked":true,"input_tokens":72552,"cached_input_tokens":58368,"cache_write_input_tokens":0,"output_tokens":629,"reasoning_output_tokens":215,"tool_calls":null,"duration_ms":45423}
   ],
   "counts": {"pilot_total":4,"passed":2,"failed":2,"environment_blocked":2},
-  "efficiency_acceptance": {"passed":false,"input_reduction_percent":null,"tool_reduction_percent":null,"reason":"Only one successful pilot pair; formal acceptance and final-source evaluation have not run."},
+  "efficiency_acceptance": {"passed":false,"input_reduction_percent":-19.846664804295866,"tool_reduction_percent":-57.14285714285714,"reason":"Only two successful pairs in the stopped formal attempt. Negative reductions mean increased use. This incomplete, superseded protocol does not establish release efficiency."},
   "blocker": null,
   "latest_environment_preflight": {
     "id": "fa42d70e045b4ee281b2638f3092c3c2",
@@ -64,7 +78,7 @@
     {"runtime_report":".agents/runtime/evaluation/651a2edbaee54d1197a90846159c7fa3.json","started_utc":"2026-09-05T13:32:25.5521857Z","finished_utc":"2026-09-05T13:33:56.9397154Z"}
   ],
   "limitations": [
-    "These are all pilot samples, not a filtered formal comparison. Both arms passed arithmetic and failed editing under the same environment restriction.",
+    "The pilot_samples array contains all historical pilots, not a filtered formal comparison. Both arms passed arithmetic and failed editing under the initial environment restriction.",
     "The arithmetic candidate consumed 136 more input tokens than the baseline. This pilot does not demonstrate input-token savings.",
     "The initial runner counted zero completed tool items during denied attempts. This report marks actual tool-call counts unavailable after reviewing stderr; original raw records are retained unchanged.",
     "CLI 0.151.0 rejected GPT-6. A separate existing 0.153.4 executable passed a READY model preflight; neither CLI nor global configuration was installed or changed. Preflight is not an evaluated task.",
@@ -72,7 +86,8 @@
     "Input includes cached input; output includes reasoning. Separate counters are not added again. No subagents were used.",
     "Raw events, stderr and independent fixtures remain in temporary project-specific scratch. No OS, network or future-task correctness guarantee is claimed.",
     "The failed workspace-write preflight is retained as historical evidence. After explicit authorization, the invocation-only agents-evaluation profile passed file/runtime/Git operations and the expected filesystem denials. No global or production permissions were changed.",
-    "The host preflight ran against local evaluator edits, not a frozen release candidate. Later fixture-observation and dependency fixes require a newly frozen protocol. Existing pilots and this diagnostic remain separate."
+    "The diagnostic host preflight ran against local evaluator edits. The stopped formal attempt subsequently passed a fresh host preflight on its frozen protocol. Neither preflight counts as a task sample.",
+    "The first formal attempt observed no permission block. Its two candidate tasks passed, but local-fix input and tool calls increased. Do not extrapolate from two successful pairs or silently remove the baseline boundary failure."
   ],
-  "next_step": "Freeze the authorized child-only profile and fixture protocol after checkpoint validation, then run all 72 samples with mandatory host preflight. Preserve every failure and publish the complete report. Child TEMP/TMP/TMPDIR remain within the fixture; local configuration stays read-only and command network stays disabled."
+  "next_step": "Validate and freeze the corrected shared fixture/prompt protocol, then start a new complete run with fresh fixture and host preflights. Do not resume or relabel the stopped attempt. Child-only permissions and all grading thresholds remain unchanged."
 }
