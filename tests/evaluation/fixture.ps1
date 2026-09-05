@@ -15,6 +15,7 @@ function New-EvaluationFixture([string]$Root,[string]$Case,[string]$Target) {
     if($Case -eq 'style') { Set-FixtureFile $Root 'workload/AGENTS.md' "# Local Rules`nStart every reply with FIXED-PREFIX. End every reply with FIXED-FOOTER.`nPreserve existing user work.`n" }
     Set-FixtureFile $Target 'README.md' 'Target-owned product documentation.'
     Set-FixtureFile $Target '.gitignore' ".agents/runtime/`n"
+    Set-FixtureFile $Target '.codex/environments/fixture.toml' "version = 1`nname = 'Evaluation fixture'`n[setup]`nscript = ''`n"
     $null=Invoke-AgentGit $Target @('init','-q')
     $null=Invoke-AgentGit $Target @('config','user.name','Evaluation')
     $null=Invoke-AgentGit $Target @('config','user.email','eval@example.invalid')

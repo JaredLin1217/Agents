@@ -10,21 +10,33 @@ immutable, recorded in `docs/evidence/baseline.json`.
 Each sample contains a Provider checkout and a separate sibling target: the v2
 baseline refuses to deploy inside its own checkout. Only deployment/rollback calls
 receive that exact target via `--add-dir`; other calls have no extra writable root.
-This does not remove protection from `.agents`, `.codex` or Git metadata. Failed
-preflight remains blocking regardless of the extra target. Both arms use the same
+An explicitly authorized, invocation-only permission profile allows code, `.agents`
+and Git writes in these disposable roots, keeps `.codex` read-only, and disables
+command network access. It does not inherit writable system temp directories.
+Launches outside the project-specific evaluation scratch or through linked roots
+are rejected. Both targets start with an identical inert local environment file;
+deployment must preserve it. Failed preflight remains blocking. Both arms use the same
 topology. Reports use `workload/target/` as its stable logical path, not an absolute
 machine-specific location.
+`TEMP`, `TMP` and `TMPDIR` are set only on each child process to its own
+`.agents/runtime/temp`; legacy temporary output therefore remains inside that
+already authorized fixture. The parent environment is not changed.
 
 The runner first checks actual file read/write, ignored runtime writes and a local
 Git commit in a separate disposable fixture, using exactly the task host arguments.
+Before any model call, a command-only sandbox probe checks runtime writes and
+expected denial of writes to `.codex` and outside the fixture. These narrowly
+defined negative tests are not agent task attempts or permission retries.
 Run `test-host.ps1 -CodexPath <executable>` for the same diagnostic alone. A failed
 preflight stops before allocating task samples; its real usage remains a separate
 overhead record, never part of the 72-task acceptance count. Windows explicitly
 selects the already provisioned `elevated` backend because `--ignore-user-config`
-otherwise drops that setting. This does not install a sandbox or grant permissions.
+otherwise drops that setting. This does not install a sandbox or change host settings.
 The runner never disables rules or changes global permissions. If the configured
 sandbox refuses Git or runtime writes, use an appropriately authorized evaluation
 environment; do not weaken the controls to manufacture passing results.
+The profile uses the documented permission-profile interface, not legacy `-s`
+settings or a full-access fallback: https://learn.chatgpt.com/docs/permissions.
 
 Offline Git calls use invocation-local long-path support for deeply nested fixture
 files. Keep repository working-directory paths below the Windows Git startup limit;

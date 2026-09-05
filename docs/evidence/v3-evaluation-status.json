@@ -1,6 +1,6 @@
 {
   "schema_version": "agents-evaluation-status/v3",
-  "status": "blocked_before_formal_acceptance",
+  "status": "pending_frozen_formal_acceptance",
   "release_ready": false,
   "reviewed_date": "2026-09-05",
   "model": "gpt-6-astra",
@@ -20,7 +20,24 @@
   ],
   "counts": {"pilot_total":4,"passed":2,"failed":2,"environment_blocked":2},
   "efficiency_acceptance": {"passed":false,"input_reduction_percent":null,"tool_reduction_percent":null,"reason":"Only one successful pilot pair; formal acceptance and final-source evaluation have not run."},
-  "blocker": "Explicitly selecting the provisioned Windows elevated backend restored ordinary fixture reads and writes. A subsequent preflight was denied at .agents/runtime/probe.json and stopped; the local Git commit was not attempted. This workspace-write environment cannot yet support the full task suite. Host permissions were not bypassed.",
+  "blocker": null,
+  "latest_environment_preflight": {
+    "id": "fa42d70e045b4ee281b2638f3092c3c2",
+    "runtime_report": ".agents/runtime/evaluation/host-fa42d70e045b4ee281b2638f3092c3c2.json",
+    "passed": true,
+    "permission_profile": "agents-evaluation",
+    "runtime_write_passed": true,
+    "local_commit_passed": true,
+    "codex_settings_write_denied": true,
+    "outside_fixture_write_denied": true,
+    "duration_ms": 101209,
+    "input_tokens": 93246,
+    "cached_input_tokens": 59776,
+    "output_tokens": 1293,
+    "reasoning_output_tokens": 708,
+    "tool_calls": 5,
+    "scope": "Authorized disposable child-process permissions only. Diagnostic, not a task sample. Final protocol must repeat preflight after freezing."
+  },
   "environment_preflight": {
     "id": "b74c97508a2e4bd9aa1ba78d55b6d667",
     "checked_utc": "2026-09-05T13:52:53.4025988Z",
@@ -54,8 +71,8 @@
     "Post-pilot fixes changed the source and protocol. A new frozen candidate and full 72-sample run are required; these pilots cannot be relabelled as final-source acceptance.",
     "Input includes cached input; output includes reasoning. Separate counters are not added again. No subagents were used.",
     "Raw events, stderr and independent fixtures remain in temporary project-specific scratch. No OS, network or future-task correctness guarantee is claimed.",
-    "The current preflight retains workspace-write, approval never and host rules. It changes only an invocation-local Windows backend selection, not global settings or permissions.",
+    "The failed workspace-write preflight is retained as historical evidence. After explicit authorization, the invocation-only agents-evaluation profile passed file/runtime/Git operations and the expected filesystem denials. No global or production permissions were changed.",
     "The host preflight ran against local evaluator edits, not a frozen release candidate. Later fixture-observation and dependency fixes require a newly frozen protocol. Existing pilots and this diagnostic remain separate."
   ],
-  "next_step": "Use an explicitly authorized evaluation environment supporting ordinary files, protected runtime state and local Git operations. Do not bypass current controls. Require the host preflight and fixture engineering gates, freeze candidate and protocol, then run all 72 samples without sharing answers or memory. Preserve failures and publish the complete new report before a release tag."
+  "next_step": "Freeze the authorized child-only profile and fixture protocol after checkpoint validation, then run all 72 samples with mandatory host preflight. Preserve every failure and publish the complete report. Child TEMP/TMP/TMPDIR remain within the fixture; local configuration stays read-only and command network stays disabled."
 }

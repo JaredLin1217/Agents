@@ -1,13 +1,42 @@
 . "$PSScriptRoot/../../scripts/agent-core.ps1"
+function Get-EvaluationPermissionArguments {
+    # Explicit roots avoid inheriting writable system temp directories.
+    # Pass the whole TOML value: dotted CLI keys do not preserve quoted path keys.
+    return @('-c','default_permissions="agents-evaluation"','-c',
+        'permissions={agents-evaluation={filesystem={":minimal"="read",":workspace_roots"={"."="write",".agents"="write",".git"="write",".codex"="read"}},network={enabled=false}}}')
+}
+function Assert-EvaluationLaunchPath([string]$Path) {
+    $allowed=[IO.Path]::GetFullPath((Join-Path ([IO.Path]::GetTempPath()) 'codex-agent-status/jared-ai-team-v3-evaluation'))
+    $full=[IO.Path]::GetFullPath($Path)
+    if(-not $full.StartsWith($allowed+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)) {
+        throw 'Model evaluation writes are authorized only inside disposable evaluation scratch.'
+    }
+    $cursor=Get-Item -Force -LiteralPath $full -ErrorAction Stop
+    while($cursor) {
+        if($cursor.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'Linked evaluation roots are not allowed.' }
+        $cursor=$cursor.Parent
+    }
+}
 function Get-EvaluationHostArguments([string]$Root,[string]$LogPrefix,[string]$Target='') {
     $arguments=@('exec','--strict-config','--ignore-user-config','--ephemeral','--json','--color','never',
-        '-s','workspace-write','-C',$Root,'-m','gpt-6-astra','-c','model_reasoning_effort="xhigh"',
+        '-C',$Root,'-m','gpt-6-astra','-c','model_reasoning_effort="xhigh"',
         '-c','memories.use_memories=false','-c','memories.generate_memories=false','-c','web_search="disabled"',
         '-c','features.multi_agent=false','-c','approval_policy="never"')
+    $arguments+=Get-EvaluationPermissionArguments
     # Ignoring user config must not silently omit the provisioned Windows backend.
     if($IsWindows) { $arguments+=@('-c','windows.sandbox="elevated"') }
     if($Target) { $arguments+=@('--add-dir',$Target) }
     return $arguments+@('-o',"$LogPrefix.answer.txt",'-')
+}
+function New-EvaluationProcessInfo([string]$CodexPath,[string]$Root) {
+    Assert-EvaluationLaunchPath $Root
+    $temp=Resolve-SafePath $Root '.agents/runtime/temp'
+    [IO.Directory]::CreateDirectory($temp)|Out-Null
+    $psi=[Diagnostics.ProcessStartInfo]::new($CodexPath)
+    $psi.WorkingDirectory=$Root; $psi.UseShellExecute=$false; $psi.CreateNoWindow=$true
+    $psi.RedirectStandardOutput=$true; $psi.RedirectStandardError=$true; $psi.RedirectStandardInput=$true
+    foreach($name in @('TEMP','TMP','TMPDIR')) { $psi.Environment[$name]=$temp }
+    return $psi
 }
 function Convert-EvaluationEvents([string]$Output,[string]$ErrorOutput) {
     $events=@(); $parseErrors=0
@@ -33,9 +62,10 @@ function Convert-EvaluationEvents([string]$Output,[string]$ErrorOutput) {
 }
 function Invoke-EvaluationHost {
     param([string]$CodexPath,[string]$Root,[string]$Prompt,[string]$LogPrefix,[int]$TimeoutSeconds=600,[string]$Target='')
-    $psi=[Diagnostics.ProcessStartInfo]::new($CodexPath)
-    $psi.WorkingDirectory=$Root; $psi.UseShellExecute=$false; $psi.CreateNoWindow=$true
-    $psi.RedirectStandardOutput=$true; $psi.RedirectStandardError=$true; $psi.RedirectStandardInput=$true
+    Assert-EvaluationLaunchPath $Root
+    Assert-EvaluationLaunchPath (Split-Path -Parent $LogPrefix)
+    if($Target) { Assert-EvaluationLaunchPath $Target }
+    $psi=New-EvaluationProcessInfo $CodexPath $Root
     foreach($arg in Get-EvaluationHostArguments $Root $LogPrefix $Target) { $psi.ArgumentList.Add($arg) }
     $process=[Diagnostics.Process]::new(); $process.StartInfo=$psi
     try {
@@ -53,12 +83,55 @@ function Invoke-EvaluationHost {
         return $result
     } finally { $process.Dispose() }
 }
-function Test-EvaluationHost([string]$CodexPath,[string]$Scratch,[int]$TimeoutSeconds=120) {
+function Test-EvaluationFilesystem([string]$CodexPath,[string]$Root,[string]$Scratch) {
+    Assert-EvaluationLaunchPath $Root
+    $settings=Join-Path $Root '.codex/sentinel.txt'
+    [IO.Directory]::CreateDirectory((Split-Path -Parent $settings))|Out-Null
+    [IO.File]::WriteAllText($settings,'read-only sentinel')
+    $outside=Join-Path $Scratch 'outside-write-probe.txt'
+    $code=@'
+$ErrorActionPreference='Stop'
+$result=@{}
+[IO.File]::WriteAllText((Join-Path (Get-Location) '.agents/runtime/boundary.txt'),'allowed')
+$result.runtime_write=$true
+$settings=Join-Path (Get-Location) '.codex/sentinel.txt'
+$result.settings_read=([IO.File]::ReadAllText($settings) -eq 'read-only sentinel')
+foreach($entry in @{settings_write='SETTINGS_PATH';outside_write='OUTSIDE_PATH'}.GetEnumerator()) {
+    try { [IO.File]::WriteAllText($entry.Value,'not allowed'); $result[$entry.Key]=$true }
+    catch [UnauthorizedAccessException] { $result[$entry.Key]=$false }
+}
+$result|ConvertTo-Json -Compress
+'@
+    $code=$code.Replace('SETTINGS_PATH',$settings.Replace("'","''")).Replace('OUTSIDE_PATH',$outside.Replace("'","''"))
+    $args=@('sandbox','-P','agents-evaluation','--include-managed-config','-C',$Root)+(Get-EvaluationPermissionArguments)
+    if($IsWindows) { $args+=@('-c','windows.sandbox="elevated"') }
+    $args+=@('--',(Get-Command pwsh -ErrorAction Stop).Source,'-NoProfile','-NonInteractive','-EncodedCommand',[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($code)))
+    $psi=New-EvaluationProcessInfo $CodexPath $Root
+    foreach($arg in $args) { $psi.ArgumentList.Add($arg) }
+    $process=[Diagnostics.Process]::new(); $process.StartInfo=$psi
+    try {
+        $null=$process.Start(); $process.StandardInput.Close()
+        $stdout=$process.StandardOutput.ReadToEndAsync(); $stderr=$process.StandardError.ReadToEndAsync()
+        if(-not $process.WaitForExit(30000)) { $process.Kill($true); $process.WaitForExit() }
+        $output=$stdout.GetAwaiter().GetResult(); $errors=$stderr.GetAwaiter().GetResult(); $exitCode=$process.ExitCode
+    } finally { $process.Dispose() }
+    [IO.File]::WriteAllText((Join-Path $Scratch 'filesystem-preflight.log'),($output+"`n"+$errors))
+    $result=$null
+    try { $result=ConvertFrom-Json -AsHashtable -InputObject $output -ErrorAction Stop } catch {}
+    $passed=$exitCode -eq 0 -and $null -ne $result -and $result.runtime_write -and $result.settings_read -and
+        $result.settings_write -ceq $false -and $result.outside_write -ceq $false -and
+        [IO.File]::ReadAllText($settings) -eq 'read-only sentinel' -and -not(Test-Path -LiteralPath $outside)
+    return @{passed=[bool]$passed;exit_code=$exitCode;observations=$result;
+        claims=@('Expected-denial filesystem probes only.','Network is configured disabled; no network enforcement claim from this probe.')}
+}
+function Test-EvaluationHost([string]$CodexPath,[string]$Scratch,[int]$TimeoutSeconds=180) {
     $root=Resolve-SafePath $Scratch 'host-preflight'
     if(Test-Path -LiteralPath $root) { throw 'Preflight requires a fresh fixture.' }
     [IO.Directory]::CreateDirectory((Join-Path $root '.agents/runtime'))|Out-Null
     [IO.File]::WriteAllText((Join-Path $root 'input.txt'),'fixture value 37')
     [IO.File]::WriteAllText((Join-Path $root '.gitignore'),".agents/runtime/`n")
+    $filesystem=Test-EvaluationFilesystem $CodexPath $root $Scratch
+    if(-not $filesystem.passed) { return @{passed=$false;filesystem=$filesystem;model_started=$false} }
     $null=Invoke-AgentGit $root @('init','-q')
     $null=Invoke-AgentGit $root @('config','user.name','Evaluation')
     $null=Invoke-AgentGit $root @('config','user.email','eval@example.invalid')
@@ -75,10 +148,11 @@ function Test-EvaluationHost([string]$CodexPath,[string]$Scratch,[int]$TimeoutSe
     $committed=$committed -and $paths.Count -eq 1 -and $paths[0] -eq 'output.txt'
     return @{passed=($copy -and $state -and $committed -and $execution.exit_code -eq 0 -and -not $execution.timed_out -and
         -not $execution.environment_blocked -and $execution.turn_completed -and $execution.parse_errors -eq 0 -and $execution.error_events.Count -eq 0);
-        read_write_passed=$copy;runtime_write_passed=$state;local_commit_passed=$committed;
+        filesystem=$filesystem;model_started=$true;read_write_passed=$copy;runtime_write_passed=$state;local_commit_passed=$committed;
         environment_blocked=$execution.environment_blocked;duration_ms=$execution.duration_ms;usage=$execution.usage;
         tool_calls=$(if($execution.environment_blocked){$null}else{$execution.tool_calls});completed_tool_items=$execution.tool_calls;
         exit_code=$execution.exit_code;timed_out=$execution.timed_out;event_parse_errors=$execution.parse_errors;
-        sandbox='workspace-write';windows_backend=$(if($IsWindows){'elevated'}else{'not-applicable'});
+        permission_profile='agents-evaluation';command_network_enabled=$false;codex_settings_access='read';
+        windows_backend=$(if($IsWindows){'elevated'}else{'not-applicable'});
         claims=@('Environment preflight only; not a task sample.','No policy bypass or global permission changes.')}
 }

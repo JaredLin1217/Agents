@@ -200,7 +200,17 @@ try {
     Assert (Test-EvaluationRollbackState $true $original (Get-EvaluationSnapshot $separate)) 'Verified rollback rejected'
     Assert (-not(Test-EvaluationRollbackState $false $original (Get-EvaluationSnapshot $separate))) 'No-op accepted as rollback'
     $hostArgs=@(Get-EvaluationHostArguments $scratch (Join-Path $scratch 'sample'))
-    Assert ($hostArgs -contains 'workspace-write' -and $hostArgs -contains 'approval_policy="never"') 'Evaluation permissions changed'
+    Assert ($hostArgs -contains 'default_permissions="agents-evaluation"' -and $hostArgs -contains 'approval_policy="never"') 'Evaluation permissions changed'
+    Assert ($hostArgs -notcontains '-s' -and $hostArgs -notcontains '--sandbox') 'Legacy sandbox overrides the permission profile'
+    $permissionConfig=@($hostArgs|Where-Object { $_.StartsWith('permissions=') })
+    Assert ($permissionConfig.Count -eq 1 -and $permissionConfig[0].Contains('":workspace_roots"={"."="write"')) 'Evaluation profile is not a scoped TOML value'
+    foreach($name in @('.agents','.git')) {
+        Assert ($permissionConfig[0].Contains(('"'+$name+'"="write"'))) 'Authorized fixture metadata is not writable'
+    }
+    Assert ($permissionConfig[0].Contains('".codex"="read"')) 'Local configuration protection removed'
+    Assert ($permissionConfig[0].Contains('network={enabled=false}')) 'Command network enabled'
+    $launchRejected=$false; try { Assert-EvaluationLaunchPath $provider } catch { $launchRejected=$true }
+    Assert $launchRejected 'Model launch accepted a non-disposable repository'
     Assert ($hostArgs -notcontains '--ignore-rules' -and $hostArgs -notcontains '--dangerously-bypass-approvals-and-sandbox') 'Evaluation bypasses host controls'
     if($IsWindows) { Assert ($hostArgs -contains 'windows.sandbox="elevated"') 'Windows backend dropped with user config' }
     $targetArgs=@(Get-EvaluationHostArguments $scratch (Join-Path $scratch 'sample') $separate)
