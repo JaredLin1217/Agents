@@ -1,15 +1,15 @@
 {
   "schema_version": "agents-runtime-evidence/v5",
   "workflow_version": "3.0.0",
-  "source_commit": "3b9ad5b7d7b57351baaf9a428b6f827b0d08ffa7",
-  "validated_content_digest": "1f696059318b1749f9f36c0b3743d299f94e72d2db5c4e9deabe9e87db3ad8ab",
+  "source_commit": "3c3d660e59a47045ac28b05e093acc910820fe8e",
+  "validated_content_digest": "822b1fa0d7498b9e4b06d6092ffad22b1e5079cce65d8bbac330e1996cf30efb",
   "excluded_paths": [
     "docs/evidence/releases/v3.0.0-runtime-evidence.json"
   ],
-  "run_started_utc": "2026-09-05T14:36:24.9124673Z",
-  "run_finished_utc": "2026-09-05T14:36:51.2704273Z",
+  "run_started_utc": "2026-09-05T15:05:03.3092712Z",
+  "run_finished_utc": "2026-09-05T15:05:51.1319170Z",
   "working_tree_status_at_capture": "clean",
-  "duration_ms": 26441,
+  "duration_ms": 47915,
   "host": {
     "powershell": "7.6.5",
     "git": "git version 2.51.0.windows.2"
@@ -20,7 +20,7 @@
       "command": "Test-AgentSyntax",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 140,
+      "duration_ms": 126,
       "retry_count": 0,
       "details": []
     },
@@ -29,7 +29,7 @@
       "command": "Test-AgentSchemas",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 317,
+      "duration_ms": 274,
       "retry_count": 0,
       "details": []
     },
@@ -38,7 +38,7 @@
       "command": "Test-AgentOwnership",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 234,
+      "duration_ms": 202,
       "retry_count": 0,
       "details": []
     },
@@ -47,7 +47,7 @@
       "command": "Test-AgentKnowledge",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 228,
+      "duration_ms": 194,
       "retry_count": 0,
       "details": []
     },
@@ -56,7 +56,7 @@
       "command": "Test-AgentSources",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 43,
+      "duration_ms": 45,
       "retry_count": 0,
       "details": []
     },
@@ -65,10 +65,10 @@
       "command": "Test-AgentSizes",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 481,
+      "duration_ms": 397,
       "retry_count": 0,
       "details": [
-        "production_bytes=40368; deployable_bytes=43277"
+        "production_bytes=40324; deployable_bytes=43277"
       ]
     },
     {
@@ -76,10 +76,10 @@
       "command": "pwsh -NoProfile -File tests/test-workflow.ps1",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 23099,
+      "duration_ms": 44772,
       "retry_count": 0,
       "details": [
-        "PASS: 147 offline assertions"
+        "PASS: 170 offline assertions"
       ]
     },
     {
@@ -87,7 +87,7 @@
       "command": "Test-AgentEvidence",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 537,
+      "duration_ms": 557,
       "retry_count": 0,
       "details": [
         "Evidence is stale; recapture after the next source checkpoint."
@@ -98,10 +98,10 @@
       "command": "export-release-package.ps1",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 417,
+      "duration_ms": 447,
       "retry_count": 0,
       "details": [
-        "{\"layout\":\"root-layout\",\"files\":16,\"path\":\".agents/runtime/packages/e29ab7c16255409fbcdbd4266133f453\"}"
+        "{\"path\":\".agents/runtime/packages/895147f181e143ccbf72b6b641a4ba5f\",\"layout\":\"root-layout\",\"files\":16}"
       ]
     },
     {
@@ -109,7 +109,7 @@
       "command": "git diff --check HEAD -- <selected paths>",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 67,
+      "duration_ms": 73,
       "retry_count": 0,
       "details": []
     }
@@ -121,7 +121,7 @@
     "No hard isolation claim. Behavioral boundaries and file ownership checks only."
   ],
   "token_usage": {
-    "status": "unavailable",
-    "reason": "Offline checks do not invoke a model. Real model usage is reported separately by the A/B evaluator."
+    "reason": "Offline checks do not invoke a model. Real model usage is reported separately by the A/B evaluator.",
+    "status": "unavailable"
   }
 }
