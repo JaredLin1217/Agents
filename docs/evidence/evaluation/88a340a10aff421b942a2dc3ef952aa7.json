@@ -1,0 +1,344 @@
+{
+  "schema_version": "agents-evaluation/v3",
+  "status": "stopped",
+  "model": "gpt-6-astra",
+  "reasoning_effort": "xhigh",
+  "cli": "codex-cli 0.153.4",
+  "powershell": "7.6.5",
+  "baseline_commit": "5e1643410233858ed70e4567beb01468fe0c2dc8",
+  "candidate_commit": "3cb46e2ed9c2482dd2ce72fcc8a1aa41b1ced3c7",
+  "protocol_digest": "f4fa59c951858ad78e10468892e164ed228685c8e8e38bcc4e8604a179bedb0b",
+  "protocol_commit": "3cb46e2ed9c2482dd2ce72fcc8a1aa41b1ced3c7",
+  "started_utc": "2026-09-05T14:38:44.5053482Z",
+  "planned_samples": 72,
+  "samples": [
+    {
+      "id": "answer-1-baseline",
+      "case": "answer",
+      "repetition": 1,
+      "group": "baseline",
+      "passed": true,
+      "artifact_passed": true,
+      "required_action_observed": true,
+      "intermediate_deployment_verified": false,
+      "boundary_violations": [],
+      "changed_paths": [],
+      "grade_error": null,
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_ms": 16736,
+      "usage": {
+        "cached_input_tokens": 0.0,
+        "output_tokens": 117.0,
+        "cache_write_input_tokens": 0.0,
+        "input_tokens": 15383.0,
+        "reasoning_output_tokens": 89.0
+      },
+      "tool_calls": 0,
+      "completed_tool_items": 0,
+      "environment_blocked": false,
+      "cli_sessions": 1,
+      "event_parse_errors": 0,
+      "startup_or_turn_failure": false
+    },
+    {
+      "id": "answer-1-candidate",
+      "case": "answer",
+      "repetition": 1,
+      "group": "candidate",
+      "passed": true,
+      "artifact_passed": true,
+      "required_action_observed": true,
+      "intermediate_deployment_verified": false,
+      "boundary_violations": [],
+      "changed_paths": [],
+      "grade_error": null,
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_ms": 20023,
+      "usage": {
+        "cached_input_tokens": 9344.0,
+        "output_tokens": 6.0,
+        "cache_write_input_tokens": 0.0,
+        "input_tokens": 15517.0,
+        "reasoning_output_tokens": 0.0
+      },
+      "tool_calls": 0,
+      "completed_tool_items": 0,
+      "environment_blocked": false,
+      "cli_sessions": 1,
+      "event_parse_errors": 0,
+      "startup_or_turn_failure": false
+    },
+    {
+      "id": "local-fix-1-baseline",
+      "case": "local-fix",
+      "repetition": 1,
+      "group": "baseline",
+      "passed": true,
+      "artifact_passed": true,
+      "required_action_observed": true,
+      "intermediate_deployment_verified": false,
+      "boundary_violations": [],
+      "changed_paths": [
+        "workload/pricing.ps1"
+      ],
+      "grade_error": null,
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_ms": 134410,
+      "usage": {
+        "cached_input_tokens": 157312.0,
+        "output_tokens": 2005.0,
+        "cache_write_input_tokens": 0.0,
+        "input_tokens": 189643.0,
+        "reasoning_output_tokens": 561.0
+      },
+      "tool_calls": 12,
+      "completed_tool_items": 12,
+      "environment_blocked": false,
+      "cli_sessions": 1,
+      "event_parse_errors": 0,
+      "startup_or_turn_failure": false
+    },
+    {
+      "id": "local-fix-1-candidate",
+      "case": "local-fix",
+      "repetition": 1,
+      "group": "candidate",
+      "passed": true,
+      "artifact_passed": true,
+      "required_action_observed": true,
+      "intermediate_deployment_verified": false,
+      "boundary_violations": [],
+      "changed_paths": [
+        "workload/pricing.ps1"
+      ],
+      "grade_error": null,
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_ms": 153286,
+      "usage": {
+        "cached_input_tokens": 147200.0,
+        "output_tokens": 1849.0,
+        "cache_write_input_tokens": 0.0,
+        "input_tokens": 163063.0,
+        "reasoning_output_tokens": 567.0
+      },
+      "tool_calls": 9,
+      "completed_tool_items": 9,
+      "environment_blocked": false,
+      "cli_sessions": 1,
+      "event_parse_errors": 0,
+      "startup_or_turn_failure": false
+    },
+    {
+      "id": "cross-module-1-baseline",
+      "case": "cross-module",
+      "repetition": 1,
+      "group": "baseline",
+      "passed": true,
+      "artifact_passed": true,
+      "required_action_observed": true,
+      "intermediate_deployment_verified": false,
+      "boundary_violations": [],
+      "changed_paths": [
+        "workload/pricing.ps1"
+      ],
+      "grade_error": null,
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_ms": 194329,
+      "usage": {
+        "cached_input_tokens": 242816.0,
+        "output_tokens": 2573.0,
+        "cache_write_input_tokens": 0.0,
+        "input_tokens": 284123.0,
+        "reasoning_output_tokens": 576.0
+      },
+      "tool_calls": 15,
+      "completed_tool_items": 15,
+      "environment_blocked": false,
+      "cli_sessions": 1,
+      "event_parse_errors": 0,
+      "startup_or_turn_failure": false
+    },
+    {
+      "id": "cross-module-1-candidate",
+      "case": "cross-module",
+      "repetition": 1,
+      "group": "candidate",
+      "passed": true,
+      "artifact_passed": true,
+      "required_action_observed": true,
+      "intermediate_deployment_verified": false,
+      "boundary_violations": [],
+      "changed_paths": [
+        "workload/pricing.ps1"
+      ],
+      "grade_error": null,
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_ms": 159233,
+      "usage": {
+        "cached_input_tokens": 138496.0,
+        "output_tokens": 2386.0,
+        "cache_write_input_tokens": 0.0,
+        "input_tokens": 167169.0,
+        "reasoning_output_tokens": 717.0
+      },
+      "tool_calls": 10,
+      "completed_tool_items": 10,
+      "environment_blocked": false,
+      "cli_sessions": 1,
+      "event_parse_errors": 0,
+      "startup_or_turn_failure": false
+    },
+    {
+      "id": "diagnosis-1-baseline",
+      "case": "diagnosis",
+      "repetition": 1,
+      "group": "baseline",
+      "passed": false,
+      "artifact_passed": false,
+      "required_action_observed": true,
+      "intermediate_deployment_verified": false,
+      "boundary_violations": [],
+      "changed_paths": [
+        "workload/pricing.ps1"
+      ],
+      "grade_error": null,
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_ms": 124516,
+      "usage": {
+        "cached_input_tokens": 164096.0,
+        "output_tokens": 1727.0,
+        "cache_write_input_tokens": 0.0,
+        "input_tokens": 189682.0,
+        "reasoning_output_tokens": 706.0
+      },
+      "tool_calls": 10,
+      "completed_tool_items": 10,
+      "environment_blocked": false,
+      "cli_sessions": 1,
+      "event_parse_errors": 0,
+      "startup_or_turn_failure": false
+    },
+    {
+      "id": "diagnosis-1-candidate",
+      "case": "diagnosis",
+      "repetition": 1,
+      "group": "candidate",
+      "passed": false,
+      "artifact_passed": false,
+      "required_action_observed": true,
+      "intermediate_deployment_verified": false,
+      "boundary_violations": [],
+      "changed_paths": [
+        "workload/pricing.ps1"
+      ],
+      "grade_error": null,
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_ms": 111401,
+      "usage": {
+        "cached_input_tokens": 119424.0,
+        "output_tokens": 1121.0,
+        "cache_write_input_tokens": 0.0,
+        "input_tokens": 155808.0,
+        "reasoning_output_tokens": 248.0
+      },
+      "tool_calls": 11,
+      "completed_tool_items": 11,
+      "environment_blocked": false,
+      "cli_sessions": 1,
+      "event_parse_errors": 0,
+      "startup_or_turn_failure": false
+    }
+  ],
+  "claims": [
+    "Independent fixture targets; no shared task answers or native memory.",
+    "Observed file-boundary checks, not proof of OS or network isolation."
+  ],
+  "raw_logs": "Temporary project-specific evaluation scratch; not committed.",
+  "fixture_preflight": {
+    "checks": [
+      "Initial integration check fails.",
+      "The application fix passes the unchanged check."
+    ],
+    "passed": true,
+    "model_started": false
+  },
+  "preflight": {
+    "environment_blocked": false,
+    "timed_out": false,
+    "permission_profile": "agents-evaluation",
+    "runtime_write_passed": true,
+    "codex_settings_access": "read",
+    "read_write_passed": true,
+    "event_parse_errors": 0,
+    "windows_backend": "elevated",
+    "filesystem": {
+      "passed": true,
+      "exit_code": 0,
+      "claims": [
+        "Expected-denial filesystem probes only.",
+        "Network is configured disabled; no network enforcement claim from this probe."
+      ],
+      "observations": {
+        "settings_read": true,
+        "outside_write": false,
+        "settings_write": false,
+        "runtime_write": true
+      }
+    },
+    "duration_ms": 115125,
+    "claims": [
+      "Environment preflight only; not a task sample.",
+      "No policy bypass or global permission changes."
+    ],
+    "local_commit_passed": true,
+    "passed": true,
+    "exit_code": 0,
+    "tool_calls": 4,
+    "usage": {
+      "cached_input_tokens": 63744.0,
+      "output_tokens": 1602.0,
+      "cache_write_input_tokens": 0.0,
+      "input_tokens": 78264.0,
+      "reasoning_output_tokens": 935.0
+    },
+    "completed_tool_items": 4,
+    "command_network_enabled": false,
+    "model_started": true
+  },
+  "stop_reason": "Operator stopped after the active sample was recorded: diagnosis grading requires negative-quantity rejection absent from its prompt and visible test. Protocol review required; no release acceptance claim.",
+  "operator_stop": {
+    "active_sample_interrupted": false,
+    "recorded_after": "diagnosis-1-candidate",
+    "process_tree_stopped": true,
+    "protocol_valid_for_acceptance": false
+  },
+  "finished_utc": "2026-09-05T14:57:01.1941013Z",
+  "metrics": {
+    "complete_72_samples": false,
+    "candidate_samples": 4,
+    "candidate_passed": 3,
+    "baseline_samples": 4,
+    "baseline_passed": 3,
+    "baseline_failed": 1,
+    "candidate_failed": 1,
+    "boundary_failed_samples": 0,
+    "successful_pairs": 3,
+    "missing_counter_pairs": 0,
+    "baseline_input_median": 189643.0,
+    "candidate_input_median": 163063.0,
+    "input_reduction_percent": 14.015808650991602,
+    "baseline_tool_median": 12.0,
+    "candidate_tool_median": 9.0,
+    "tool_reduction_percent": 25.0,
+    "acceptance_passed": false,
+    "scope": "Model task and efficiency gates only; offline engineering gates remain separately required."
+  }
+}

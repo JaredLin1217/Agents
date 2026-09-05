@@ -77,7 +77,11 @@ try {
         $journalPath=Join-Path $root ".agents/runtime/deployments/$($run.transaction_id).json"
         $journal=Read-AgentJson $journalPath
         $journal.status='applying'; Write-AgentJson $journalPath $journal
+        $interruptedPlan=Get-DeploymentPlan $provider $root 'auto'
+        Assert (@($interruptedPlan.operations|Where-Object action -NE 'unchanged').Count -eq 0) 'Interrupted fixture must already have final content'
+        Reject { Invoke-Deployment $provider $root 'auto' $interruptedPlan.plan_digest } 'No-op bypassed an interrupted transaction'
         Put $root '.agents/runtime/deployment.lock' ''
+        Reject { Invoke-Deployment $provider $root 'auto' $interruptedPlan.plan_digest } 'No-op bypassed the deployment lock'
         $restored=Restore-Deployment $root $run.transaction_id
         Assert ($restored.status -eq 'rolled_back') 'Interrupted rollback failed'
         Assert (-not(Test-Path -LiteralPath (Join-Path $root 'AGENTS.md'))) 'Rollback retained new rules'
@@ -171,6 +175,22 @@ try {
     Assert ((Get-EvaluationTaskBoundary @()).Contains('Writable task files: none.')) 'Read-only task received write authority'
     Reject { Get-EvaluationTaskBoundary @('workload/target/') } 'Deployment boundary accepted without target'
     Assert ((Get-EvaluationTaskBoundary @('workload/target/') 'exact disposable target').Contains('managed deployment file set under exact disposable target')) 'Logical target path leaked into the physical authorization'
+    $promptCase=@{prompt='Fix the application.';acceptance=@('Negative quantities must throw.');allowed=@('workload/pricing.ps1')}
+    $taskPrompt=Get-EvaluationTaskPrompt $promptCase
+    Assert ($taskPrompt.Contains('Acceptance criteria:') -and $taskPrompt.Contains('Negative quantities must throw.') -and $taskPrompt.Contains('workload/pricing.ps1')) 'Visible criteria or write boundary missing'
+    Reject { Get-EvaluationTaskPrompt @{prompt='Fix it';allowed=@()} } 'Task accepted without public criteria'
+    Reject { Get-EvaluationTaskPrompt @{prompt='Fix it';acceptance=@(' ');allowed=@()} } 'Empty public criteria accepted'
+    $stopPath=Join-Path $scratch 'run.stop'
+    Assert-EvaluationContinue $stopPath
+    Put $scratch 'run.stop' 'Stop after the active sample.'
+    Reject { Assert-EvaluationContinue $stopPath } 'Operator stop ignored'
+    # Model fixtures omit independent graders; their host-only tests must not leak answers.
+    if(Test-Path -LiteralPath "$PSScriptRoot/evaluation/fixture.ps1") {
+        . "$PSScriptRoot/evaluation/fixture.ps1"
+        $fixturePreflight=Test-EvaluationFixtureProtocol (Join-Path $scratch 'protocol')
+        Assert ($fixturePreflight.passed -and -not $fixturePreflight.model_started -and $fixturePreflight.checks.Count -eq 12) 'Incomplete offline protocol preflight'
+        foreach($check in $fixturePreflight.checks) { Assert ($check.valid_reference_passed -and $check.invalid_reference_rejected) "Protocol references failed: $($check.case)" }
+    }
     $observed=Join-Path $scratch 'observed target'; Init $observed
     Put $observed 'workload/target/README.md' 'Nested product'
     Put $observed '.gitignore' ".agents/runtime/`nworkload/target/`n"

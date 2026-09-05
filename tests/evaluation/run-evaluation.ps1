@@ -20,6 +20,7 @@ $runId=[guid]::NewGuid().ToString('N')
 $scratch=Join-Path ([IO.Path]::GetTempPath()) "codex-agent-status/jared-ai-team-v3-evaluation/$runId"
 [IO.Directory]::CreateDirectory($scratch)|Out-Null
 $output=Resolve-SafePath $provider ".agents/runtime/evaluation/$runId.json"
+$stopPath=Resolve-SafePath $provider ".agents/runtime/evaluation/$runId.stop"
 $hostVersion=[string](& $CodexPath --version)
 $samples=[Collections.Generic.List[object]]::new()
 $protocolPaths=@('tests/evaluation/cases.json','tests/evaluation/fixture.ps1','tests/evaluation/run-evaluation.ps1','tests/evaluation/metrics.ps1','tests/evaluation/host.ps1','tests/evaluation/observation.ps1','scripts/agent-core.ps1','scripts/agent-deployment.ps1')
@@ -36,6 +37,7 @@ function Run-Codex([string]$Root,[string]$Prompt,[string]$LogPrefix,[string]$Tar
     Invoke-EvaluationHost -CodexPath $CodexPath -Root $Root -Prompt $Prompt -LogPrefix $LogPrefix -TimeoutSeconds $TimeoutSeconds -Target $Target
 }
 Save-Run
+Write-Output "Run: $runId; create .agents/runtime/evaluation/$runId.stop to stop after the active sample."
 try {
     $run['fixture_preflight']=Test-EvaluationFixtureProtocol $scratch
     $run['preflight']=Test-EvaluationHost $CodexPath $scratch
@@ -45,7 +47,9 @@ try {
         foreach($caseData in $cases) {
             $groups=if($rep%2){@('baseline','candidate')}else{@('candidate','baseline')}
             foreach($group in $groups) {
+                Assert-EvaluationContinue $stopPath
                 $sampleId="$($caseData.id)-$rep-$group"
+                Write-Output "Starting: $sampleId"
                 $sampleRoot=Resolve-SafePath $scratch $sampleId
                 $root=Resolve-SafePath $sampleRoot 'provider'
                 $target=Resolve-SafePath $sampleRoot 'target'
@@ -67,7 +71,7 @@ try {
                 $deploymentCase=$caseData.id -in @('deploy','rollback')
                 $writeTarget=if($deploymentCase){$target}else{''}
                 $boundary=Get-EvaluationTaskBoundary $caseData.allowed $writeTarget
-                $prompt=$caseData.prompt.Replace('{{TARGET}}',$target)+$boundary
+                $prompt=Get-EvaluationTaskPrompt $caseData $writeTarget
                 $phaseOne=$null
                 $earlyStop=$false; $earlyViolations=@(); $sessionCount=1
                 if($caseData.id -eq 'recovery') {

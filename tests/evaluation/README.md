@@ -45,12 +45,16 @@ long-path file support does not remove that separate limitation.
 Task prompts and independent grading files are removed from agent fixtures;
 non-grading host/metrics helpers remain so Provider regression tests still work.
 Prompts, graders and their imported helpers are fixed and hashed before execution.
-Every task receives its allowed write set as explicit instructions; the same set
+Every task receives its acceptance criteria and allowed write set as explicit instructions; the same set
 still drives independent post-run checks. Read-only tests are not hidden scope
 constraints. The cross-module fixture starts with a failing integration check for
 the requested new behavior (33), not the obsolete behavior (21). A command-only
-fixture preflight proves the application fix passes that unchanged test before
-starting model calls. Corrected protocols start new runs; stopped reports remain
+fixture preflight checks all twelve cases with valid reference artifacts and
+invalid mutants. Code tasks also require the application fix to pass the unchanged
+visible test, and that test must reject the mutant. Diagnosis checks explicitly
+include negative-quantity rejection. These host-only reference solutions never
+enter model fixtures. The preflight tests the grader, not model task quality.
+Corrected protocols start new runs; stopped reports remain
 unchanged and never count toward the replacement run.
 Artifacts, test behavior, allowed file
 changes, and observed actions determine success, not the model's final score.
@@ -70,6 +74,13 @@ the two explicitly allowed runtime scratch directories. Linked paths fail closed
 Do not commit raw logs. A file-boundary violation or host failure stops the run;
 failed samples remain in the report. Revisions require a new labelled run, never
 removal of failed samples. Do not claim OS/network enforcement from these checks.
+The runner prints its run ID before preflight and each sample before launch.
+Create `.agents/runtime/evaluation/<run-id>.stop` to stop between samples: the
+active task (including both recovery/rollback phases) finishes and is recorded
+before stopping. The report retains outcomes and a stop reason; it is not resumed.
+Artifact tests are bounded checks, not a semantic proof of every sentence in an
+answer. Source verification, memory persistence and boundary enforcement also
+have independent engineering tests; model-written explanations alone are not proof.
 
 Usage is summed from actual `turn.completed` events: total input includes cached
 input, so caching is reported separately, not subtracted. Output already includes

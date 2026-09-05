@@ -11,7 +11,7 @@
   "pilot_candidate_commit": "a848609f039f6bd52fdbc428e32c8e0b354c1237",
   "pilot_protocol_digest": "0eae4c422c5bf5981e740b54dc4d8a6a34f37cecda56b5ea494c47d10e9902a6",
   "formal_samples_required": 72,
-  "formal_samples_completed": 5,
+  "formal_samples_completed": 8,
   "formal_runs": [
     {
       "id": "a3cc51b1e73747249a92f31119937b90",
@@ -24,6 +24,18 @@
       "cause": "Baseline cross-module changed workload/check.ps1 outside the grading allowlist. The prompt omitted that constraint and the existing check still required obsolete behavior (21 instead of 33). The run stopped; its original failure remains unchanged.",
       "correction": "Both arms receive the exact allowed write set. The cross-module check now asserts requested behavior before execution. A fixture preflight proves it fails initially and passes after only the application fix. Grading boundaries, stop rules and thresholds are unchanged.",
       "acceptance": false
+    },
+    {
+      "id": "88a340a10aff421b942a2dc3ef952aa7",
+      "report": "docs/evidence/evaluation/88a340a10aff421b942a2dc3ef952aa7.json",
+      "candidate_commit": "3cb46e2ed9c2482dd2ce72fcc8a1aa41b1ced3c7",
+      "status": "stopped",
+      "samples": 8,
+      "passed": 6,
+      "failed": 2,
+      "cause": "Both diagnosis samples passed the visible check but failed an undisclosed negative-quantity requirement. The operator stopped after the active eighth sample was recorded. No boundary or permission violation occurred; all original outcomes remain unchanged.",
+      "correction": "Publish acceptance criteria for all twelve tasks, align diagnosis with its read-only check, add valid/invalid fixture preflights for every case and cooperative between-sample stopping. A new run is required; these outcomes cannot establish model-quality acceptance.",
+      "acceptance": false
     }
   ],
   "pilot_samples": [
@@ -33,7 +45,7 @@
     {"id":"local-fix-1-candidate","passed":false,"environment_blocked":true,"input_tokens":72552,"cached_input_tokens":58368,"cache_write_input_tokens":0,"output_tokens":629,"reasoning_output_tokens":215,"tool_calls":null,"duration_ms":45423}
   ],
   "counts": {"pilot_total":4,"passed":2,"failed":2,"environment_blocked":2},
-  "efficiency_acceptance": {"passed":false,"input_reduction_percent":-19.846664804295866,"tool_reduction_percent":-57.14285714285714,"reason":"Only two successful pairs in the stopped formal attempt. Negative reductions mean increased use. This incomplete, superseded protocol does not establish release efficiency."},
+  "efficiency_acceptance": {"passed":false,"input_reduction_percent":14.015808650991602,"tool_reduction_percent":25.0,"reason":"Only three successful pairs in the second stopped attempt; both diagnosis samples were invalidly specified. These incomplete, superseded-protocol observations are not release efficiency claims. Original reports retain all failures."},
   "blocker": null,
   "latest_environment_preflight": {
     "id": "fa42d70e045b4ee281b2638f3092c3c2",
@@ -87,7 +99,8 @@
     "Raw events, stderr and independent fixtures remain in temporary project-specific scratch. No OS, network or future-task correctness guarantee is claimed.",
     "The failed workspace-write preflight is retained as historical evidence. After explicit authorization, the invocation-only agents-evaluation profile passed file/runtime/Git operations and the expected filesystem denials. No global or production permissions were changed.",
     "The diagnostic host preflight ran against local evaluator edits. The stopped formal attempt subsequently passed a fresh host preflight on its frozen protocol. Neither preflight counts as a task sample.",
-    "The first formal attempt observed no permission block. Its two candidate tasks passed, but local-fix input and tool calls increased. Do not extrapolate from two successful pairs or silently remove the baseline boundary failure."
+    "The first formal attempt observed no permission block. Its two candidate tasks passed, but local-fix input and tool calls increased. Do not extrapolate from two successful pairs or silently remove the baseline boundary failure.",
+    "The second stopped attempt contains all eight samples, including both diagnosis failures caused by an undisclosed requirement. Counts across stopped protocols must not be combined into a 72-sample acceptance run."
   ],
   "next_step": "Validate and freeze the corrected shared fixture/prompt protocol, then start a new complete run with fresh fixture and host preflights. Do not resume or relabel the stopped attempt. Child-only permissions and all grading thresholds remain unchanged."
 }

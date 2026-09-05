@@ -1,4 +1,15 @@
 . "$PSScriptRoot/../../scripts/agent-core.ps1"
+function Get-EvaluationTaskPrompt($Case,[string]$Target='') {
+    if(-not $Case.Contains('acceptance') -or -not $Case.acceptance.Count -or
+        @($Case.acceptance|Where-Object { $_ -isnot [string] -or [string]::IsNullOrWhiteSpace($_) }).Count) {
+        throw 'Every evaluation task requires visible acceptance criteria.'
+    }
+    return $Case.prompt.Replace('{{TARGET}}',$Target)+"`nAcceptance criteria:`n- "+($Case.acceptance -join "`n- ")+
+        (Get-EvaluationTaskBoundary $Case.allowed $Target)
+}
+function Assert-EvaluationContinue([string]$StopPath) {
+    if(Test-Path -LiteralPath $StopPath) { throw 'Operator stop requested between samples; recorded outcomes are retained.' }
+}
 function Get-EvaluationTaskBoundary([string[]]$Allowed,[string]$Target='') {
     $scope='Only this Provider fixture workspace is authorized'
     if($Target) { $scope+=" together with the exact disposable target $Target" }

@@ -114,13 +114,7 @@ function Invoke-Deployment([string]$Provider,[string]$Target,[string]$Layout,[st
     if($plan.conflicts.Count) { throw ($plan.conflicts -join '; ') }
     if(-not $ExpectedPlanDigest -or $ExpectedPlanDigest -ne $plan.plan_digest) { throw 'Dry-run approval digest missing or stale.' }
     $changed=@($plan.operations|Where-Object action -NE 'unchanged')
-    if(-not $changed.Count) { return @{status='unchanged';plan_digest=$plan.plan_digest} }
     $runtime=Resolve-SafePath $Target '.agents/runtime/deployments'
-    if(Test-Path -LiteralPath $runtime) {
-        foreach($file in Get-ChildItem -LiteralPath $runtime -Filter '*.json' -File) {
-            if((Read-AgentJson $file.FullName).status -eq 'applying') { throw "Interrupted deployment requires rollback: $($file.BaseName)" }
-        }
-    }
     [IO.Directory]::CreateDirectory($runtime)|Out-Null
     $lockPath=Resolve-SafePath $Target '.agents/runtime/deployment.lock'
     $lock=[IO.File]::Open($lockPath,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
@@ -130,6 +124,10 @@ function Invoke-Deployment([string]$Provider,[string]$Target,[string]$Layout,[st
         # Re-read after exclusive acquisition; a preview is not authorization for changed inputs.
         $fresh=Get-DeploymentPlan $Provider $Target $Layout
         if($fresh.plan_digest -ne $ExpectedPlanDigest) { throw 'Deployment inputs changed after preview.' }
+        foreach($file in Get-ChildItem -LiteralPath $runtime -Filter '*.json' -File) {
+            if((Read-AgentJson $file.FullName).status -eq 'applying') { throw "Interrupted deployment requires rollback: $($file.BaseName)" }
+        }
+        if(-not $changed.Count) { return @{status='unchanged';plan_digest=$plan.plan_digest} }
         $entries=@($changed|ForEach-Object {
             $dest=Resolve-SafePath $Target $_.path
             @{path=$_.path;before=$_.before;after=$_.after;backup=$(if($_.before -eq 'missing'){''}else{[Convert]::ToBase64String([IO.File]::ReadAllBytes($dest))})}
