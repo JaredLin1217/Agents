@@ -1,8 +1,8 @@
 {
   "schema_version": "agents-evaluation-status/v3",
-  "status": "formal_run_stopped_protocol_review",
+  "status": "diagnostic_environment_qualification",
   "release_ready": false,
-  "reviewed_date": "2026-09-05",
+  "reviewed_date": "2026-09-06",
   "model": "gpt-6-astra",
   "reasoning_effort": "xhigh",
   "cli": "codex-cli 0.153.4",
@@ -51,6 +51,20 @@
       "acceptance": false
     }
   ],
+  "release_diagnostics": [
+    {
+      "id": "2c90fd6435784888a6a901cf9fcc90ba",
+      "report": "docs/evidence/evaluation/2c90fd6435784888a6a901cf9fcc90ba.json",
+      "candidate_commit": "b8c94c8ba8fd51734d373545c50a504c9055998d",
+      "status": "stopped",
+      "planned_samples": 2,
+      "samples": 1,
+      "passed": 0,
+      "cause": "The network observer matched Invoke-WebRequest inside an rg search argument. No network invocation was found in the recorded commands. The baseline also correctly refused to commit after full validation failed from Provider-nested temporary targets and a source-neutrality collision with the fixture name provider. Candidate execution never started; the original report is unchanged.",
+      "correction": "Parse rendered command argv and native PowerShell AST instead of matching all command text. Qualify both frozen source checkouts with full validation before model calls. Use unique explicitly authorized private temp, non-colliding short fixture names and child-only Git long-path configuration. Preserve read-only local settings, no-network configuration and outside-write denial probes.",
+      "acceptance": false
+    }
+  ],
   "pilot_samples": [
     {"id":"answer-1-baseline","passed":true,"environment_blocked":false,"input_tokens":13084,"cached_input_tokens":9344,"cache_write_input_tokens":0,"output_tokens":148,"reasoning_output_tokens":120,"tool_calls":0,"duration_ms":18327},
     {"id":"answer-1-candidate","passed":true,"environment_blocked":false,"input_tokens":13220,"cached_input_tokens":9344,"cache_write_input_tokens":0,"output_tokens":5,"reasoning_output_tokens":0,"tool_calls":0,"duration_ms":8507},
@@ -60,6 +74,17 @@
   "counts": {"pilot_total":4,"passed":2,"failed":2,"environment_blocked":2},
   "efficiency_acceptance": {"passed":false,"input_reduction_percent":17.423270728355476,"tool_reduction_percent":9.999999999999998,"reason":"Only five successful pairs in the third stopped attempt. Permission classification and release-action grading require correction. These incomplete, superseded-protocol observations are not release efficiency claims. Original reports retain all failures."},
   "blocker": null,
+  "full_environment_qualification": {
+    "id": "39a76db97cb843638af64f33fd249a09",
+    "runtime_report": ".agents/runtime/evaluation/environment-39a76db97cb843638af64f33fd249a09.json",
+    "candidate_commit": "b8c94c8ba8fd51734d373545c50a504c9055998d",
+    "passed": true,
+    "model_started": false,
+    "baseline_duration_ms": 37369,
+    "candidate_duration_ms": 20132,
+    "source_and_target_unchanged": true,
+    "scope": "Command-only diagnostic using uncommitted harness corrections. Both full validators and expected filesystem-denial probes passed. Repeat after freezing the source and protocol; not model-task or efficiency acceptance."
+  },
   "latest_environment_preflight": {
     "id": "fa42d70e045b4ee281b2638f3092c3c2",
     "runtime_report": ".agents/runtime/evaluation/host-fa42d70e045b4ee281b2638f3092c3c2.json",
@@ -103,7 +128,7 @@
     {"runtime_report":".agents/runtime/evaluation/651a2edbaee54d1197a90846159c7fa3.json","started_utc":"2026-09-05T13:32:25.5521857Z","finished_utc":"2026-09-05T13:33:56.9397154Z"}
   ],
   "limitations": [
-    "The pilot_samples array contains all historical pilots, not a filtered formal comparison. Both arms passed arithmetic and failed editing under the initial environment restriction.",
+    "The pilot_samples array contains the original four pilots, not a filtered formal comparison. Later release diagnostics have separate immutable reports. Both initial arms passed arithmetic and failed editing under the initial environment restriction.",
     "The arithmetic candidate consumed 136 more input tokens than the baseline. This pilot does not demonstrate input-token savings.",
     "The initial runner counted zero completed tool items during denied attempts. This report marks actual tool-call counts unavailable after reviewing stderr; original raw records are retained unchanged.",
     "CLI 0.151.0 rejected GPT-6. A separate existing 0.153.4 executable passed a READY model preflight; neither CLI nor global configuration was installed or changed. Preflight is not an evaluated task.",
@@ -115,5 +140,5 @@
     "The first formal attempt observed no permission block. Its two candidate tasks passed, but local-fix input and tool calls increased. Do not extrapolate from two successful pairs or silently remove the baseline boundary failure.",
     "The second stopped attempt contains all eight samples, including both diagnosis failures caused by an undisclosed requirement. Counts across stopped protocols must not be combined into a 72-sample acceptance run."
   ],
-  "next_step": "Pass offline denial/action regressions and a focused release diagnostic before freezing a new formal candidate. Do not resume or relabel any stopped attempt. Child-only permissions and all acceptance thresholds remain unchanged."
+  "next_step": "Pass no-model full-validator environment qualification in both frozen arms, then a fresh focused release diagnostic before a new formal run. Do not resume or relabel stopped attempts. Temporary write grants are exact, child-only and confined to already authorized disposable scratch; all acceptance thresholds remain unchanged."
 }

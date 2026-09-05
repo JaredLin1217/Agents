@@ -206,9 +206,17 @@ try {
     Put $observed 'tests/evaluation/run-evaluation.ps1' '# Hidden protocol'
     Put $observed 'tests/evaluation/metrics.ps1' '# Regression dependency'
     Put $observed 'tests/evaluation/host.ps1' '# Regression dependency'
+    Put $observed 'tests/evaluation/environment.ps1' '# Host-only qualification'
+    Put $observed 'docs/evidence/evaluation/prior.json' '{"passed":false}'
+    Put $observed 'docs/evidence/v3-evaluation-status.json' '{"release_ready":false}'
+    Put $observed 'docs/evidence/baseline.json' '{}'
     Remove-EvaluationGradingFiles $observed
     Assert (-not(Test-Path -LiteralPath (Join-Path $observed 'tests/evaluation/cases.json')) -and -not(Test-Path -LiteralPath (Join-Path $observed 'tests/evaluation/fixture.ps1'))) 'Fixture retained hidden prompts or graders'
     Assert ((Test-Path -LiteralPath (Join-Path $observed 'tests/evaluation/metrics.ps1')) -and (Test-Path -LiteralPath (Join-Path $observed 'tests/evaluation/host.ps1'))) 'Fixture removed regression dependencies'
+    foreach($path in @('tests/evaluation/environment.ps1','docs/evidence/evaluation/prior.json','docs/evidence/v3-evaluation-status.json')) {
+        Assert (-not(Test-Path -LiteralPath (Join-Path $observed $path))) 'Fixture retained previous outcomes or host-only qualification'
+    }
+    Assert (Test-Path -LiteralPath (Join-Path $observed 'docs/evidence/baseline.json')) 'Fixture lost required frozen baseline metadata'
     $separate=Join-Path $scratch 'separate target'; Init $separate
     Put $separate 'README.md' 'Target-owned product documentation.'
     $original=Get-EvaluationSnapshot $separate
@@ -235,6 +243,9 @@ try {
     }
     Assert ($permissionConfig[0].Contains('".codex"="read"')) 'Local configuration protection removed'
     Assert ($permissionConfig[0].Contains('network={enabled=false}')) 'Command network enabled'
+    Reject { Get-EvaluationPermissionArguments $provider } 'Non-disposable extra temp accepted'
+    $tempBoundary=Get-EvaluationTaskBoundary @() '' 'exact private temp'
+    Assert ($tempBoundary.Contains('exact private temp') -and $tempBoundary.Contains('without a -TempRoot override')) 'Private temp contract absent'
     $launchRejected=$false; try { Assert-EvaluationLaunchPath ([IO.Path]::GetPathRoot($provider)) } catch { $launchRejected=$true }
     Assert $launchRejected 'Model launch accepted a non-disposable repository'
     Assert ($hostArgs -notcontains '--ignore-rules' -and $hostArgs -notcontains '--dangerously-bypass-approvals-and-sandbox') 'Evaluation bypasses host controls'
@@ -262,6 +273,23 @@ try {
     Assert ((Convert-EvaluationEvents '{"type":"turn.failed","error":{"message":"Command blocked by policy"}}' '').environment_blocked) 'Structured turn denial missed'
     Assert ((Convert-EvaluationEvents '{"type":"item.completed","item":{"id":"denied","type":"tool_call","error":{"message":"permission denied"}}}' '').environment_blocked) 'Structured tool denial missed'
     Assert ((Convert-EvaluationEvents ($events+"`nbroken") '').parse_errors -eq 1) 'Malformed host events ignored'
+    $rendered=@'
+"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command 'rg -n '"'"'Invoke-WebRequest|git fetch|https?://'"'"' scripts'
+'@
+    $argv=ConvertFrom-EvaluationCommandLine $rendered
+    Assert ($argv.Count -eq 3 -and $argv[2] -eq "rg -n 'Invoke-WebRequest|git fetch|https?://' scripts") 'Rendered argv quoting decoded incorrectly'
+    $commandCall=@{id='command';type='command_execution';exit_code=0;command=$rendered}
+    Assert (@(Get-EvaluationNetworkObservations @($commandCall)).Count -eq 0) 'Search argument misclassified as a network invocation'
+    foreach($command in @('Invoke-WebRequest https://example.invalid','git -c core.fsmonitor=false fetch origin','git -C . ls-remote origin')) {
+        $commandCall.command=$command
+        Assert (@(Get-EvaluationNetworkObservations @($commandCall)|Where-Object classification -EQ 'blocked').Count -eq 1) 'Direct network invocation missed'
+    }
+    $commandCall.command="git commit -m 'Do not git fetch or Invoke-WebRequest'"
+    Assert (@(Get-EvaluationNetworkObservations @($commandCall)).Count -eq 0) 'Commit message treated as execution'
+    foreach($command in @('pwsh -EncodedCommand abc','pwsh -Command "unfinished','git $operation origin','iex $text')) {
+        $commandCall.command=$command
+        Assert (@(Get-EvaluationNetworkObservations @($commandCall)|Where-Object classification -EQ 'review').Count -eq 1) 'Unparseable or dynamic operation silently accepted'
+    }
     $releaseRoot=Join-Path $scratch 'release observation'; Init $releaseRoot
     Put $releaseRoot 'agents.json' '{}'
     $ids=@('syntax','json-schema','ownership','knowledge','sources','size','regression','evidence','package','diff')

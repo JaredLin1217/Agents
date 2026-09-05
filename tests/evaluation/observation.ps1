@@ -34,8 +34,16 @@ function Get-EvaluationTaskSnapshot([string]$Root,[string]$Target) {
     return $snapshot
 }
 function Remove-EvaluationGradingFiles([string]$Root) {
-    # Keep offline regression dependencies; remove only prompts and independent graders.
-    foreach($path in @('tests/evaluation/cases.json','tests/evaluation/fixture.ps1','tests/evaluation/run-evaluation.ps1')) {
+    # Keep offline regression dependencies, but never expose previous sample outcomes.
+    $paths=@('tests/evaluation/cases.json','tests/evaluation/fixture.ps1','tests/evaluation/run-evaluation.ps1',
+        'tests/evaluation/environment.ps1','tests/evaluation/test-environment.ps1','docs/evidence/v3-evaluation-status.json')
+    $reports=Resolve-SafePath $Root 'docs/evidence/evaluation'
+    if(Test-Path -LiteralPath $reports -PathType Container) {
+        foreach($file in Get-ChildItem -LiteralPath $reports -File -Force) {
+            $paths+='docs/evidence/evaluation/'+$file.Name
+        }
+    }
+    foreach($path in $paths) {
         $file=Resolve-SafePath $Root $path
         if(Test-Path -LiteralPath $file -PathType Leaf) { Remove-Item -LiteralPath $file }
     }

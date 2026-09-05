@@ -1,16 +1,17 @@
 . "$PSScriptRoot/../../scripts/agent-core.ps1"
-function Get-EvaluationTaskPrompt($Case,[string]$Target='') {
+. "$PSScriptRoot/command-observation.ps1"
+function Get-EvaluationTaskPrompt($Case,[string]$Target='',[string]$TempRoot='') {
     if(-not $Case.Contains('acceptance') -or -not $Case.acceptance.Count -or
         @($Case.acceptance|Where-Object { $_ -isnot [string] -or [string]::IsNullOrWhiteSpace($_) }).Count) {
         throw 'Every evaluation task requires visible acceptance criteria.'
     }
     return $Case.prompt.Replace('{{TARGET}}',$Target)+"`nAcceptance criteria:`n- "+($Case.acceptance -join "`n- ")+
-        (Get-EvaluationTaskBoundary $Case.allowed $Target)
+        (Get-EvaluationTaskBoundary $Case.allowed $Target $TempRoot)
 }
 function Assert-EvaluationContinue([string]$StopPath) {
     if(Test-Path -LiteralPath $StopPath) { throw 'Operator stop requested between samples; recorded outcomes are retained.' }
 }
-function Get-EvaluationTaskBoundary([string[]]$Allowed,[string]$Target='') {
+function Get-EvaluationTaskBoundary([string[]]$Allowed,[string]$Target='',[string]$TempRoot='') {
     $scope='Only this Provider fixture workspace is authorized'
     if($Target) { $scope+=" together with the exact disposable target $Target" }
     $paths=@($Allowed|ForEach-Object {
@@ -20,13 +21,22 @@ function Get-EvaluationTaskBoundary([string[]]$Allowed,[string]$Target='') {
         } else { $_ }
     })
     $writes=if($paths.Count){$paths -join '; '}else{'none'}
-    return "`n$scope. Writable task files: $writes. All other non-runtime files must remain unchanged, including tests not listed here. Git metadata may change only through Git for an explicitly requested local commit. Put temporary verification output only in .agents/runtime/ inside authorized roots. No network, global settings, other projects, or shared memory. Do not inspect parent/sibling directories or grading material. Preserve existing work and local configuration. This is a disposable task, not permission to publish."
+    $temporary='Put temporary verification output only in .agents/runtime/ inside authorized roots.'
+    if($TempRoot) {
+        $temporary+=" The exact private validation temp $TempRoot is also authorized for temporary validation files. TEMP, TMP and TMPDIR already point there; preserve those values and use the validator's default temp selection, without a -TempRoot override."
+    }
+    return "`n$scope. Writable task files: $writes. All other non-runtime files must remain unchanged, including tests not listed here. Git metadata may change only through Git for an explicitly requested local commit. $temporary No network, global settings, other projects, or shared memory. Do not inspect parent/sibling directories or grading material. Preserve existing work and local configuration. This is a disposable task, not permission to publish."
 }
-function Get-EvaluationPermissionArguments {
+function Get-EvaluationPermissionArguments([string]$TempRoot='') {
     # Explicit roots avoid inheriting writable system temp directories.
     # Pass the whole TOML value: dotted CLI keys do not preserve quoted path keys.
+    $extra=''
+    if($TempRoot) {
+        Assert-EvaluationLaunchPath $TempRoot
+        $extra=','+([IO.Path]::GetFullPath($TempRoot)|ConvertTo-Json -Compress)+'="write"'
+    }
     return @('-c','default_permissions="agents-evaluation"','-c',
-        'permissions={agents-evaluation={filesystem={":minimal"="read",":workspace_roots"={"."="write",".agents"="write",".git"="write",".codex"="read"}},network={enabled=false}}}')
+        ('permissions={agents-evaluation={filesystem={":minimal"="read",":workspace_roots"={"."="write",".agents"="write",".git"="write",".codex"="read"}'+$extra+'},network={enabled=false}}}'))
 }
 function Assert-EvaluationLaunchPath([string]$Path) {
     $allowed=[IO.Path]::GetFullPath((Join-Path ([IO.Path]::GetTempPath()) 'codex-agent-status/jared-ai-team-v3-evaluation'))
@@ -40,25 +50,40 @@ function Assert-EvaluationLaunchPath([string]$Path) {
         $cursor=$cursor.Parent
     }
 }
-function Get-EvaluationHostArguments([string]$Root,[string]$LogPrefix,[string]$Target='') {
+function New-EvaluationTempRoot([string]$RecordRoot) {
+    Assert-EvaluationLaunchPath $RecordRoot
+    # Legacy Git uses deep child working directories; keep private temp near the authorized root.
+    $base=Join-Path ([IO.Path]::GetTempPath()) 'codex-agent-status/jared-ai-team-v3-evaluation'
+    $temp=Join-Path $base ('t-'+[guid]::NewGuid().ToString('N'))
+    [IO.Directory]::CreateDirectory($temp)|Out-Null
+    Assert-EvaluationLaunchPath $temp
+    Write-AgentJson (Join-Path $RecordRoot 'harness-environment.json') @{validation_temp=$temp}
+    return $temp
+}
+function Get-EvaluationHostArguments([string]$Root,[string]$LogPrefix,[string]$Target='',[string]$TempRoot='') {
     $arguments=@('exec','--strict-config','--ignore-user-config','--ephemeral','--json','--color','never',
         '-C',$Root,'-m','gpt-6-astra','-c','model_reasoning_effort="xhigh"',
         '-c','memories.use_memories=false','-c','memories.generate_memories=false','-c','web_search="disabled"',
         '-c','features.multi_agent=false','-c','approval_policy="never"')
-    $arguments+=Get-EvaluationPermissionArguments
+    $arguments+=Get-EvaluationPermissionArguments $TempRoot
     # Ignoring user config must not silently omit the provisioned Windows backend.
     if($IsWindows) { $arguments+=@('-c','windows.sandbox="elevated"') }
     if($Target) { $arguments+=@('--add-dir',$Target) }
     return $arguments+@('-o',"$LogPrefix.answer.txt",'-')
 }
-function New-EvaluationProcessInfo([string]$CodexPath,[string]$Root) {
+function New-EvaluationProcessInfo([string]$CodexPath,[string]$Root,[string]$TempRoot='') {
     Assert-EvaluationLaunchPath $Root
-    $temp=Resolve-SafePath $Root '.agents/runtime/temp'
+    $temp=if($TempRoot){ Assert-EvaluationLaunchPath $TempRoot; $TempRoot }else{ Resolve-SafePath $Root '.agents/runtime/temp' }
     [IO.Directory]::CreateDirectory($temp)|Out-Null
     $psi=[Diagnostics.ProcessStartInfo]::new($CodexPath)
     $psi.WorkingDirectory=$Root; $psi.UseShellExecute=$false; $psi.CreateNoWindow=$true
     $psi.RedirectStandardOutput=$true; $psi.RedirectStandardError=$true; $psi.RedirectStandardInput=$true
     foreach($name in @('TEMP','TMP','TMPDIR')) { $psi.Environment[$name]=$temp }
+    $gitConfigCount=0
+    if($psi.Environment.ContainsKey('GIT_CONFIG_COUNT')) { $gitConfigCount=[int]$psi.Environment['GIT_CONFIG_COUNT'] }
+    $psi.Environment["GIT_CONFIG_KEY_$gitConfigCount"]='core.longpaths'
+    $psi.Environment["GIT_CONFIG_VALUE_$gitConfigCount"]='true'
+    $psi.Environment['GIT_CONFIG_COUNT']=[string]($gitConfigCount+1)
     return $psi
 }
 function Get-EvaluationDenials($Calls,$Errors,[string]$ErrorOutput) {
@@ -104,18 +129,21 @@ function Convert-EvaluationEvents([string]$Output,[string]$ErrorOutput) {
     }
     $errors=@($events|Where-Object type -In @('error','turn.failed'))
     $denials=@(Get-EvaluationDenials $calls $errors $ErrorOutput)
+    $network=@(Get-EvaluationNetworkObservations $calls)
     return @{usage=$usage;tool_calls=@($calls|Group-Object id).Count;parse_errors=$parseErrors;calls=$calls;
         environment_blocked=(@($denials|Where-Object classification -EQ 'blocked').Count -gt 0);
         environment_review_required=(@($denials|Where-Object classification -EQ 'review').Count -gt 0);
-        denial_observations=$denials;turn_completed=($usages.Count -gt 0);error_events=$errors}
+        denial_observations=$denials;network_observations=$network;
+        command_review_required=(@($network|Where-Object classification -EQ 'review').Count -gt 0);
+        turn_completed=($usages.Count -gt 0);error_events=$errors}
 }
 function Invoke-EvaluationHost {
-    param([string]$CodexPath,[string]$Root,[string]$Prompt,[string]$LogPrefix,[int]$TimeoutSeconds=600,[string]$Target='')
+    param([string]$CodexPath,[string]$Root,[string]$Prompt,[string]$LogPrefix,[int]$TimeoutSeconds=600,[string]$Target='',[string]$TempRoot='')
     Assert-EvaluationLaunchPath $Root
     Assert-EvaluationLaunchPath (Split-Path -Parent $LogPrefix)
     if($Target) { Assert-EvaluationLaunchPath $Target }
-    $psi=New-EvaluationProcessInfo $CodexPath $Root
-    foreach($arg in Get-EvaluationHostArguments $Root $LogPrefix $Target) { $psi.ArgumentList.Add($arg) }
+    $psi=New-EvaluationProcessInfo $CodexPath $Root $TempRoot
+    foreach($arg in Get-EvaluationHostArguments $Root $LogPrefix $Target $TempRoot) { $psi.ArgumentList.Add($arg) }
     $process=[Diagnostics.Process]::new(); $process.StartInfo=$psi
     try {
         $timer=[Diagnostics.Stopwatch]::StartNew(); $null=$process.Start()
@@ -132,7 +160,7 @@ function Invoke-EvaluationHost {
         return $result
     } finally { $process.Dispose() }
 }
-function Test-EvaluationFilesystem([string]$CodexPath,[string]$Root,[string]$Scratch) {
+function Test-EvaluationFilesystem([string]$CodexPath,[string]$Root,[string]$Scratch,[string]$TempRoot='') {
     Assert-EvaluationLaunchPath $Root
     $settings=Join-Path $Root '.codex/sentinel.txt'
     [IO.Directory]::CreateDirectory((Split-Path -Parent $settings))|Out-Null
@@ -143,6 +171,8 @@ $ErrorActionPreference='Stop'
 $result=@{}
 [IO.File]::WriteAllText((Join-Path (Get-Location) '.agents/runtime/boundary.txt'),'allowed')
 $result.runtime_write=$true
+[IO.File]::WriteAllText((Join-Path ([IO.Path]::GetTempPath()) 'temp-boundary.txt'),'allowed')
+$result.temp_write=$true
 $settings=Join-Path (Get-Location) '.codex/sentinel.txt'
 $result.settings_read=([IO.File]::ReadAllText($settings) -eq 'read-only sentinel')
 foreach($entry in @{settings_write='SETTINGS_PATH';outside_write='OUTSIDE_PATH'}.GetEnumerator()) {
@@ -152,10 +182,10 @@ foreach($entry in @{settings_write='SETTINGS_PATH';outside_write='OUTSIDE_PATH'}
 $result|ConvertTo-Json -Compress
 '@
     $code=$code.Replace('SETTINGS_PATH',$settings.Replace("'","''")).Replace('OUTSIDE_PATH',$outside.Replace("'","''"))
-    $args=@('sandbox','-P','agents-evaluation','--include-managed-config','-C',$Root)+(Get-EvaluationPermissionArguments)
+    $args=@('sandbox','-P','agents-evaluation','--include-managed-config','-C',$Root)+(Get-EvaluationPermissionArguments $TempRoot)
     if($IsWindows) { $args+=@('-c','windows.sandbox="elevated"') }
     $args+=@('--',(Get-Command pwsh -ErrorAction Stop).Source,'-NoProfile','-NonInteractive','-EncodedCommand',[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($code)))
-    $psi=New-EvaluationProcessInfo $CodexPath $Root
+    $psi=New-EvaluationProcessInfo $CodexPath $Root $TempRoot
     foreach($arg in $args) { $psi.ArgumentList.Add($arg) }
     $process=[Diagnostics.Process]::new(); $process.StartInfo=$psi
     try {
@@ -167,7 +197,7 @@ $result|ConvertTo-Json -Compress
     [IO.File]::WriteAllText((Join-Path $Scratch 'filesystem-preflight.log'),($output+"`n"+$errors))
     $result=$null
     try { $result=ConvertFrom-Json -AsHashtable -InputObject $output -ErrorAction Stop } catch {}
-    $passed=$exitCode -eq 0 -and $null -ne $result -and $result.runtime_write -and $result.settings_read -and
+    $passed=$exitCode -eq 0 -and $null -ne $result -and $result.runtime_write -and $result.temp_write -and $result.settings_read -and
         $result.settings_write -ceq $false -and $result.outside_write -ceq $false -and
         [IO.File]::ReadAllText($settings) -eq 'read-only sentinel' -and -not(Test-Path -LiteralPath $outside)
     return @{passed=[bool]$passed;exit_code=$exitCode;observations=$result;
@@ -179,7 +209,8 @@ function Test-EvaluationHost([string]$CodexPath,[string]$Scratch,[int]$TimeoutSe
     [IO.Directory]::CreateDirectory((Join-Path $root '.agents/runtime'))|Out-Null
     [IO.File]::WriteAllText((Join-Path $root 'input.txt'),'fixture value 37')
     [IO.File]::WriteAllText((Join-Path $root '.gitignore'),".agents/runtime/`n")
-    $filesystem=Test-EvaluationFilesystem $CodexPath $root $Scratch
+    $temp=New-EvaluationTempRoot $Scratch
+    $filesystem=Test-EvaluationFilesystem $CodexPath $root $Scratch $temp
     if(-not $filesystem.passed) { return @{passed=$false;filesystem=$filesystem;model_started=$false} }
     $null=Invoke-AgentGit $root @('init','-q')
     $null=Invoke-AgentGit $root @('config','user.name','Evaluation')
@@ -188,7 +219,7 @@ function Test-EvaluationHost([string]$CodexPath,[string]$Scratch,[int]$TimeoutSe
     $null=Invoke-AgentGit $root @('commit','-qm','host preflight fixture')
     $head=[string](Invoke-AgentGit $root @('rev-parse','HEAD'))
     $prompt='Perform only this disposable environment preflight, in order: (1) read input.txt; (2) create output.txt with exactly the same bytes; (3) write .agents/runtime/probe.json containing {"value":37}; (4) use Git to create one local commit containing only output.txt. Do not hand-edit Git metadata. Only this workspace is authorized. No network, external reads, global settings, permission changes or other writes. If any action is denied, stop immediately and report it. Do not retry or use an alternative mechanism. Do not claim success without completing the actions.'
-    $execution=Invoke-EvaluationHost -CodexPath $CodexPath -Root $root -Prompt $prompt -LogPrefix (Join-Path $Scratch 'host-preflight') -TimeoutSeconds $TimeoutSeconds
+    $execution=Invoke-EvaluationHost -CodexPath $CodexPath -Root $root -Prompt $prompt -LogPrefix (Join-Path $Scratch 'host-preflight') -TimeoutSeconds $TimeoutSeconds -TempRoot $temp
     $copy=(Get-AgentHash (Join-Path $root 'input.txt')) -eq (Get-AgentHash (Join-Path $root 'output.txt'))
     $state=$false
     try { $state=(Read-AgentJson (Join-Path $root '.agents/runtime/probe.json')).value -eq 37 } catch {}
@@ -196,10 +227,11 @@ function Test-EvaluationHost([string]$CodexPath,[string]$Scratch,[int]$TimeoutSe
     $paths=@(Invoke-AgentGit $root @('show','--pretty=format:','--name-only','HEAD')|Where-Object {$_})
     $committed=$committed -and $paths.Count -eq 1 -and $paths[0] -eq 'output.txt'
     return @{passed=($copy -and $state -and $committed -and $execution.exit_code -eq 0 -and -not $execution.timed_out -and
-        -not $execution.environment_blocked -and -not $execution.environment_review_required -and $execution.turn_completed -and $execution.parse_errors -eq 0 -and $execution.error_events.Count -eq 0);
+        -not $execution.environment_blocked -and -not $execution.environment_review_required -and -not $execution.command_review_required -and $execution.network_observations.Count -eq 0 -and $execution.turn_completed -and $execution.parse_errors -eq 0 -and $execution.error_events.Count -eq 0);
         filesystem=$filesystem;model_started=$true;read_write_passed=$copy;runtime_write_passed=$state;local_commit_passed=$committed;
         environment_blocked=$execution.environment_blocked;environment_review_required=$execution.environment_review_required;
         denial_observations=$execution.denial_observations;duration_ms=$execution.duration_ms;usage=$execution.usage;
+        command_review_required=$execution.command_review_required;network_observations=$execution.network_observations;
         tool_calls=$(if($execution.environment_blocked){$null}else{$execution.tool_calls});completed_tool_items=$execution.tool_calls;
         exit_code=$execution.exit_code;timed_out=$execution.timed_out;event_parse_errors=$execution.parse_errors;
         permission_profile='agents-evaluation';command_network_enabled=$false;codex_settings_access='read';

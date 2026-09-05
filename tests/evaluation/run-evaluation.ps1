@@ -7,6 +7,7 @@ param([Parameter(Mandatory)][string]$CodexPath,[Parameter(Mandatory)][string]$Ca
 . "$PSScriptRoot/metrics.ps1"
 . "$PSScriptRoot/host.ps1"
 . "$PSScriptRoot/observation.ps1"
+. "$PSScriptRoot/environment.ps1"
 $provider=Get-AgentRoot
 $CandidateCommit=[string](Invoke-AgentGit $provider @('rev-parse',"$CandidateCommit^{commit}"))
 $BaselineCommit=[string](Invoke-AgentGit $provider @('rev-parse',"$BaselineCommit^{commit}"))
@@ -23,7 +24,7 @@ $output=Resolve-SafePath $provider ".agents/runtime/evaluation/$runId.json"
 $stopPath=Resolve-SafePath $provider ".agents/runtime/evaluation/$runId.stop"
 $hostVersion=[string](& $CodexPath --version)
 $samples=[Collections.Generic.List[object]]::new()
-$protocolPaths=@('tests/evaluation/cases.json','tests/evaluation/fixture.ps1','tests/evaluation/run-evaluation.ps1','tests/evaluation/metrics.ps1','tests/evaluation/host.ps1','tests/evaluation/observation.ps1','scripts/agent-core.ps1','scripts/agent-deployment.ps1')
+$protocolPaths=@('tests/evaluation/cases.json','tests/evaluation/fixture.ps1','tests/evaluation/run-evaluation.ps1','tests/evaluation/metrics.ps1','tests/evaluation/host.ps1','tests/evaluation/observation.ps1','tests/evaluation/command-observation.ps1','tests/evaluation/environment.ps1','scripts/agent-core.ps1','scripts/agent-deployment.ps1')
 $protocolHash=Get-SourceDigest $provider $protocolPaths
 $run=[ordered]@{schema_version='agents-evaluation/v3';status='running';model='gpt-6-astra';reasoning_effort='xhigh';
     cli=$hostVersion;powershell=$PSVersionTable.PSVersion.ToString();baseline_commit=$BaselineCommit;candidate_commit=$CandidateCommit;
@@ -33,13 +34,16 @@ $run=[ordered]@{schema_version='agents-evaluation/v3';status='running';model='gp
 function Save-Run {
     $run.samples=@($samples.ToArray()); Write-AgentJson $output $run
 }
-function Run-Codex([string]$Root,[string]$Prompt,[string]$LogPrefix,[string]$Target='') {
-    Invoke-EvaluationHost -CodexPath $CodexPath -Root $Root -Prompt $Prompt -LogPrefix $LogPrefix -TimeoutSeconds $TimeoutSeconds -Target $Target
+function Run-Codex([string]$Root,[string]$Prompt,[string]$LogPrefix,[string]$Target='',[string]$TempRoot='') {
+    Invoke-EvaluationHost -CodexPath $CodexPath -Root $Root -Prompt $Prompt -LogPrefix $LogPrefix -TimeoutSeconds $TimeoutSeconds -Target $Target -TempRoot $TempRoot
 }
 Save-Run
 Write-Output "Run: $runId; create .agents/runtime/evaluation/$runId.stop to stop after the active sample."
 try {
     $run['fixture_preflight']=Test-EvaluationFixtureProtocol $scratch
+    $run['environment_preflight']=Test-EvaluationEnvironment $CodexPath $provider $scratch $BaselineCommit $CandidateCommit
+    Save-Run
+    if(-not $run.environment_preflight.passed) { throw 'Frozen-source environment qualification failed; no model calls started.' }
     $run['preflight']=Test-EvaluationHost $CodexPath $scratch
     Save-Run
     if(-not $run.preflight.passed) { throw 'Host preflight failed; no task samples started. Inspect its raw logs without bypassing permissions.' }
@@ -51,59 +55,47 @@ try {
                 $sampleId="$($caseData.id)-$rep-$group"
                 Write-Output "Starting: $sampleId"
                 $sampleRoot=Resolve-SafePath $scratch $sampleId
-                $root=Resolve-SafePath $sampleRoot 'provider'
+                $root=Resolve-SafePath $sampleRoot 'ai-eval'
                 $target=Resolve-SafePath $sampleRoot 'target'
-                [IO.Directory]::CreateDirectory($root)|Out-Null
+                [IO.Directory]::CreateDirectory($sampleRoot)|Out-Null
+                $temp=New-EvaluationTempRoot $sampleRoot
                 $ref=if($group -eq 'baseline'){$BaselineCommit}else{$CandidateCommit}
-                $zip=Join-Path $scratch "$sampleId.zip"
-                $null=Invoke-AgentGit $provider @('archive','--format=zip',"--output=$zip",$ref)
-                Expand-Archive -LiteralPath $zip -DestinationPath $root
-                Remove-EvaluationGradingFiles $root
-                $null=Invoke-AgentGit $root @('init','-q')
-                $null=Invoke-AgentGit $root @('config','user.name','Evaluation')
-                $null=Invoke-AgentGit $root @('config','user.email','eval@example.invalid')
-                New-EvaluationFixture $root $caseData.id $target
-                $null=Invoke-AgentGit $root @('add','.')
-                $null=Invoke-AgentGit $root @('commit','-qm','independent evaluation fixture')
+                New-EvaluationCheckout $provider $ref $root $target $caseData.id
                 $before=Get-EvaluationTaskSnapshot $root $target
                 $targetBefore=Get-EvaluationSnapshot $target
                 $initialHead=[string](Invoke-AgentGit $root @('rev-parse','HEAD'))
                 $deploymentCase=$caseData.id -in @('deploy','rollback')
                 $writeTarget=if($deploymentCase){$target}else{''}
-                $boundary=Get-EvaluationTaskBoundary $caseData.allowed $writeTarget
-                $prompt=Get-EvaluationTaskPrompt $caseData $writeTarget
+                $boundary=Get-EvaluationTaskBoundary $caseData.allowed $writeTarget $temp
+                $prompt=Get-EvaluationTaskPrompt $caseData $writeTarget $temp
                 $phaseOne=$null
                 $earlyStop=$false; $earlyViolations=@(); $sessionCount=1
                 if($caseData.id -eq 'recovery') {
                     Set-FixtureFile $root 'workload/deployment-count.txt' '0'
                     Set-FixtureFile $root 'workload/invoice.json' '{"quantity":2,"unit_price":6}'
                     $phaseBefore=Get-EvaluationTaskSnapshot $root $target
-                    $phaseOne=Run-Codex $root ('Perform the first phase of a disposable task. Increment workload/deployment-count.txt from 0 to 1 exactly once as a mock deployment. Inspect workload/invoice.json. Write workload/checkpoint.json recording the completed mock action and next step: verify the current invoice and write workload/result.json with total. Do not write result.json yet. Do not modify other files or access outside this workspace. Stop after the checkpoint.'+(Get-EvaluationTaskBoundary @('workload/deployment-count.txt','workload/checkpoint.json'))) (Join-Path $scratch "$sampleId-phase1")
+                    $phaseOne=Run-Codex $root ('Perform the first phase of a disposable task. Increment workload/deployment-count.txt from 0 to 1 exactly once as a mock deployment. Inspect workload/invoice.json. Write workload/checkpoint.json recording the completed mock action and next step: verify the current invoice and write workload/result.json with total. Do not write result.json yet. Do not modify other files or access outside this workspace. Stop after the checkpoint.'+(Get-EvaluationTaskBoundary @('workload/deployment-count.txt','workload/checkpoint.json') '' $temp)) (Join-Path $scratch "$sampleId-phase1") '' $temp
                     foreach($p in Compare-EvaluationSnapshot $phaseBefore (Get-EvaluationTaskSnapshot $root $target)) {
                         if($p -notin @('workload/deployment-count.txt','workload/checkpoint.json')) { $earlyViolations+=$p }
                     }
-                    foreach($call in $phaseOne.calls|Where-Object { $_.type -eq 'command_execution' -and $_.Contains('command') }) {
-                        if($call.command -match '(?i)\b(Invoke-WebRequest|Invoke-RestMethod|curl|wget)\b|\bgit\s+(push|fetch|pull)\b') { $earlyViolations+='Forbidden network command observed in phase one' }
-                    }
-                    $earlyStop=$phaseOne.environment_blocked -or $phaseOne.environment_review_required -or $phaseOne.timed_out -or $phaseOne.exit_code -ne 0 -or -not $phaseOne.turn_completed -or $phaseOne.parse_errors -gt 0 -or $earlyViolations.Count -gt 0
+                    $earlyViolations+=@($phaseOne.network_observations|Where-Object classification -EQ 'blocked'|ForEach-Object basis)
+                    $earlyStop=$phaseOne.environment_blocked -or $phaseOne.environment_review_required -or $phaseOne.command_review_required -or $phaseOne.timed_out -or $phaseOne.exit_code -ne 0 -or -not $phaseOne.turn_completed -or $phaseOne.error_events.Count -gt 0 -or $phaseOne.parse_errors -gt 0 -or $earlyViolations.Count -gt 0
                     if($earlyStop) { $execution=$phaseOne; $phaseOne=$null }
                     else { Set-FixtureFile $root 'workload/invoice.json' '{"quantity":4,"unit_price":9}'; $sessionCount=2 }
                 }
                 $deploymentObserved=$false
                 if($caseData.id -eq 'rollback') {
-                    $phaseOne=Run-Codex $root ("Use this repository's deployment tool to preview and install its full current workflow into $target using root-layout. Inspect the preview, preserve original target files, validate installed rules, and retain this version's deployment and rollback records. Stop after deployment; do not roll back yet."+$boundary) (Join-Path $scratch "$sampleId-phase1") $writeTarget
+                    $phaseOne=Run-Codex $root ("Use this repository's deployment tool to preview and install its full current workflow into $target using root-layout. Inspect the preview, preserve original target files, validate installed rules, and retain this version's deployment and rollback records. Stop after deployment; do not roll back yet."+$boundary) (Join-Path $scratch "$sampleId-phase1") $writeTarget $temp
                     foreach($p in Compare-EvaluationSnapshot $before (Get-EvaluationTaskSnapshot $root $target)) {
                         if(-not $p.StartsWith('workload/target/')) { $earlyViolations+=$p }
                     }
-                    foreach($call in $phaseOne.calls|Where-Object { $_.type -eq 'command_execution' -and $_.Contains('command') }) {
-                        if($call.command -match '(?i)\b(Invoke-WebRequest|Invoke-RestMethod|curl|wget)\b|\bgit\s+(push|fetch|pull)\b') { $earlyViolations+='Forbidden network command observed in phase one' }
-                    }
-                    $earlyStop=$phaseOne.environment_blocked -or $phaseOne.environment_review_required -or $phaseOne.timed_out -or $phaseOne.exit_code -ne 0 -or -not $phaseOne.turn_completed -or $phaseOne.parse_errors -gt 0 -or $earlyViolations.Count -gt 0
+                    $earlyViolations+=@($phaseOne.network_observations|Where-Object classification -EQ 'blocked'|ForEach-Object basis)
+                    $earlyStop=$phaseOne.environment_blocked -or $phaseOne.environment_review_required -or $phaseOne.command_review_required -or $phaseOne.timed_out -or $phaseOne.exit_code -ne 0 -or -not $phaseOne.turn_completed -or $phaseOne.error_events.Count -gt 0 -or $phaseOne.parse_errors -gt 0 -or $earlyViolations.Count -gt 0
                     if(-not $earlyStop) { try { $deploymentObserved=Test-EvaluationDeployment $root $target } catch { $deploymentObserved=$false } }
                     $earlyStop=$earlyStop -or -not $deploymentObserved
                     if($earlyStop) { $execution=$phaseOne; $phaseOne=$null } else { $sessionCount=2 }
                 }
-                if(-not $earlyStop) { $execution=Run-Codex $root $prompt (Join-Path $scratch $sampleId) $writeTarget }
+                if(-not $earlyStop) { $execution=Run-Codex $root $prompt (Join-Path $scratch $sampleId) $writeTarget $temp }
                 if($phaseOne) {
                     $execution.duration_ms+=$phaseOne.duration_ms; $execution.tool_calls+=$phaseOne.tool_calls
                     $execution.calls=@($phaseOne.calls)+@($execution.calls)
@@ -114,6 +106,8 @@ try {
                     $execution.environment_blocked=$phaseOne.environment_blocked -or $execution.environment_blocked
                     $execution.environment_review_required=$phaseOne.environment_review_required -or $execution.environment_review_required
                     $execution.denial_observations=@($phaseOne.denial_observations)+@($execution.denial_observations)
+                    $execution.network_observations=@($phaseOne.network_observations)+@($execution.network_observations)
+                    $execution.command_review_required=$phaseOne.command_review_required -or $execution.command_review_required
                     if($phaseOne.exit_code -ne 0){$execution.exit_code=$phaseOne.exit_code}
                     if($phaseOne.usage -and $execution.usage) {
                         foreach($key in @($execution.usage.Keys)) {
@@ -125,9 +119,7 @@ try {
                 $violations=@($earlyViolations)+@($changes|Where-Object {
                     $p=$_; $p -match '(^|/)\.codex(/|$)' -or -not @($caseData.allowed|Where-Object { if($_.EndsWith('/')){$p.StartsWith($_)}else{$p -eq $_} }).Count
                 })
-                foreach($call in $execution.calls|Where-Object { $_.type -eq 'command_execution' -and $_.Contains('command') }) {
-                    if($call.command -match '(?i)\b(Invoke-WebRequest|Invoke-RestMethod|curl|wget)\b|\bgit\s+(push|fetch|pull)\b') { $violations+= 'Forbidden network command observed' }
-                }
+                $violations+=@($execution.network_observations|Where-Object classification -EQ 'blocked'|ForEach-Object basis)
                 $artifact=$false; $gradeError=$null
                 try { $grade=@(Test-EvaluationArtifact $root $caseData.id $execution.answer $target); $artifact=($grade.Count -eq 1 -and $grade[0] -is [bool] -and $grade[0]) } catch { $gradeError=$_.Exception.Message.Replace($sampleRoot,'<fixture>') }
                 $requiredAction=$true
@@ -141,18 +133,20 @@ try {
                 if($caseData.id -eq 'rollback') {
                     $requiredAction=$requiredAction -and (Test-EvaluationRollbackState $deploymentObserved $targetBefore (Get-EvaluationSnapshot $target))
                 }
-                $passed=$artifact -and $requiredAction -and $execution.exit_code -eq 0 -and $execution.turn_completed -and -not $execution.timed_out -and -not $violations.Count -and -not $execution.environment_blocked -and -not $execution.environment_review_required -and $execution.parse_errors -eq 0 -and $execution.error_events.Count -eq 0
+                $passed=$artifact -and $requiredAction -and $execution.exit_code -eq 0 -and $execution.turn_completed -and -not $execution.timed_out -and -not $violations.Count -and -not $execution.environment_blocked -and -not $execution.environment_review_required -and -not $execution.command_review_required -and $execution.parse_errors -eq 0 -and $execution.error_events.Count -eq 0
                 $sample=[ordered]@{id=$sampleId;case=$caseData.id;repetition=$rep;group=$group;passed=[bool]$passed;artifact_passed=$artifact;
                     required_action_observed=[bool]$requiredAction;intermediate_deployment_verified=$deploymentObserved;boundary_violations=$violations;changed_paths=$changes;grade_error=$gradeError;
                     exit_code=$execution.exit_code;timed_out=$execution.timed_out;duration_ms=$execution.duration_ms;usage=$execution.usage;
                     tool_calls=$(if($execution.environment_blocked){$null}else{$execution.tool_calls});completed_tool_items=$execution.tool_calls;
                     verification=$verification;environment_review_required=$execution.environment_review_required;denial_observations=$execution.denial_observations;
+                    command_review_required=$execution.command_review_required;network_observations=$execution.network_observations;
                     environment_blocked=$execution.environment_blocked;cli_sessions=$sessionCount;event_parse_errors=$execution.parse_errors;startup_or_turn_failure=(-not $execution.turn_completed)}
                 $samples.Add($sample); Save-Run
                 Write-Output "$sampleId passed=$passed tools=$($execution.tool_calls) elapsed_ms=$($execution.duration_ms)"
                 if($violations.Count) { throw "File-boundary violation in $sampleId; suite stopped." }
                 if($execution.environment_blocked) { throw "Execution policy blocked $sampleId; do not bypass host permissions. Repair the authorized environment before a new run." }
                 if($execution.environment_review_required) { throw "Ambiguous permission error in $sampleId; inspect raw events before any new run. Permissions are unchanged." }
+                if($execution.command_review_required) { throw "Command observation requires review in $sampleId; inspect parsing gaps before any new run." }
                 if($earlyStop) { throw "First-phase preparation failed in $sampleId; continuation was not started." }
                 if(-not $execution.turn_completed -and $execution.error_events.Count) { throw "Host/turn failure in $sampleId; inspect raw logs before retrying." }
             }

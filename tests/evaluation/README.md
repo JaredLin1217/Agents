@@ -6,10 +6,14 @@ are diagnostic and never satisfy full acceptance. GPT-6/xhigh and the same CLI
 are fixed for both arms; group order alternates per repetition. Each sample gets
 a fresh Git fixture with no preceding answers or native memory. The baseline is
 immutable, recorded in `docs/evidence/baseline.json`.
+Both fixtures contain the same pre-evaluation v2.8 Git objects required by the
+frozen baseline's regression checks. The host imports that exact historical commit
+through local Git only, without configuring a remote or importing v3 history,
+task answers, native memory or earlier sample state.
 
 Each sample contains a Provider checkout and a separate sibling target: the v2
 baseline refuses to deploy inside its own checkout. Only deployment/rollback calls
-receive that exact target via `--add-dir`; other calls have no extra writable root.
+receive that exact target via `--add-dir`.
 An explicitly authorized, invocation-only permission profile allows code, `.agents`
 and Git writes in these disposable roots, keeps `.codex` read-only, and disables
 command network access. It does not inherit writable system temp directories.
@@ -18,11 +22,23 @@ are rejected. Both targets start with an identical inert local environment file;
 deployment must preserve it. Failed preflight remains blocking. Both arms use the same
 topology. Reports use `workload/target/` as its stable logical path, not an absolute
 machine-specific location.
-`TEMP`, `TMP` and `TMPDIR` are set only on each child process to its own
-`.agents/runtime/temp`; legacy temporary output therefore remains inside that
-already authorized fixture. The parent environment is not changed.
+Every call also receives a unique, explicitly authorized private validation temp
+inside project-specific disposable scratch. `TEMP`, `TMP` and `TMPDIR` point there
+only in the child process. No writable system-temp or parent-directory grant is
+inherited. A raw harness manifest records the exact directory. Both arms keep
+the validator's default temp selection; a temp nested inside the Provider breaks
+the frozen baseline's self-deployment boundary. Short checkout/temp paths and
+child-only `core.longpaths=true` support Windows Git without changing global Git
+configuration. The parent environment is not changed.
 
-The runner first checks actual file read/write, ignored runtime writes and a local
+Before any model call, full validation qualifies both frozen-source fixtures in
+the actual command sandbox with this same temp topology and permissions. A source
+or target mutation, failed validator or failed filesystem probe stops the run.
+Qualification uses separate fixtures, never task answers or model-task receipts.
+Run `test-environment.ps1 -CodexPath <executable> -CandidateCommit <commit>` for
+this no-model diagnostic alone. It is overhead, not an acceptance sample.
+
+The runner then checks actual file read/write, ignored runtime writes and a local
 Git commit in a separate disposable fixture, using exactly the task host arguments.
 Before any model call, a command-only sandbox probe checks runtime writes and
 expected denial of writes to `.codex` and outside the fixture. These narrowly
@@ -44,6 +60,9 @@ long-path file support does not remove that separate limitation.
 
 Task prompts and independent grading files are removed from agent fixtures;
 non-grading host/metrics helpers remain so Provider regression tests still work.
+Prior evaluation reports, diagnostic status and host-only qualification entrypoints
+are also removed. Frozen baseline metadata and offline release evidence remain
+available to the required Provider checks; earlier task outcomes do not.
 Prompts, graders and their imported helpers are fixed and hashed before execution.
 Every task receives its acceptance criteria and allowed write set as explicit instructions; the same set
 still drives independent post-run checks. Read-only tests are not hidden scope
@@ -96,6 +115,14 @@ denials. Structured failures and failed commands with error-shaped output block
 execution. Ambiguous error-shaped output (including PowerShell errors with exit
 zero) stops for review without claiming that a policy denial was proven. This is
 diagnostic classification, not an isolation enforcement mechanism.
+
+Command observation decodes the CLI's rendered argv as data, then uses the native
+PowerShell AST to distinguish invocations from search arguments and quoted text.
+An `rg` search for `Invoke-WebRequest` is not a network call. Direct network and
+Git transport invocations stop the run; unsupported shell wrappers, malformed
+quoting and dynamic Git operations stop for review. This bounded observer does
+not inspect transitive script behavior or prove network isolation. The configured
+network restriction remains separate from observations.
 
 Release grading independently requires successful workload and full Provider
 validation before the local commit, in separate completed command events. The
