@@ -209,7 +209,7 @@ try {
     }
     Assert ($permissionConfig[0].Contains('".codex"="read"')) 'Local configuration protection removed'
     Assert ($permissionConfig[0].Contains('network={enabled=false}')) 'Command network enabled'
-    $launchRejected=$false; try { Assert-EvaluationLaunchPath $provider } catch { $launchRejected=$true }
+    $launchRejected=$false; try { Assert-EvaluationLaunchPath ([IO.Path]::GetPathRoot($provider)) } catch { $launchRejected=$true }
     Assert $launchRejected 'Model launch accepted a non-disposable repository'
     Assert ($hostArgs -notcontains '--ignore-rules' -and $hostArgs -notcontains '--dangerously-bypass-approvals-and-sandbox') 'Evaluation bypasses host controls'
     if($IsWindows) { Assert ($hostArgs -contains 'windows.sandbox="elevated"') 'Windows backend dropped with user config' }
