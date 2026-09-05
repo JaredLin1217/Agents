@@ -1,18 +1,18 @@
 {
   "schema_version": "agents-runtime-evidence/v5",
   "workflow_version": "3.0.0",
-  "source_commit": "2a87780e1b8fb96b987466d2cc0469b2db19626d",
-  "validated_content_digest": "100690a510eb4668504ee6ce6cb1c583555a9f9e1ac5222ebc51f04c6223d5dc",
+  "source_commit": "2ca057ff4bee674b8b10064922c5322ee00b8a93",
+  "validated_content_digest": "d5e14632b0b5c2dbc4207d6fbfda6c46f52c644c6e54006422f588cca74e149e",
   "excluded_paths": [
     "docs/evidence/releases/v3.0.0-runtime-evidence.json"
   ],
-  "run_started_utc": "2026-09-05T18:14:36.9931374Z",
-  "run_finished_utc": "2026-09-05T18:14:58.7413183Z",
+  "run_started_utc": "2026-09-05T20:25:47.7576896Z",
+  "run_finished_utc": "2026-09-05T20:25:59.0640392Z",
   "working_tree_status_at_capture": "clean",
-  "duration_ms": 21788,
+  "duration_ms": 11345,
   "host": {
-    "git": "git version 2.51.0.windows.2",
-    "powershell": "7.6.5"
+    "powershell": "7.6.5",
+    "git": "git version 2.51.0.windows.2"
   },
   "commands": [
     {
@@ -20,7 +20,7 @@
       "command": "Test-AgentSyntax",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 64,
+      "duration_ms": 32,
       "retry_count": 0,
       "details": []
     },
@@ -29,7 +29,7 @@
       "command": "Test-AgentSchemas",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 104,
+      "duration_ms": 90,
       "retry_count": 0,
       "details": []
     },
@@ -38,7 +38,7 @@
       "command": "Test-AgentOwnership",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 65,
+      "duration_ms": 69,
       "retry_count": 0,
       "details": []
     },
@@ -47,7 +47,7 @@
       "command": "Test-AgentKnowledge",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 70,
+      "duration_ms": 87,
       "retry_count": 0,
       "details": []
     },
@@ -56,7 +56,7 @@
       "command": "Test-AgentSources",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 11,
+      "duration_ms": 21,
       "retry_count": 0,
       "details": []
     },
@@ -65,10 +65,10 @@
       "command": "Test-AgentSizes",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 152,
+      "duration_ms": 135,
       "retry_count": 0,
       "details": [
-        "production_bytes=40697; deployable_bytes=44038"
+        "production_bytes=40447; deployable_bytes=43551"
       ]
     },
     {
@@ -76,10 +76,10 @@
       "command": "pwsh -NoProfile -File tests/test-workflow.ps1",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 20537,
+      "duration_ms": 10269,
       "retry_count": 0,
       "details": [
-        "PASS: 235 offline assertions"
+        "PASS: 118 offline assertions"
       ]
     },
     {
@@ -87,7 +87,7 @@
       "command": "Test-AgentEvidence",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 231,
+      "duration_ms": 166,
       "retry_count": 0,
       "details": [
         "Evidence is stale; recapture after the next source checkpoint."
@@ -98,10 +98,10 @@
       "command": "export-release-package.ps1",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 177,
+      "duration_ms": 180,
       "retry_count": 0,
       "details": [
-        "{\"files\":16,\"path\":\".agents/runtime/packages/c8ff2d45981747adbcf9d0f7ced32a20\",\"layout\":\"root-layout\"}"
+        "{\"path\":\".agents/runtime/packages/549f4d7744a3420fa26291a7aa34fb48\",\"layout\":\"root-layout\",\"files\":16}"
       ]
     },
     {
@@ -109,7 +109,7 @@
       "command": "git diff --check HEAD -- <selected paths>",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 30,
+      "duration_ms": 38,
       "retry_count": 0,
       "details": []
     }
@@ -121,7 +121,7 @@
     "No hard isolation claim. Behavioral boundaries and file ownership checks only."
   ],
   "token_usage": {
-    "status": "unavailable",
-    "reason": "Offline checks do not invoke a model. Real model usage is reported separately by the A/B evaluator."
+    "reason": "Current-version offline checks do not invoke a model or measure token savings.",
+    "status": "unavailable"
   }
 }
