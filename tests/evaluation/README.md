@@ -110,6 +110,10 @@ before stopping. The report retains outcomes and a stop reason; it is not resume
 Artifact tests are bounded checks, not a semantic proof of every sentence in an
 answer. Source verification, memory persistence and boundary enforcement also
 have independent engineering tests; model-written explanations alone are not proof.
+Recovery preparation must leave an integer counter of 1, readable checkpoint and
+no final result. LF/CRLF are valid integer whitespace, not repeated deployments.
+The continuation must preserve the exact post-preparation counter hash and compute
+the current invoice total. Missing preparation or counter rewrites fail separately.
 
 Usage is summed from actual `turn.completed` events: total input includes cached
 input, so caching is reported separately, not subtracted. Output already includes

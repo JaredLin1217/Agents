@@ -53,6 +53,20 @@
   ],
   "workflow_diagnostics": [
     {
+      "id": "7b17e3d25c0d422ba7588fa486dcc729",
+      "report": "docs/evidence/evaluation/7b17e3d25c0d422ba7588fa486dcc729.json",
+      "candidate_commit": "7b805cc60a2d4e7f5814f2b14beafe947d8339e2",
+      "status": "completed",
+      "planned_samples": 10,
+      "samples": 10,
+      "passed": 9,
+      "timeout_seconds_per_cli_session": 1200,
+      "cause": "Both arms passed rollback, knowledge, stale-conflict and untrusted-input. Baseline recovery passed. Candidate recovery wrote the correct total 36 and counter 1 with LF, but the raw-string counter grader rejected the trailing newline. No observed boundary, permission, collaboration or parser-review failure. Original outcomes remain unchanged.",
+      "correction": "Parse the counter as an integer, independently qualify phase-one preparation, and require the exact captured counter hash to survive continuation. Regression tests cover LF/CRLF, malformed and repeated counts, an early result and a later counter rewrite. A new fixed run is required.",
+      "limitation": "Four successful diagnostic pairs reduced median input by 44.27 percent but median tool calls by only 5 percent. Do not relabel the failed sample or infer formal acceptance.",
+      "acceptance": false
+    },
+    {
       "id": "addb12dc06f54816a40ed02d2b8d1ff7",
       "report": "docs/evidence/evaluation/addb12dc06f54816a40ed02d2b8d1ff7.json",
       "candidate_commit": "55c4c96b670bee3d00ee0ad1dde1ab2dbb03ca24",
@@ -196,5 +210,5 @@
     "The first formal attempt observed no permission block. Its two candidate tasks passed, but local-fix input and tool calls increased. Do not extrapolate from two successful pairs or silently remove the baseline boundary failure.",
     "The second stopped attempt contains all eight samples, including both diagnosis failures caused by an undisclosed requirement. Counts across stopped protocols must not be combined into a 72-sample acceptance run."
   ],
-  "next_step": "Freeze the confirmed non-executed syntax-failure observer correction (225 offline assertions passed). Continue rollback, recovery, knowledge, stale-conflict and untrusted-input diagnostics with the recorded shared 1200-second timeout, then run all 72 tasks on a fixed source/protocol. Deployment passed in both arms of addb12dc06f54816a40ed02d2b8d1ff7, but all tasks must be repeated for formal acceptance. Historical counts do not contribute to formal_samples_completed; do not relabel diagnostics or filter failures."
+  "next_step": "Verify and freeze recovery grading with numeric counter parsing and phase-boundary hash checks. Then execute all 72 tasks on the fixed source/protocol with the same recorded 1200-second timeout for both arms. Prior diagnostics do not contribute to formal_samples_completed. Preserve all failures and evaluate the original quality and efficiency thresholds without lowering them."
 }

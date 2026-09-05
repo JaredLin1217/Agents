@@ -210,6 +210,23 @@ try {
         $fixturePreflight=Test-EvaluationFixtureProtocol (Join-Path $scratch 'protocol')
         Assert ($fixturePreflight.passed -and -not $fixturePreflight.model_started -and $fixturePreflight.checks.Count -eq 12) 'Incomplete offline protocol preflight'
         foreach($check in $fixturePreflight.checks) { Assert ($check.valid_reference_passed -and $check.invalid_reference_rejected) "Protocol references failed: $($check.case)" }
+        $recovery=Join-Path $scratch 'recovery-grading'
+        Put $recovery 'workload/checkpoint.json' '{"completed":["Mock deployment"],"next_steps":["Read current invoice"]}'
+        foreach($count in @('1',"1`n","1`r`n")) {
+            Put $recovery 'workload/deployment-count.txt' $count
+            $counterHash=Get-EvaluationRecoveryCheckpoint $recovery
+            Assert ([bool]$counterHash) 'Valid recovery counter or line ending rejected'
+        }
+        Put $recovery 'workload/result.json' '{"total":36}'
+        Assert (Test-EvaluationArtifact $recovery 'recovery' '' '') 'Correct recovery rejected for a trailing newline'
+        Assert (Test-EvaluationRecoveryContinuation $recovery $counterHash) 'Unchanged recovery counter rejected'
+        Assert (-not(Get-EvaluationRecoveryCheckpoint $recovery)) 'Preparation accepted an already written result'
+        Put $recovery 'workload/deployment-count.txt' '1'
+        Assert (-not(Test-EvaluationRecoveryContinuation $recovery $counterHash)) 'Counter rewrite after checkpoint accepted'
+        foreach($count in @('2','1 extra','')) {
+            Put $recovery 'workload/deployment-count.txt' $count
+            Assert (-not(Test-EvaluationArtifact $recovery 'recovery' '' '')) 'Repeated or malformed deployment count accepted'
+        }
     }
     $observed=Join-Path $scratch 'observed target'; Init $observed
     Put $observed 'workload/target/README.md' 'Nested product'
