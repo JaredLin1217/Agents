@@ -1,18 +1,18 @@
 {
   "schema_version": "agents-runtime-evidence/v5",
   "workflow_version": "3.0.0",
-  "source_commit": "2ca057ff4bee674b8b10064922c5322ee00b8a93",
-  "validated_content_digest": "d5e14632b0b5c2dbc4207d6fbfda6c46f52c644c6e54006422f588cca74e149e",
+  "source_commit": "ad071b81a899a7813cc65b8d72ce5b849bf6602f",
+  "validated_content_digest": "bfde8b0258f50ef9832bd5ca51764a8ad967cd6d825e2a8100e7068d5d0a7311",
   "excluded_paths": [
     "docs/evidence/releases/v3.0.0-runtime-evidence.json"
   ],
-  "run_started_utc": "2026-09-05T20:25:47.7576896Z",
-  "run_finished_utc": "2026-09-05T20:25:59.0640392Z",
+  "run_started_utc": "2026-09-06T00:44:57.1071161Z",
+  "run_finished_utc": "2026-09-06T00:45:31.8347165Z",
   "working_tree_status_at_capture": "clean",
-  "duration_ms": 11345,
+  "duration_ms": 34815,
   "host": {
-    "powershell": "7.6.5",
-    "git": "git version 2.51.0.windows.2"
+    "git": "git version 2.51.0.windows.2",
+    "powershell": "7.6.5"
   },
   "commands": [
     {
@@ -20,7 +20,7 @@
       "command": "Test-AgentSyntax",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 32,
+      "duration_ms": 98,
       "retry_count": 0,
       "details": []
     },
@@ -29,7 +29,7 @@
       "command": "Test-AgentSchemas",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 90,
+      "duration_ms": 250,
       "retry_count": 0,
       "details": []
     },
@@ -38,7 +38,7 @@
       "command": "Test-AgentOwnership",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 69,
+      "duration_ms": 205,
       "retry_count": 0,
       "details": []
     },
@@ -47,7 +47,7 @@
       "command": "Test-AgentKnowledge",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 87,
+      "duration_ms": 217,
       "retry_count": 0,
       "details": []
     },
@@ -56,7 +56,7 @@
       "command": "Test-AgentSources",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 21,
+      "duration_ms": 37,
       "retry_count": 0,
       "details": []
     },
@@ -65,10 +65,10 @@
       "command": "Test-AgentSizes",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 135,
+      "duration_ms": 336,
       "retry_count": 0,
       "details": [
-        "production_bytes=40447; deployable_bytes=43551"
+        "production_bytes=40632; deployable_bytes=43736"
       ]
     },
     {
@@ -76,10 +76,10 @@
       "command": "pwsh -NoProfile -File tests/test-workflow.ps1",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 10269,
+      "duration_ms": 31936,
       "retry_count": 0,
       "details": [
-        "PASS: 118 offline assertions"
+        "PASS: 125 offline assertions"
       ]
     },
     {
@@ -87,7 +87,7 @@
       "command": "Test-AgentEvidence",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 166,
+      "duration_ms": 483,
       "retry_count": 0,
       "details": [
         "Evidence is stale; recapture after the next source checkpoint."
@@ -98,18 +98,18 @@
       "command": "export-release-package.ps1",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 180,
+      "duration_ms": 437,
       "retry_count": 0,
       "details": [
-        "{\"path\":\".agents/runtime/packages/549f4d7744a3420fa26291a7aa34fb48\",\"layout\":\"root-layout\",\"files\":16}"
+        "{\"path\":\".agents/runtime/packages/87b2786f93394e26bbf417cf12a480e8\",\"files\":16,\"layout\":\"root-layout\"}"
       ]
     },
     {
       "id": "diff",
-      "command": "git diff --check HEAD -- <selected paths>",
+      "command": "git diff [--cached] --check -- <selected paths> (working tree and index)",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 38,
+      "duration_ms": 165,
       "retry_count": 0,
       "details": []
     }
@@ -121,7 +121,7 @@
     "No hard isolation claim. Behavioral boundaries and file ownership checks only."
   ],
   "token_usage": {
-    "reason": "Current-version offline checks do not invoke a model or measure token savings.",
-    "status": "unavailable"
+    "status": "unavailable",
+    "reason": "Current-version offline checks do not invoke a model or measure token savings."
   }
 }
