@@ -80,7 +80,7 @@ function Invoke-AgentChecks {
     if($Profile -eq 'Checkpoint') { $selected=$all }
     else {
         if(-not $Path.Count) {
-            $Path=@(Invoke-AgentGit $Root @('diff','--name-only','HEAD'))+@(Invoke-AgentGit $Root @('ls-files','--others','--exclude-standard'))
+            $Path=@(Invoke-AgentGit $Root @('diff','--name-only'))+@(Invoke-AgentGit $Root @('diff','--cached','--name-only'))+@(Invoke-AgentGit $Root @('ls-files','--others','--exclude-standard'))
         }
         $selected=@($all|Where-Object { $_ -in $Path })
     }
@@ -123,8 +123,11 @@ function Invoke-AgentChecks {
             $checks.Add(@{id="product:$($check.path)";command="pwsh -NoProfile -File $($check.path) $($argsCopy -join ' ')";action=$action})
         }
     }
-    $checks.Add(@{id='diff';command='git diff --check HEAD -- <selected paths>';action={
-        if($selected.Count) { $null=Invoke-AgentGit $Root (@('diff','--check','HEAD','--')+$selected) }
+    $checks.Add(@{id='diff';command='git diff [--cached] --check -- <selected paths> (working tree and index)';action={
+        if($selected.Count) {
+            $null=Invoke-AgentGit $Root (@('diff','--check','--')+$selected)
+            $null=Invoke-AgentGit $Root (@('diff','--cached','--check','--')+$selected)
+        }
     }})
     $receipts=[Collections.Generic.List[object]]::new(); $seen=@{}
     foreach($check in $checks) {

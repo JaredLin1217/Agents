@@ -107,6 +107,24 @@ try {
         $null=Restore-Deployment $root $upgrade.transaction_id
         Assert (Test-Path -LiteralPath (Join-Path $root 'scripts/retired.ps1')) 'Retired file not restored'
     }
+    $unborn=Join-Path $scratch 'unborn repository'
+    [IO.Directory]::CreateDirectory($unborn)|Out-Null
+    $null=Invoke-AgentGit $unborn @('init','-q')
+    $null=Deploy $unborn 'root-layout'
+    $validator=Get-AgentAsset $unborn 'scripts/validate.ps1'
+    foreach($profile in @('Checkpoint','Changed')) {
+        $out=@(& pwsh -NoProfile -File $validator -Scope Consumer -Profile $profile -Json 2>&1)
+        Assert ($LASTEXITCODE -eq 0) "Unborn $profile failed: $($out -join ' ')"
+        $report=($out -join "`n")|ConvertFrom-Json -AsHashtable
+        Assert ($report.paths -contains 'AGENTS.md') 'Unborn validation skipped untracked rules'
+    }
+    Put $unborn 'AGENTS.md' "Staged whitespace   `n"
+    $null=Invoke-AgentGit $unborn @('add','AGENTS.md')
+    [IO.File]::Copy((Join-Path $provider 'AGENTS.md'),(Join-Path $unborn 'AGENTS.md'),$true)
+    $out=@(& pwsh -NoProfile -File $validator -Scope Consumer -Profile Changed -Json 2>&1)
+    $report=($out -join "`n")|ConvertFrom-Json -AsHashtable
+    Assert (($report.checks|Where-Object id -EQ 'diff').result -eq 'failed') 'Unborn validation missed staged whitespace'
+    Assert (-not $report.passed) 'Unborn staged error reported success'
     $root=Join-Path $scratch 'memory recovery'
     Init $root; $null=Deploy $root 'root-layout'
     Put $root 'contract.txt' 'Durable fact'
