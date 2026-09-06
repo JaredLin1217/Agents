@@ -52,7 +52,7 @@ function Write-AgentJson {
     [IO.Directory]::CreateDirectory($parent) | Out-Null
     $temp = "$Path.$([guid]::NewGuid().ToString('N')).tmp"
     try {
-        [IO.File]::WriteAllText($temp, (($Value | ConvertTo-Json -Depth 80) + "`n"), [Text.UTF8Encoding]::new($false))
+        [IO.File]::WriteAllText($temp, (($Value | ConvertTo-Json -Depth 80).Replace("`r`n","`n") + "`n"), [Text.UTF8Encoding]::new($false))
         [IO.File]::Move($temp, $Path, -not $NoClobber)
     } finally { if (Test-Path -LiteralPath $temp) { Remove-Item -LiteralPath $temp } }
 }

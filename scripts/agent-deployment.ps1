@@ -61,7 +61,7 @@ function Get-DeploymentPlan([string]$Provider,[string]$Target,[string]$Layout) {
     }
     $version=(Read-AgentJson (Join-Path $Provider 'agents.json')).version
     $manifest=[ordered]@{schema_version='agents-managed/v3';version=$version;layout=$Layout;files=$entries}
-    $manifestText=($manifest|ConvertTo-Json -Depth 20)+"`n"
+    $manifestText=($manifest|ConvertTo-Json -Depth 20).Replace("`r`n","`n")+"`n"
     $manifestHash=Get-TextHash $manifestText
     $ops.Add([ordered]@{path='.agents/managed.json';source='';before=(Get-AgentHash $manifestPath);after=$manifestHash;
         action=$(if((Get-AgentHash $manifestPath) -eq $manifestHash){'unchanged'}else{'update'})})

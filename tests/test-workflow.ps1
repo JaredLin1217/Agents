@@ -59,6 +59,7 @@ try {
         $run=Invoke-Deployment $provider $root $layout $plan.plan_digest
         Assert ($run.status -eq 'committed') 'Deployment failed'
         $manifest=Read-AgentJson (Join-Path $root '.agents/managed.json') (Join-Path $provider 'schemas/managed.schema.json')
+        Assert (-not [IO.File]::ReadAllText((Join-Path $root '.agents/managed.json')).Contains("`r")) 'Manifest must use portable LF bytes'
         foreach($entry in $manifest.files) { Assert ((Get-AgentHash (Resolve-SafePath $root $entry.path)) -eq $entry.sha256) "Bad deployed hash $($entry.path)" }
         Assert ((Get-Content -Raw -LiteralPath (Join-Path $root 'README.md')) -eq 'User-owned product documentation') 'Product docs changed'
         Assert ((Deploy $root).status -eq 'unchanged') 'Repeated deployment not idempotent'
