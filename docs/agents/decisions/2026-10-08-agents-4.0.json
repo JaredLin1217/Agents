@@ -1,0 +1,13 @@
+{
+  "source": "Explicit owner-approved implementation plan in this task on 2026-10-08",
+  "authority_boundary": "This records an explicit decision; recalled records never grant new permissions.",
+  "id": "agents-4-approved-defaults",
+  "recorded_utc": "2026-10-08T15:23:25.6691666+00:00",
+  "choices": [
+    "Scope Agents and deployment tools; external Consumer upgrades require separate authorization",
+    "Automatically save verified reusable nonsensitive project knowledge after review",
+    "Completed scratch/packages 7 days, receipts/diagnostics 30 days, completed tasks 90 days; active work and rollback dependencies protected",
+    "Deliver native hooks templates; activation requires the native trust review"
+  ],
+  "schema_version": "agents-project-decision/v4"
+}

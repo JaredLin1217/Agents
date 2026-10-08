@@ -1,0 +1,162 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "workflow_version",
+    "source_commit",
+    "validated_content_digest",
+    "excluded_paths",
+    "run_started_utc",
+    "run_finished_utc",
+    "working_tree_status_at_capture",
+    "duration_ms",
+    "host",
+    "commands",
+    "result",
+    "scope",
+    "claims",
+    "token_usage"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "agents-runtime-evidence/v5"
+    },
+    "workflow_version": {
+      "const": "3.0.0"
+    },
+    "source_commit": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$"
+    },
+    "validated_content_digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "excluded_paths": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "run_started_utc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "run_finished_utc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "working_tree_status_at_capture": {
+      "const": "clean"
+    },
+    "duration_ms": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "host": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "powershell",
+        "git"
+      ],
+      "properties": {
+        "powershell": {
+          "type": "string",
+          "minLength": 1
+        },
+        "git": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "commands": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "command",
+          "result",
+          "exit_code",
+          "duration_ms",
+          "retry_count",
+          "details"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "command": {
+            "type": "string",
+            "minLength": 1
+          },
+          "result": {
+            "enum": [
+              "passed",
+              "failed"
+            ]
+          },
+          "exit_code": {
+            "type": "integer"
+          },
+          "duration_ms": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "retry_count": {
+            "const": 0
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "result": {
+      "enum": [
+        "passed",
+        "failed"
+      ]
+    },
+    "scope": {
+      "type": "string",
+      "minLength": 1
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "token_usage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "reason"
+      ],
+      "properties": {
+        "status": {
+          "const": "unavailable"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

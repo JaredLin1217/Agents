@@ -13,7 +13,9 @@ Use actual test results and artifact checks, never agent self-scores.
 Deployable changes must update the explicit deployment catalog and regression
 tests together. Do not stage `.agents/runtime/`, local Codex configuration,
 credentials, private target data, generated packages, or raw model event logs.
-Keep rules within 2 KiB and the validation entry within 15 KiB.
+Keep root rules concise and load conditional workflows progressively. Byte counts
+are observations, not arbitrary release limits. Register generated artifacts in
+runtime; do not leave adjacent JSON staging files or silently delete failed tests.
 
 Describe changed behavior, tests run, known gaps, and ownership implications in
 pull requests. Source changes are committed before release evidence capture;

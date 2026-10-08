@@ -1,0 +1,46 @@
+{
+  "documents": [
+    {
+      "checked_utc": "2026-10-08T22:25:14.7890291+08:00",
+      "sha256": "1d9758e64a86c1f5445a2bbee51e20132400fe80b71a41c4ec2e3a8a42caeb74",
+      "url": "https://developers.openai.com/api/docs/models/gpt-6.1-sol.md"
+    },
+    {
+      "checked_utc": "2026-10-08T22:25:14.9787542+08:00",
+      "sha256": "14b1d9281eb2132c5f14075eb44572cda843ec1101ad9680cd4adc004c0147d3",
+      "url": "https://developers.openai.com/api/docs/guides/latest-model.md"
+    },
+    {
+      "checked_utc": "2026-10-08T22:25:15.3534579+08:00",
+      "sha256": "724881d81f1a9fdb35ea42d4851a11b1f6606bbc6e9d2d05c1e8c466fc25c630",
+      "url": "https://learn.chatgpt.com/docs/hooks.md"
+    },
+    {
+      "checked_utc": "2026-10-08T22:25:15.6842751+08:00",
+      "sha256": "7412a5b573d678dbad5ea5ba162005a9e1d8b216e824238e53307333260a52f8",
+      "url": "https://learn.chatgpt.com/docs/customization/memories.md"
+    },
+    {
+      "checked_utc": "2026-10-08T22:25:16.0090169+08:00",
+      "sha256": "9d1f87a2d1cb55b4782b95abe710692b35b9659789c2db31a22c7074a3383e8e",
+      "url": "https://learn.chatgpt.com/docs/agent-configuration/agents-md.md"
+    },
+    {
+      "checked_utc": "2026-10-08T22:25:16.3499214+08:00",
+      "sha256": "d15791562748e64a53dfec534b8558aa522e732cec0fdedcf7257fa4ef486a20",
+      "url": "https://learn.chatgpt.com/docs/build-skills.md"
+    },
+    {
+      "checked_utc": "2026-10-08T22:25:16.9115241+08:00",
+      "sha256": "d347f6bf16af6dcdfbdbce7236d8b27429eca748614e33ed1f0709c4e576cacd",
+      "url": "https://learn.chatgpt.com/docs/config-file/config-reference.md"
+    },
+    {
+      "checked_utc": "2026-10-08T22:25:17.2752158+08:00",
+      "sha256": "c5ef4eda3d9f876c8f35c697e720a3e7c760b5cf8c4943c97e82d1d8fe1b0054",
+      "url": "https://learn.chatgpt.com/docs/agent-configuration/subagents.md"
+    }
+  ],
+  "schema_version": "agents-source-review/v4",
+  "method": "Fetched official Markdown, read relevant sections, recorded content SHA-256; summary in docs/reviews/agents-4.0-review.md. No Sol task benchmark."
+}

@@ -80,6 +80,71 @@
       "source": ".agents/deploy-ignore",
       "root-layout": ".agents/.gitignore",
       "dot-agents-layout": ".agents/.gitignore"
+    },
+    {
+      "dot-agents-layout": ".agents/skills/project-runtime/SKILL.md",
+      "root-layout": ".agents/skills/project-runtime/SKILL.md",
+      "source": ".agents/skills/project-runtime/SKILL.md"
+    },
+    {
+      "dot-agents-layout": ".agents/scripts/agent-runtime.ps1",
+      "root-layout": "scripts/agent-runtime.ps1",
+      "source": "scripts/agent-runtime.ps1"
+    },
+    {
+      "dot-agents-layout": ".agents/scripts/runtime-artifacts.ps1",
+      "root-layout": "scripts/runtime-artifacts.ps1",
+      "source": "scripts/runtime-artifacts.ps1"
+    },
+    {
+      "dot-agents-layout": ".agents/scripts/agent-memory.ps1",
+      "root-layout": "scripts/agent-memory.ps1",
+      "source": "scripts/agent-memory.ps1"
+    },
+    {
+      "dot-agents-layout": ".agents/scripts/agent-tasks.ps1",
+      "root-layout": "scripts/agent-tasks.ps1",
+      "source": "scripts/agent-tasks.ps1"
+    },
+    {
+      "dot-agents-layout": ".agents/scripts/project-hooks.ps1",
+      "root-layout": "scripts/project-hooks.ps1",
+      "source": "scripts/project-hooks.ps1"
+    },
+    {
+      "dot-agents-layout": ".agents/schemas/runtime-artifact.schema.json",
+      "root-layout": "schemas/runtime-artifact.schema.json",
+      "source": "schemas/runtime-artifact.schema.json"
+    },
+    {
+      "dot-agents-layout": ".agents/schemas/runtime-policy.schema.json",
+      "root-layout": "schemas/runtime-policy.schema.json",
+      "source": "schemas/runtime-policy.schema.json"
+    },
+    {
+      "dot-agents-layout": ".agents/schemas/validation-report.schema.json",
+      "root-layout": "schemas/validation-report.schema.json",
+      "source": "schemas/validation-report.schema.json"
+    },
+    {
+      "dot-agents-layout": ".agents/docs/agents/runtime-policy.json",
+      "root-layout": "docs/agents/runtime-policy.json",
+      "source": "docs/agents/runtime-policy.json"
+    },
+    {
+      "dot-agents-layout": ".agents/docs/templates/codex-hooks.json",
+      "root-layout": "docs/templates/codex-hooks.json",
+      "source": "docs/templates/codex-hooks.json"
+    },
+    {
+      "dot-agents-layout": ".agents/docs/templates/task-input.json",
+      "root-layout": "docs/templates/task-input.json",
+      "source": "docs/templates/task-input.json"
+    },
+    {
+      "dot-agents-layout": ".agents/docs/templates/knowledge-entry.json",
+      "root-layout": "docs/templates/knowledge-entry.json",
+      "source": "docs/templates/knowledge-entry.json"
     }
   ]
 }

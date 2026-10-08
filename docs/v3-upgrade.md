@@ -5,12 +5,12 @@ task checkpoints and explicit deployment ownership. It has no mandatory routing
 hierarchy, chat envelope, fixed reply decoration or runtime compatibility layer.
 Previous implementations remain in Git history, not the current working tree.
 
-## Local Configuration
-The main project's ignored Codex configuration selects `gpt-6-astra` with `xhigh`.
-The 64k compaction threshold is a local operating choice, not the model's context
-window. Global and downstream settings remain untouched. Native memory injection
-and generation are disabled locally; versioned project knowledge is the durable
-store. Restart or start a new session when changing host settings.
+## Historical Configuration Claims
+This document describes the v3 migration. The checkout inspected on 2026-10-08
+has no `.codex/config.toml`; earlier assertions of a local Astra model, 64k
+compaction threshold and disabled native memory were unsupported by that checkout.
+v4 removes those operating claims and leaves host settings user-controlled. See
+`v4-upgrade.md` and the current operator guide.
 
 ## Existing Files
 Deploy only into an explicitly authorized target. Existing file names do not prove
@@ -23,7 +23,7 @@ overwrite or compatibility switch. Downstream deployment is a separate operation
 Use `validate.ps1 -Scope Provider|Consumer -Profile Changed` while editing and
 `-Profile Checkpoint` for handoff, commit or deployment. One registry checks syntax,
 JSON contracts, ownership, knowledge and relevant source freshness. Provider adds
-current size limits, core regression, the release package and source-bound evidence.
+size measurements, core regression, the release package and source-bound evidence.
 Consumer does not run Provider tests. Registered product tests remain project-owned.
 
 The owner replaced model-comparison acceptance with current-version offline checks

@@ -1,4 +1,4 @@
-. "$PSScriptRoot/agent-core.ps1"
+. "$PSScriptRoot/agent-runtime.ps1"
 function Assert-OwnedPath([string]$Path) {
     if($Path -match '\\|(^|/)\.\.?(/|$)|:|//' -or $Path.EndsWith('/')) { throw "Noncanonical owned path: $Path" }
     if ($Path -match '(^|/)memory(/|\.)|^\.codex/|^\.git/|^\.agents/runtime/|(^|/)README\.md$|(^|/)agents\.json$') {
@@ -70,16 +70,29 @@ function Get-DeploymentPlan([string]$Provider,[string]$Target,[string]$Layout) {
     $data['plan_digest']=$digest
     return $data
 }
+function Get-DeploymentJournalPath([string]$Target,[string]$Id) {
+    if($Id -notmatch '^deploy-[a-f0-9]{32}$') { throw 'Invalid transaction ID.' }
+    $pointerPath=Get-RuntimePath $Target "ledger/deployments/$Id.json"
+    if(Test-Path -LiteralPath $pointerPath) {
+        $pointer=Read-AgentJson $pointerPath
+        if($pointer.path -notmatch '^\.agents/runtime/runs/run-[a-f0-9]{32}/backup/journal\.json$') { throw 'Invalid deployment journal pointer.' }
+        return Resolve-SafePath $Target $pointer.path
+    }
+    return Get-RuntimePath $Target "deployments/$Id.json"
+}
 function Restore-Deployment([string]$Target,[string]$Id) {
-    $lockPath=Resolve-SafePath $Target '.agents/runtime/deployment.lock'
-    [IO.Directory]::CreateDirectory((Split-Path -Parent $lockPath))|Out-Null
-    $lock=[IO.File]::Open($lockPath,[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::Write,[IO.FileShare]::None)
-    try { return Restore-DeploymentContent $Target $Id }
-    finally { $lock.Dispose(); Remove-Item -LiteralPath $lockPath }
+    $legacy=Get-RuntimePath $Target 'deployment.lock';$legacyHandle=$null
+    if(Test-Path -LiteralPath $legacy) { $legacyHandle=[IO.File]::Open($legacy,[IO.FileMode]::Open,[IO.FileAccess]::Write,[IO.FileShare]::None) }
+    $lock=$null
+    try { $lock=Enter-RuntimeLock $Target 'deployment';return Restore-DeploymentContent $Target $Id }
+    finally {
+        if($lock) { Exit-RuntimeLock $lock }
+        if($legacyHandle) { $legacyHandle.Dispose();Remove-Item -LiteralPath $legacy }
+    }
 }
 function Restore-DeploymentContent([string]$Target,[string]$Id) {
     if($Id -notmatch '^deploy-[a-f0-9]{32}$') { throw 'Invalid transaction ID.' }
-    $journalPath=Resolve-SafePath $Target ".agents/runtime/deployments/$Id.json"
+    $journalPath=Get-DeploymentJournalPath $Target $Id
     $journal=Read-AgentJson $journalPath
     if($journal.id -ne $Id -or $journal.status -notin @('committed','applying') -or -not $journal.entries.Count) { throw 'Transaction is not rollback eligible.' }
     $seen=@{}
@@ -102,7 +115,14 @@ function Restore-DeploymentContent([string]$Target,[string]$Id) {
         else { [IO.Directory]::CreateDirectory((Split-Path -Parent $dest))|Out-Null; [IO.File]::WriteAllBytes($dest,[Convert]::FromBase64String($entry.backup)) }
     }
     $journal.status='rolled_back'
-    Write-AgentJson $journalPath $journal
+    Write-AgentJson $journalPath $journal -Root $Target
+    Add-RuntimeEvent $Target $Id 'rolled_back' @{journal=[IO.Path]::GetRelativePath($Target,$journalPath).Replace('\','/')}
+    $pointerPath=Get-RuntimePath $Target "ledger/deployments/$Id.json"
+    if(Test-Path -LiteralPath $pointerPath) {
+        $pointer=Read-AgentJson $pointerPath;$entry=Read-AgentJson (Get-RuntimePath $Target "ledger/artifacts/$($pointer.artifact_id).json")
+        $footprint=Get-RuntimeFootprint $Target $entry.path;$entry.sha256=$footprint.digest;$entry.items=$footprint.items
+        Write-AgentJson (Get-RuntimePath $Target "ledger/artifacts/$($entry.id).json") $entry -Root $Target
+    }
     return @{transaction_id=$Id;status='rolled_back'}
 }
 function Invoke-Deployment([string]$Provider,[string]$Target,[string]$Layout,[string]$ExpectedPlanDigest,[switch]$DryRun) {
@@ -114,31 +134,43 @@ function Invoke-Deployment([string]$Provider,[string]$Target,[string]$Layout,[st
     if($plan.conflicts.Count) { throw ($plan.conflicts -join '; ') }
     if(-not $ExpectedPlanDigest -or $ExpectedPlanDigest -ne $plan.plan_digest) { throw 'Dry-run approval digest missing or stale.' }
     $changed=@($plan.operations|Where-Object action -NE 'unchanged')
-    $runtime=Resolve-SafePath $Target '.agents/runtime/deployments'
-    [IO.Directory]::CreateDirectory($runtime)|Out-Null
-    $lockPath=Resolve-SafePath $Target '.agents/runtime/deployment.lock'
-    $lock=[IO.File]::Open($lockPath,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
+    $legacyLock=Get-RuntimePath $Target 'deployment.lock'
+    if(Test-Path -LiteralPath $legacyLock) { throw 'Legacy deployment lock requires inspection.' }
+    $lock=Enter-RuntimeLock $Target 'deployment'
     $id='deploy-'+[guid]::NewGuid().ToString('N')
-    $journalPath=Resolve-SafePath $Target ".agents/runtime/deployments/$id.json"
+    $run=$null
     try {
         # Re-read after exclusive acquisition; a preview is not authorization for changed inputs.
         $fresh=Get-DeploymentPlan $Provider $Target $Layout
         if($fresh.plan_digest -ne $ExpectedPlanDigest) { throw 'Deployment inputs changed after preview.' }
-        foreach($file in Get-ChildItem -LiteralPath $runtime -Filter '*.json' -File) {
-            if((Read-AgentJson $file.FullName).status -eq 'applying') { throw "Interrupted deployment requires rollback: $($file.BaseName)" }
+        foreach($directory in @((Get-RuntimePath $Target 'deployments'),(Get-RuntimePath $Target 'ledger/deployments'))) {
+            if(-not(Test-Path -LiteralPath $directory)) { continue }
+            foreach($file in Get-ChildItem -LiteralPath $directory -Filter '*.json' -File) {
+                if($directory -eq (Get-RuntimePath $Target 'ledger/deployments')) {
+                    $pointer=Read-AgentJson $file.FullName
+                    $backup=Read-AgentJson (Get-RuntimePath $Target "ledger/artifacts/$($pointer.artifact_id).json")
+                    if($backup.status -eq 'deleted') { continue }
+                }
+                $oldJournal=Read-AgentJson (Get-DeploymentJournalPath $Target $file.BaseName)
+                if($oldJournal.status -eq 'applying') { throw "Interrupted deployment requires rollback: $($file.BaseName)" }
+            }
         }
         if(-not $changed.Count) { return @{status='unchanged';plan_digest=$plan.plan_digest} }
         $entries=@($changed|ForEach-Object {
             $dest=Resolve-SafePath $Target $_.path
             @{path=$_.path;before=$_.before;after=$_.after;backup=$(if($_.before -eq 'missing'){''}else{[Convert]::ToBase64String([IO.File]::ReadAllBytes($dest))})}
         })
+        $run=New-AgentRun $Target "Deployment transaction $id" 'deploy'
+        $artifact=Register-AgentArtifact -Root $Target -RunId $run.id -Path "$($run.path)/backup" -Category backup -Purpose 'Rollback journal and original bytes' -RetainReasons @('rollback dependency; explicit retirement required')
+        $relative="$($artifact.path)/journal.json";$journalPath=Resolve-SafePath $Target $relative
         $journal=@{id=$id;status='applying';entries=$entries}
-        Write-AgentJson $journalPath $journal
+        Write-AgentJson $journalPath $journal -Root $Target
+        Write-AgentJson (Get-RuntimePath $Target "ledger/deployments/$id.json") @{path=$relative;run_id=$run.id;artifact_id=$artifact.id} -NoClobber -Root $Target
         foreach($op in $changed) {
             $dest=Resolve-SafePath $Target $op.path
             if((Get-AgentHash $dest) -ne $op.before) { throw "Concurrent target change: $($op.path)" }
             if($op.action -eq 'delete') { Remove-Item -LiteralPath $dest }
-            elseif($op.path -eq '.agents/managed.json') { Write-AgentJson $dest $plan.manifest }
+            elseif($op.path -eq '.agents/managed.json') { Write-AgentJson $dest $plan.manifest -Root $Target }
             else {
                 $source=Resolve-SafePath $Provider $op.source
                 if((Get-AgentHash $source) -ne $op.after) { throw "Concurrent source change: $($op.source)" }
@@ -148,7 +180,11 @@ function Invoke-Deployment([string]$Provider,[string]$Target,[string]$Layout,[st
             if((Get-AgentHash $dest) -ne $op.after) { throw "Post-write hash mismatch: $($op.path)" }
         }
         $journal.status='committed'
-        Write-AgentJson $journalPath $journal
-        return @{status='committed';transaction_id=$id;plan_digest=$plan.plan_digest;changed_paths=@($changed|ForEach-Object path)}
-    } finally { $lock.Dispose(); Remove-Item -LiteralPath $lockPath }
+        Write-AgentJson $journalPath $journal -Root $Target
+        $null=Complete-AgentRun $Target $run.id
+        return @{status='committed';transaction_id=$id;artifact_id=$artifact.id;journal_path=$relative;plan_digest=$plan.plan_digest;changed_paths=@($changed|ForEach-Object path)}
+    } catch {
+        if($run) { $null=Complete-AgentRun $Target $run.id 'failed' }
+        throw
+    } finally { Exit-RuntimeLock $lock }
 }

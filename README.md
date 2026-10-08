@@ -1,58 +1,68 @@
 # Jared's AI Team
 
-Project-local operating rules, recoverable knowledge, and safe deployment for
-Codex engineering work. Version **3.0.0**, defined in `agents.json`.
-Validation covers the current implementation and disposable local targets only.
-There is no old-version benchmark requirement or measured token-saving claim.
+Agents **4.0.0** provides project rules, verifiable knowledge, recoverable task
+state and deployment ownership for Codex engineering work. `agents.json` is the
+version source. It is a file-based workflow, with no background memory service or
+API model layer. GPT-6.1 Sol informs this revision; it is not forced on Consumers.
 
-## Start Here
+## Start
 
-Read `AGENTS.md`. Use ordinary Codex tools for ordinary work; there is no required
-route resolver, department hierarchy, response envelope, or fixed chat footer.
-Skills load specialized guidance only when needed.
+Read `AGENTS.md`; load specialized skills when needed. PowerShell 7 and Git are
+required; ripgrep is optional. Routine work uses ordinary native tools.
 
 ```powershell
-# Routine changes; add -Path for a deliberately narrowed claim.
-.\scripts\validate.ps1 -Scope Provider -Profile Changed
-# Before commit, push, deployment, or release.
-.\scripts\validate.ps1 -Scope Provider -Profile Checkpoint
-# Optional discovery, not a complete impact analysis.
-.\scripts\resolve-agent-context.ps1 -Path scripts/project-memory.ps1 -BudgetBytes 8192
+pwsh -NoProfile -File scripts/validate.ps1 -Scope Provider -Profile Changed
+pwsh -NoProfile -File scripts/validate.ps1 -Scope Provider -Profile Checkpoint -Json
+# Publication additionally requires current committed-source evidence.
+pwsh -NoProfile -File scripts/validate.ps1 -Scope Provider -Profile Checkpoint -RequireReleaseReady
 ```
 
-PowerShell 7, Git, and optionally ripgrep are required. No graph database,
-custom YAML parser, background service, or API-specific model layer is installed.
+Reports persist before output and expose `receipt_path`, individual check states
+and `release_ready`. A source checkpoint can pass with release evidence marked
+`needs_review`; publication then fails RequireReleaseReady. There are no synthetic
+quality scores or measured model task/token-saving claims.
 
-## What Is Durable
+## Three stores
 
-- `AGENTS.md` and `.agents/skills/`: versioned behavior and specialized guidance.
-- `docs/memory/entries/*.json`: reviewed facts, decisions, and reusable lessons.
-  Source hashes are checked before recall; stale/conflicted facts are suppressed.
-- `.agents/runtime/`: ignored task checkpoints, generated indexes, receipts,
-  packages, and disposable test state. Not deployable project knowledge.
-- `docs/agents/deployment.json`: explicit source-to-destination ownership.
-- `docs/agents/sources.json`: dated official sources and capability boundaries.
-- `tests/test-workflow.ps1`: core current-version regression tests.
+| Store | Purpose | Contract |
+|---|---|---|
+| Versioned rules and skills | Mandatory conventions and specialized workflows | User scope and native instruction priority |
+| `docs/memory/entries` | Reviewed facts, decisions and lessons | Immutable records, source checks, explicit retirement |
+| `.agents/runtime` | Unfinished tasks and disposable artifacts | Registered runs, state and persistent tracking ledger |
 
-Consumers receive only the catalogued rules, skills, schemas, and light helpers.
-Their business code, knowledge, product documentation, local configuration, and
-history are not managed by the provider. Both layouts remain supported.
+Knowledge supports multiple queries, modules, tags and file locations. Verified
+reusable nonsensitive findings are automatically promoted by the project-memory
+workflow. Assumptions remain local. Native Codex memories assist recall; durable
+knowledge always has explicit project files. Memory never grants permission.
 
-## Evidence, Not Scores
+Task saves use expected revision numbers and retain goal/acceptance history,
+Git/index/file snapshots, receipt references and completed external actions.
+Resume inspects real state and never replays an action. Multiple active tasks
+require selection. Optional SessionStart/PreCompact/Stop hook templates use native
+JSON and trust review; the same explicit commands work without hooks.
 
-The checkpoint reports individual check receipts, not a synthetic quality score.
-Offline regression success does not establish model task accuracy or Token savings.
-The current [release evidence](docs/evidence/releases/v3.0.0-runtime-evidence.json)
-binds individual check results to committed source. Run the Changed profile while
-editing and one Checkpoint before handoff; do not add separate nested test runs.
-No finite test suite guarantees future correctness or that a model never forgets.
+## Disposable artifacts
 
-Use the [operator guide](docs/runbooks/agents-operator-guide.md) for deployment,
-rollback, memory, recovery, and source/evidence commits. See
-[v3 upgrade notes](docs/v3-upgrade.md) for removal and migration boundaries.
-Historical implementations and changelogs remain in Git, not compatibility code.
+Agents payloads live in `.agents/runtime/runs/<run-id>`, pointers and locks in
+`state`, and provenance/deletion history in `ledger`. Completed scratch/packages
+expire after 7 days, receipts/diagnostics after 30, and tasks after 90. Active work,
+unresolved failures and rollback dependencies stay protected. Cleanup previews
+and rechecks ownership, hashes, links, dependencies and locks; unknown files stop
+cleanup. Git, native Codex state and arbitrary external caches are outside this
+contract. Ledger metadata survives payload deletion.
 
-## License
+Both deployment layouts remain supported. Only catalogued assets are managed;
+Consumer business files, knowledge, configuration and README remain user-owned.
+This release changes Agents and tooling only; external projects need a separately
+authorized upgrade. See the [operator guide](docs/runbooks/agents-operator-guide.md),
+[v4 migration guide](docs/v4-upgrade.md), and [review](docs/reviews/agents-4.0-review.md).
 
-Copyright 2026 Yu-Jie, Lin. Apache-2.0; see `LICENSE` and `NOTICE`.
-Provided AS IS, without warranties or guarantees of fitness for a target system.
+## Evidence boundaries
+
+The Checkpoint covers local offline contracts and disposable deployment targets.
+Official evidence is generated after source commits, then verified and committed
+separately. The declared v4 evidence path may be absent while editing; that is
+explicitly not release-ready. No finite suite guarantees future correctness,
+perfect recall, external project compatibility or enforced operating-system isolation.
+
+Copyright 2026 Yu-Jie, Lin. Apache-2.0; see LICENSE and NOTICE. Provided AS IS.

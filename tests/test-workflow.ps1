@@ -2,8 +2,11 @@
 param()
 . "$PSScriptRoot/../scripts/agent-deployment.ps1"
 $provider=Get-AgentRoot
-$scratch=Resolve-SafePath $provider ('.agents/runtime/tests/'+[guid]::NewGuid().ToString('N'))
-[IO.Directory]::CreateDirectory($scratch)|Out-Null
+$testRun=New-AgentRun $provider 'Legacy regression on v4 implementation' 'test-workflow'
+$fixtures=Register-AgentArtifact $provider $testRun.id "$($testRun.path)/fixtures" 'scratch' 'Disposable deployment and memory fixtures'
+$diagnostics=Register-AgentArtifact $provider $testRun.id "$($testRun.path)/diagnostics" 'validation' 'Regression result and failures'
+$scratch=Resolve-SafePath $provider $fixtures.path
+$success=$false;$failure=''
 $script:assertions=0
 function Assert($Condition,[string]$Message) { if(-not $Condition){throw $Message}; $script:assertions++ }
 function Reject([scriptblock]$Action,[string]$Message) {
@@ -75,7 +78,7 @@ try {
         Reject { Invoke-Deployment $provider $root 'auto' $conflict.plan_digest } 'Managed edit overwritten'
         Reject { Restore-Deployment $root $run.transaction_id } 'Rollback overwrote user edit'
         [IO.File]::Copy((Join-Path $provider 'AGENTS.md'),(Join-Path $root 'AGENTS.md'),$true)
-        $journalPath=Join-Path $root ".agents/runtime/deployments/$($run.transaction_id).json"
+        $journalPath=Get-DeploymentJournalPath $root $run.transaction_id
         $journal=Read-AgentJson $journalPath
         $journal.status='applying'; Write-AgentJson $journalPath $journal
         $interruptedPlan=Get-DeploymentPlan $provider $root 'auto'
@@ -99,7 +102,7 @@ try {
         Put $root 'scripts/retired.ps1' '# prior managed file'
         $upgrade=Deploy $root
         Assert (-not(Test-Path -LiteralPath (Join-Path $root 'scripts/retired.ps1'))) 'Retired file retained'
-        $upgradeJournal=Join-Path $root ".agents/runtime/deployments/$($upgrade.transaction_id).json"
+        $upgradeJournal=Get-DeploymentJournalPath $root $upgrade.transaction_id
         $backupJournal=Read-AgentJson $upgradeJournal
         $damaged=Read-AgentJson $upgradeJournal
         $damaged.entries[0].backup='YmFk'; Write-AgentJson $upgradeJournal $damaged
@@ -180,10 +183,11 @@ try {
     Assert ($invalidReplacement.entries.Count -eq 0 -and $invalidReplacement.gaps -contains 'Invalid knowledge: new.json') 'Unreadable replacement resurrected retired knowledge'
     Write-AgentJson (Join-Path $root '.agents/runtime/immutable.json') @{value=1}
     Reject { Write-AgentJson (Join-Path $root '.agents/runtime/immutable.json') @{value=2} -NoClobber } 'Exclusive JSON creation overwrote a file'
-    $state=@{id='resume-test';objective='Finish task';latest_adjustment='Preserve user work';boundaries=@('contract.txt');completed=@('inspect');open_issues=@();next_steps=@('verify')}
+    $state=@{id='resume-test';objective='Finish task';latest_adjustment='Preserve user work';boundaries=@('contract.txt');completed=@('inspect');open_issues=@();next_steps=@('verify');
+        acceptance_criteria=@('Verified contract');knowledge_ids=@();validation_receipts=@();external_actions=@()}
     Write-AgentJson (Join-Path $root '.agents/runtime/task.json') $state
     $task=Get-AgentAsset $root 'scripts/task-state.ps1'
-    $saved=(& $task -Action Save -Root $root -InputPath '.agents/runtime/task.json')|ConvertFrom-Json -AsHashtable
+    $saved=(& $task -Action Save -Root $root -InputPath '.agents/runtime/task.json' -ExpectedRevision 0)|ConvertFrom-Json -AsHashtable
     Assert (-not $saved.requires_reinspection) 'Fresh checkpoint reported stale'
     Put $root 'contract.txt' 'Concurrent change'
     $resume=(& $task -Action Resume -Root $root -Id resume-test)|ConvertFrom-Json -AsHashtable
@@ -206,10 +210,10 @@ try {
     $null=New-Item -ItemType Junction -Path $linked -Target $root
     Reject { Resolve-SafePath $scratch 'linked/contract.txt' } 'Junction traversal accepted'
     Remove-Item -LiteralPath $linked
-    "PASS: $script:assertions offline assertions"
-} finally {
-    $full=[IO.Path]::GetFullPath($scratch)
-    $allowed=[IO.Path]::GetFullPath((Join-Path $provider '.agents/runtime/tests')).TrimEnd('\')+'\'
-    if(-not $full.StartsWith($allowed,[StringComparison]::OrdinalIgnoreCase)) { throw 'Refusing unsafe test cleanup.' }
-    if(Test-Path -LiteralPath $full) { Remove-Item -LiteralPath $full -Recurse -Force }
+    $success=$true
+    "PASS: $script:assertions offline assertions; run=$($testRun.id)"
+} catch { $failure=$_.Exception.ToString();throw }
+finally {
+    Write-AgentJson (Resolve-SafePath $provider "$($diagnostics.path)/result.json") @{passed=$success;assertions=$script:assertions;failure=$failure} -Root $provider
+    $null=Complete-AgentRun $provider $testRun.id $(if($success){'completed'}else{'failed'})
 }

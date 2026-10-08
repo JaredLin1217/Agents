@@ -1,5 +1,21 @@
 # Changelog
 
+## 4.0.0 - Verified Knowledge and Runtime Lifecycle
+
+- Review GPT-6.1 Sol and current native rules, skills, memories and hooks sources;
+  remove fixed host settings, worker counts and arbitrary byte limits.
+- Add v4 immutable knowledge provenance, multi-query retrieval, explicit
+  migration/retraction, freshness and permanent retirement.
+- Add versioned task requirements, acceptance criteria, Git/index/file state,
+  receipt dependencies, completed external actions and expected-revision saves.
+- Register generated payloads under runtime runs with 7/30/90 retention, pins,
+  guarded cleanup previews, staging journals and persistent deletion tracking.
+- Deliver advisory native JSON hooks templates and manual equivalents.
+- Persist validation receipts before output; distinguish source validation from
+  committed-source publication readiness and enforce RequireReleaseReady.
+- Preserve both deployment layouts, ownership, idempotence and verified rollback;
+  leave external Consumer upgrades and hook activation to separate operations.
+
 ## 3.0.0 - Native Workflow Rewrite
 
 - Replace mandatory routing, hierarchy, envelopes, and provider declarations with
@@ -18,8 +34,8 @@
   prior incomplete runs do not establish task accuracy or token savings.
 - Support deep Git file paths without changing persistent user configuration.
 - Remove fixed response decorations and retain natural user-language communication.
-- Configure only this project's ignored local host settings for GPT-6/xhigh;
-  do not distribute model settings or enable shared native memory.
+- Historical documentation asserted local GPT-6/xhigh settings; the 2026-10-08
+  checkout did not contain that configuration. v4 corrects this claim.
 
 Previous implementations and results remain in Git history, not runtime
 compatibility code or mandatory validation dependencies.

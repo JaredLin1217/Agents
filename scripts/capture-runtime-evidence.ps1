@@ -1,5 +1,5 @@
 #requires -Version 7.0
-param([string]$OutputPath='docs/evidence/releases/v3.0.0-runtime-evidence.json')
+param([string]$OutputPath='docs/evidence/releases/v4.0.0-runtime-evidence.json')
 . "$PSScriptRoot/agent-checks.ps1"
 $root=Get-AgentRoot
 $expected=(Read-AgentJson (Join-Path $root 'agents.json')).release_evidence
@@ -11,24 +11,28 @@ $source=[string](Invoke-AgentGit $root @('rev-parse','HEAD'))
 $files=@(Get-AgentFiles $root|Where-Object { $_ -ne $expected })
 $digest=Get-SourceDigest $root $files
 $timer=[Diagnostics.Stopwatch]::StartNew()
-$report=Invoke-AgentChecks -Root $root -Scope Provider -Profile Checkpoint
+$report=Invoke-AgentChecks -Root $root -Scope Provider -Profile Checkpoint -EvidenceCapture
 $timer.Stop()
 if($digest -ne (Get-SourceDigest $root @(Get-AgentFiles $root|Where-Object { $_ -ne $expected })) -or
     @(Invoke-AgentGit $root @('status','--porcelain')).Count -or $source -ne [string](Invoke-AgentGit $root @('rev-parse','HEAD'))) {
     throw 'Source changed during evidence capture.'
 }
-$evidence=[ordered]@{schema_version='agents-runtime-evidence/v5';workflow_version='3.0.0';source_commit=$source;
+$evidence=[ordered]@{schema_version='agents-runtime-evidence/v6';workflow_version='4.0.0';source_commit=$source;
     validated_content_digest=$digest;excluded_paths=@($expected);run_started_utc=$report.started_utc;run_finished_utc=$report.finished_utc;
     working_tree_status_at_capture='clean';duration_ms=$timer.ElapsedMilliseconds;host=$report.host;commands=$report.checks;
-    result=$(if($report.passed){'passed'}else{'failed'});scope='Provider and disposable local targets only';
+    result=$(if($report.passed -and $report.result -eq 'passed'){'passed'}else{'failed'});scope='Provider and disposable local targets only';
+    review_after_utc=[DateTimeOffset]::UtcNow.AddDays(30).ToString('o');receipt_sha256=(Get-AgentHash (Resolve-SafePath $root $report.receipt_path));
     claims=@('Offline regression evidence; not model task accuracy or an external project pilot.','No hard isolation claim. Behavioral boundaries and file ownership checks only.');
     token_usage=@{status='unavailable';reason='Current-version offline checks do not invoke a model or measure token savings.'}}
 # Raw failures can contain local paths; keep those details in ignored state only.
-Write-AgentJson (Resolve-SafePath $root '.agents/runtime/checkpoint-last.json') $report
 foreach($receipt in $evidence.commands) {
     $receipt.details=@($receipt.details|ForEach-Object { $_.Replace($root,'<repo>') })
 }
 if(-not(Test-Json -Json ($evidence|ConvertTo-Json -Depth 30) -SchemaFile (Join-Path $root 'schemas/release-evidence.schema.json'))) { throw 'Invalid evidence.' }
-Write-AgentJson $destination $evidence
+Write-AgentJson $destination $evidence -Root $root
+$null=Read-AgentJson $destination (Join-Path $root 'schemas/release-evidence.schema.json')
+if($digest -ne (Get-SourceDigest $root @(Get-AgentFiles $root|Where-Object { $_ -ne $expected }))) { throw 'Evidence generation changed source content.' }
+$verification=Test-AgentEvidence $root
+if($verification.status -ne 'passed') { throw "Generated evidence failed verification: $($verification.details -join '; ')" }
 "Evidence: $expected; result=$($evidence.result); source=$source"
 if(-not $report.passed) { exit 1 }

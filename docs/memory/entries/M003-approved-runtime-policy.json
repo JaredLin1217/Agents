@@ -1,0 +1,53 @@
+{
+  "schema_version": "agents-knowledge/v4",
+  "id": "M003-approved-runtime-policy",
+  "key": "agents-4-approved-retention-and-scope",
+  "type": "decision",
+  "conclusion": "Agents 4.0 scope is the Provider and deployment tooling. Reviewed reusable nonsensitive knowledge is automatically saved; completed scratch/packages use 7 days, diagnostics/receipts 30, tasks 90. Active work and rollback dependencies stay protected; native hooks require trust activation.",
+  "scope": "Agents project defaults approved on 2026-10-08; no automatic external upgrade or new authority",
+  "modules": [
+    "runtime",
+    "memory",
+    "deployment",
+    "hooks"
+  ],
+  "tags": [
+    "retention",
+    "approved-decision"
+  ],
+  "files": [
+    "docs/agents/decisions/2026-10-08-agents-4.0.json",
+    "docs/agents/runtime-policy.json"
+  ],
+  "sources": [
+    {
+      "locator": "choices in the explicit implementation plan",
+      "explicit": true,
+      "kind": "user_decision",
+      "sha256": "2cd2badee27b5a17b7793c4d5f35337e282ea8e163f2f7fda7d96e77c873685d",
+      "path": "docs/agents/decisions/2026-10-08-agents-4.0.json"
+    },
+    {
+      "locator": "days and protected classes; reviewed working bytes",
+      "commit": "a20e23a54f2afd4f4efdefef6317f8e8ff8c3d2f",
+      "kind": "file_snapshot",
+      "sha256": "c0979819a832ca0942a75a7e7e4f710156d6089af8bb72cc1ef9182793c4c936",
+      "path": "docs/agents/runtime-policy.json"
+    }
+  ],
+  "verified_utc": "2026-10-08T15:23:25.7784873+00:00",
+  "verification": {
+    "reviewed_by": "Codex",
+    "method": "Compare approved plan, versioned policy, and passing Changed receipt",
+    "result": "passed",
+    "summary": "The 153 legacy and 129 v4 assertions passed; fixed-clock retention and dependency cases support the contract. The user explicitly approved these scope/default choices."
+  },
+  "freshness": {
+    "review_after_utc": null
+  },
+  "status": "active",
+  "supersedes": [],
+  "retracts": [],
+  "sensitive": false,
+  "reusable": true
+}
