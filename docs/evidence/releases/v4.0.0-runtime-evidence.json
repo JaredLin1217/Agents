@@ -1,0 +1,140 @@
+{
+  "schema_version": "agents-runtime-evidence/v6",
+  "workflow_version": "4.0.0",
+  "source_commit": "b9ac8f2db2b5fcbb9f541dfd0031554032a28ef9",
+  "validated_content_digest": "18a0a7f3745b1bd90b3473da473fd174b81120dfc3343cf105b74bc6526b1e5e",
+  "excluded_paths": [
+    "docs/evidence/releases/v4.0.0-runtime-evidence.json"
+  ],
+  "run_started_utc": "2026-10-08T16:35:57.3088562+00:00",
+  "run_finished_utc": "2026-10-08T16:39:09.1984958+00:00",
+  "working_tree_status_at_capture": "clean",
+  "duration_ms": 194272,
+  "host": {
+    "powershell": "7.6.5",
+    "git": "git version 2.55.0.windows.5"
+  },
+  "commands": [
+    {
+      "id": "syntax",
+      "command": "Test-AgentSyntax",
+      "result": "passed",
+      "exit_code": 0,
+      "duration_ms": 66,
+      "retry_count": 0,
+      "details": []
+    },
+    {
+      "id": "json-schema",
+      "command": "Test-AgentSchemas",
+      "result": "passed",
+      "exit_code": 0,
+      "duration_ms": 201,
+      "retry_count": 0,
+      "details": []
+    },
+    {
+      "id": "ownership",
+      "command": "Test-AgentOwnership",
+      "result": "passed",
+      "exit_code": 0,
+      "duration_ms": 371,
+      "retry_count": 0,
+      "details": []
+    },
+    {
+      "id": "knowledge",
+      "command": "Test-AgentKnowledge",
+      "result": "passed",
+      "exit_code": 0,
+      "duration_ms": 244,
+      "retry_count": 0,
+      "details": []
+    },
+    {
+      "id": "sources",
+      "command": "Test-AgentSources",
+      "result": "passed",
+      "exit_code": 0,
+      "duration_ms": 42,
+      "retry_count": 0,
+      "details": []
+    },
+    {
+      "id": "size",
+      "command": "Test-AgentSizes (measurement only)",
+      "result": "passed",
+      "exit_code": 0,
+      "duration_ms": 417,
+      "retry_count": 0,
+      "details": [
+        "production_bytes=110108; deployable_bytes=146481"
+      ]
+    },
+    {
+      "id": "regression",
+      "command": "pwsh -NoProfile -File tests/test-workflow.ps1",
+      "result": "passed",
+      "exit_code": 0,
+      "duration_ms": 53314,
+      "retry_count": 0,
+      "details": [
+        "PASS: 153 offline assertions; run=run-0ce96635cbab46bdbe5e7bd17072bbab"
+      ]
+    },
+    {
+      "id": "regression-v4",
+      "command": "pwsh -NoProfile -File tests/test-v4.ps1",
+      "result": "passed",
+      "exit_code": 0,
+      "duration_ms": 129906,
+      "retry_count": 0,
+      "details": [
+        "PASS: 143 v4 assertions; run=run-13aec60aeed64ce9b213e333d5a00b99"
+      ]
+    },
+    {
+      "id": "evidence",
+      "command": "Test-AgentEvidence",
+      "result": "not_applicable",
+      "exit_code": 0,
+      "duration_ms": 7,
+      "retry_count": 0,
+      "details": [
+        "Capture validates committed source; new evidence is checked after generation."
+      ]
+    },
+    {
+      "id": "package",
+      "command": "export-release-package.ps1",
+      "result": "passed",
+      "exit_code": 0,
+      "duration_ms": 5020,
+      "retry_count": 0,
+      "details": [
+        "{\"files\":29,\"path\":\".agents/runtime/runs/run-5393dd956cb84672a19096d1fc55c8c9/package\",\"artifact_id\":\"artifact-3ea7703f856f4a72b8fa2bf617eaef3f\",\"layout\":\"root-layout\",\"run_id\":\"run-5393dd956cb84672a19096d1fc55c8c9\"}"
+      ]
+    },
+    {
+      "id": "diff",
+      "command": "git diff --check (working tree and index)",
+      "result": "passed",
+      "exit_code": 0,
+      "duration_ms": 67,
+      "retry_count": 0,
+      "details": []
+    }
+  ],
+  "result": "passed",
+  "scope": "Provider and disposable local targets only",
+  "review_after_utc": "2026-11-07T16:39:11.9267923+00:00",
+  "receipt_sha256": "39f1760496ea6f24347e412b4932d8c31673cb58c1e44c9509c0d9b4396fdd7c",
+  "claims": [
+    "Offline regression evidence; not model task accuracy or an external project pilot.",
+    "No hard isolation claim. Behavioral boundaries and file ownership checks only."
+  ],
+  "token_usage": {
+    "status": "unavailable",
+    "reason": "Current-version offline checks do not invoke a model or measure token savings."
+  }
+}
