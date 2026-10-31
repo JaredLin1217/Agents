@@ -40,7 +40,9 @@ function Entry([string]$Root,[string]$Id,[string]$Key='contract') {
 }
 function Publish([string]$Root,[string]$DraftPath,$Value,[string]$Action='Promote') {
     Write-AgentJson (Resolve-SafePath $Root "$DraftPath/input.json") $Value -Root $Root
-    Publish-ProjectKnowledge $Root "$DraftPath/input.json" $Action -Automatic
+    # Keep fixture publication independent of the wall clock. The v4 contract
+    # deliberately tests freshness at $t0 and its boundary values below.
+    Publish-ProjectKnowledge $Root "$DraftPath/input.json" $Action -Automatic -Now $t0
 }
 function TaskInput([string]$Id) {
     $inputData=Read-AgentJson (Join-Path $provider 'docs/templates/task-input.json')
