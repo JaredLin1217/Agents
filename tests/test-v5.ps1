@@ -15,6 +15,8 @@ try {
     $package=(& pwsh -NoProfile -File (Resolve-SafePath $provider 'scripts/package-plugin.ps1'))|ConvertFrom-Json -AsHashtable
     Assert ($package.schema_version -eq 'agents-plugin-package/v5' -and $package.sha256 -match '^[a-f0-9]{64}$') 'Deterministic plugin package failed'
     Assert (Test-Path -LiteralPath (Resolve-SafePath $provider $package.path)) 'Plugin package missing from runtime'
+    $packageRepeat=(& pwsh -NoProfile -File (Resolve-SafePath $provider 'scripts/package-plugin.ps1'))|ConvertFrom-Json -AsHashtable
+    Assert ($packageRepeat.sha256 -eq $package.sha256) 'Repeated plugin packaging changed the SHA-256 output'
     $extracted=Join-Path $scratch 'extracted-plugin';[IO.Directory]::CreateDirectory($extracted)|Out-Null
     [IO.Compression.ZipFile]::ExtractToDirectory((Resolve-SafePath $provider $package.path),$extracted)
     Assert (Test-Path -LiteralPath (Join-Path $extracted 'migrations/v4/schemas/managed.schema.json')) 'Plugin package omitted the v4 migration schema'
