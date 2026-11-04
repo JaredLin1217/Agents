@@ -71,7 +71,10 @@ function Test-AgentEvidence([string]$Root,[switch]$Capture) {
     if($entry.schema_version -ne 'agents-runtime-evidence/v5' -or $entry.workflow_version -ne (Read-AgentJson (Join-Path $Root 'agents.json')).version) { return @{status='needs_review';details=@('Release evidence belongs to an older contract.')} }
     if([DateTimeOffset]::UtcNow -ge [DateTimeOffset]::Parse($entry.review_after_utc)) { return @{status='needs_review';details=@('Release evidence requires review.')} }
     if($entry.validated_content_digest -ne (Get-SourceDigest $Root $files)) { return @{status='needs_review';details=@('Release evidence does not match current source.')} }
-    if(@(Invoke-AgentGit $Root @('status','--porcelain')|Where-Object { $_.Substring(3) -ne $path }).Count) { return @{status='needs_review';details=@('Source has uncommitted changes.')} }
+    $status=@(Invoke-AgentGit $Root @('status','--porcelain=v1','--untracked-files=all')|ForEach-Object {
+        if($_.Length -ge 4) { $_.Substring(3) } else { $_ }
+    })
+    if(@($status|Where-Object { $_ -ne $path }).Count) { return @{status='needs_review';details=@('Source has uncommitted changes.')} }
     $null=Invoke-AgentGit $Root @('merge-base','--is-ancestor',$entry.source_commit,'HEAD')
     $changes=@(Invoke-AgentGit $Root @('diff','--name-only',"$($entry.source_commit)..HEAD"))
     if(@($changes|Where-Object { $_ -ne $path }).Count) { throw 'Evidence commit range contains undeclared source changes.' }
