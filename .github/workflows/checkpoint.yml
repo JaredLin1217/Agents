@@ -8,9 +8,28 @@ on:
 permissions:
   contents: read
 jobs:
-  agents-workflow:
-    name: agents workflow
-    runs-on: windows-2025-vs2026
+  platform-smoke:
+    name: platform smoke (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Check CLI and plan
+        shell: pwsh
+        run: |
+          pwsh --version
+          git --version
+          pwsh -NoProfile -File ./scripts/agents.ps1 doctor -Json
+          pwsh -NoProfile -File ./scripts/agents.ps1 plan -Json
+  provider-checkpoint:
+    name: provider checkpoint
+    runs-on: windows-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
@@ -18,4 +37,4 @@ jobs:
           fetch-depth: 0
       - name: Run Agents workflow validation
         shell: pwsh
-        run: .\scripts\validate.ps1 -Scope Provider -Profile Checkpoint
+        run: pwsh -NoProfile -File ./scripts/agents.ps1 validate checkpoint -Json

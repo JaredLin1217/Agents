@@ -8,6 +8,9 @@ Security reports for this repository should focus on:
   repositories
 This repository is not a hosted service. Security impact is primarily about
 repository content, deployment behavior, and local workflow safety.
+Agents v5 has zero telemetry by default. Plugin packages must not contain API
+keys, secrets, transcripts or lifecycle hooks; hooks are a separate local opt-in
+that requires native trust review.
 The Apache-2.0 license and project notice do not create a support obligation,
 security warranty, service-level commitment, or guarantee that a deployment is
 fit for any specific environment. Users remain responsible for validating and

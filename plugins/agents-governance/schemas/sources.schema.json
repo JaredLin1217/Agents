@@ -1,0 +1,86 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "reviewed_utc",
+    "sources"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "agents-sources/v5"
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "url",
+          "retrieved_url",
+          "checked",
+          "refresh_interval_days",
+          "next_review_due",
+          "content_sha256",
+          "boundary",
+          "drift_risk",
+          "topics"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "url": {
+            "type": "string",
+            "pattern": "^https://(learn\\.chatgpt\\.com|developers\\.openai\\.com)/"
+          },
+          "checked": {
+            "type": "string",
+            "format": "date"
+          },
+          "refresh_interval_days": {
+            "enum": [
+              30,
+              90
+            ]
+          },
+          "next_review_due": {
+            "type": "string",
+            "format": "date"
+          },
+          "boundary": {
+            "type": "string",
+            "minLength": 1
+          },
+          "drift_risk": {
+            "type": "string",
+            "minLength": 1
+          },
+          "topics": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "retrieved_url": {
+            "pattern": "^https://(learn\\.chatgpt\\.com|developers\\.openai\\.com)/",
+            "type": "string"
+          },
+          "content_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "reviewed_utc": {
+      "format": "date-time",
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

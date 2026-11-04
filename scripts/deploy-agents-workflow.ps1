@@ -1,4 +1,4 @@
-#requires -Version 7.0
+#requires -Version 7.4
 param([Parameter(Mandatory)][string]$TargetPath,
       [ValidateSet('auto','root-layout','dot-agents-layout')][string]$LayoutProfile='auto',
       [switch]$DryRun,[string]$ExpectedPlanDigest,[string]$Rollback)

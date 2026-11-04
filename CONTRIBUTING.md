@@ -5,13 +5,14 @@ work. Durable rules, docs, skills, schemas, and templates are English-only.
 Use standard JSON for project-owned machine contracts; do not mirror prose into
 schemas or add another scheduling abstraction over native Codex capabilities.
 
-Run `scripts/validate.ps1 -Scope Provider -Profile Changed` during iteration and
-`-Profile Checkpoint` before committing. Consumer validation checks only managed
+Run `scripts/agents.ps1 plan` before material work, then `scripts/agents.ps1
+validate changed` during iteration and `validate checkpoint` before committing.
+Consumer validation checks only managed
 files and explicit project test wrappers; it is not proof of product correctness.
 Use actual test results and artifact checks, never agent self-scores.
 
-Deployable changes must update the explicit deployment catalog and regression
-tests together. Do not stage `.agents/runtime/`, local Codex configuration,
+Deployable changes must update the explicit deployment catalog, CLI contract and
+regression tests together. Do not stage `.agents/runtime/`, local Codex configuration,
 credentials, private target data, generated packages, or raw model event logs.
 Keep root rules concise and load conditional workflows progressively. Byte counts
 are observations, not arbitrary release limits. Register generated artifacts in

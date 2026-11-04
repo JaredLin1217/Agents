@@ -1,13 +1,42 @@
 {
-  "schema_version": "agents-knowledge/v3",
+  "modules": [
+    "history"
+  ],
+  "verification": {
+    "summary": "Reviewed current v5 root rules and confirmed the conclusion",
+    "method": "Read source and verify current file hash",
+    "reviewed_by": "Codex",
+    "result": "passed"
+  },
+  "status": "superseded",
+  "files": [
+    "docs/history/memory/v4/M001-semantic-intent.json"
+  ],
+  "tags": [
+    "superseded",
+    "migration"
+  ],
   "id": "M001-semantic-intent",
+  "sensitive": false,
+  "freshness": {
+    "review_after_utc": null
+  },
   "type": "lesson",
-  "conclusion": "Keep durable guidance in English and interpret user intent semantically; do not implement language-specific keyword triggers for delegation.",
-  "scope": "Durable guidance and explicit delegation requests; not permission to infer authorization.",
-  "sources": [{"path": "AGENTS.md", "sha256": "dc6806cd14e4aa228ddaed523dae8affe15494b55fda564f4c32669f237b646e", "commit": "a848609f039f6bd52fdbc428e32c8e0b354c1237"}],
-  "verified_utc": "2026-09-05T13:30:00Z",
-  "verification": "Reviewed the committed v3 root rules: English durable content, explicit delegation, and natural user-language replies. Migrates the valid lesson from the v2 baseline; the source commit contains the reviewed rule content.",
-  "status": "active",
+  "retracts": [],
+  "key": "historical-M001-semantic-intent",
+  "scope": "Historical lineage only",
   "supersedes": [],
-  "sensitive": false
+  "reusable": true,
+  "conclusion": "Historical v3 knowledge retained only as lineage; superseded by the v5 reviewed semantic-intent record.",
+  "verified_utc": "2026-11-05T00:00:00+08:00",
+  "schema_version": "agents-knowledge/v5",
+  "sources": [
+    {
+      "sha256": "61e1c3063ab6af81a5b5e79ec6d16f11fafd35cbc2966a2e858d7824380f55d0",
+      "locator": "Historical immutable record",
+      "path": "docs/history/memory/v4/M001-semantic-intent.json",
+      "commit": "46d132fb0263896a5f7f07a258341e865f8df248",
+      "kind": "file_snapshot"
+    }
+  ]
 }

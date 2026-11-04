@@ -1,0 +1,7 @@
+{
+  "name": "agents-governance",
+  "version": "5.0.0",
+  "description": "Portable project governance workflows for verified knowledge, task recovery, runtime lifecycle and owned deployment.",
+  "skills": "./skills/",
+  "requires_local_executor": true
+}

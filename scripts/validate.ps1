@@ -1,8 +1,9 @@
-#requires -Version 7.0
+#requires -Version 7.4
 param([ValidateSet('Provider','Consumer')][string]$Scope='Provider',
       [ValidateSet('Changed','Checkpoint')][string]$Profile='Changed',[string[]]$Path=@(),[switch]$Json,[switch]$RequireReleaseReady)
 . "$PSScriptRoot/agent-checks.ps1"
 $root=Get-AgentRoot
+$Path=@($Path|ForEach-Object { $_ -split ',' }|Where-Object { $_ })
 $report=Invoke-AgentChecks -Root $root -Scope $Scope -Profile $Profile -Path $Path -RequireReleaseReady:$RequireReleaseReady
 if($Json) { $report|ConvertTo-Json -Depth 20 }
 else {

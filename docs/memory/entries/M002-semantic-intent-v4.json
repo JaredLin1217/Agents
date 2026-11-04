@@ -1,45 +1,44 @@
 {
-  "schema_version": "agents-knowledge/v4",
-  "id": "M002-semantic-intent-v4",
-  "key": "semantic-intent-and-durable-language",
-  "type": "fact",
-  "conclusion": "Keep durable guidance in English and interpret user intent semantically; do not implement language-specific keyword triggers for delegation.",
-  "scope": "Durable guidance and explicit delegation requests; not permission to infer authorization.",
   "modules": [
-    "rules"
+    "history"
+  ],
+  "verification": {
+    "summary": "Reviewed current v5 root rules and confirmed the conclusion",
+    "method": "Read source and verify current file hash",
+    "reviewed_by": "Codex",
+    "result": "passed"
+  },
+  "status": "superseded",
+  "files": [
+    "docs/history/memory/v4/M002-semantic-intent-v4.json"
   ],
   "tags": [
-    "intent",
-    "delegation",
-    "English"
+    "superseded",
+    "migration"
   ],
-  "files": [
-    "AGENTS.md"
-  ],
-  "sources": [
-    {
-      "kind": "file_snapshot",
-      "path": "AGENTS.md",
-      "sha256": "da1a1ccf24a1e722bb644d8d6e5b5baa07e4f8e8a739f94bcc275d2be00d9f02",
-      "commit": "a20e23a54f2afd4f4efdefef6317f8e8ff8c3d2f",
-      "locator": "Latest authorized goal; explicit delegation; durable English conventions"
-    }
-  ],
-  "verified_utc": "2026-10-08T22:29:09.6201946+08:00",
-  "verification": {
-    "summary": "The v4 rules retain semantic interpretation, explicit delegation authorization, and English durable guidance. Commit is a checkout anchor; hash identifies reviewed working bytes.",
-    "result": "passed",
-    "reviewed_by": "Codex",
-    "method": "Read old record and current AGENTS.md, verify source hash, review conclusion"
-  },
+  "id": "M002-semantic-intent-v4",
+  "sensitive": false,
   "freshness": {
     "review_after_utc": null
   },
-  "status": "active",
+  "type": "lesson",
+  "retracts": [],
+  "key": "historical-M002-semantic-intent-v4",
+  "scope": "Historical lineage only",
   "supersedes": [
     "M001-semantic-intent"
   ],
-  "retracts": [],
-  "sensitive": false,
-  "reusable": true
+  "reusable": true,
+  "conclusion": "Historical v4 knowledge retained only as lineage; superseded by the v5 reviewed semantic-intent record.",
+  "verified_utc": "2026-11-05T00:00:00+08:00",
+  "schema_version": "agents-knowledge/v5",
+  "sources": [
+    {
+      "sha256": "35168d50b319dc7f6d76a613865a3e0597461747deb17286589320ee8ad02a5d",
+      "locator": "Historical immutable record",
+      "path": "docs/history/memory/v4/M002-semantic-intent-v4.json",
+      "commit": "46d132fb0263896a5f7f07a258341e865f8df248",
+      "kind": "file_snapshot"
+    }
+  ]
 }

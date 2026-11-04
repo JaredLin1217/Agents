@@ -1,0 +1,45 @@
+{
+  "schema_version": "agents-knowledge/v5",
+  "id": "M005-semantic-intent-v5",
+  "key": "semantic-intent-and-durable-language",
+  "type": "fact",
+  "conclusion": "Keep durable guidance in English and interpret user intent semantically; explicit authorization and current user requirements govern actions.",
+  "scope": "Durable guidance and explicit operation authorization",
+  "modules": [
+    "rules"
+  ],
+  "tags": [
+    "intent",
+    "delegation",
+    "English"
+  ],
+  "files": [
+    "AGENTS.md"
+  ],
+  "sources": [
+    {
+      "kind": "file_snapshot",
+      "path": "AGENTS.md",
+      "sha256": "65b5cb607b357d95ed4a0372007acde4ad0ea83257a64242fba17583b7417e3f",
+      "commit": "46d132fb0263896a5f7f07a258341e865f8df248",
+      "locator": "v5 instruction priority, explicit authorization and durable English conventions"
+    }
+  ],
+  "verified_utc": "2026-11-05T00:00:00+08:00",
+  "verification": {
+    "summary": "Reviewed current v5 root rules and confirmed the conclusion",
+    "method": "Read source and verify current file hash",
+    "reviewed_by": "Codex",
+    "result": "passed"
+  },
+  "freshness": {
+    "review_after_utc": null
+  },
+  "status": "active",
+  "supersedes": [
+    "M002-semantic-intent-v4"
+  ],
+  "retracts": [],
+  "sensitive": false,
+  "reusable": true
+}

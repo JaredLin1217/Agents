@@ -1,5 +1,19 @@
 # Changelog
 
+## 5.0.0 - Commercial Governance Package
+
+- Move the active contract to `agents-project/v5` with an explicit v4 migration;
+  historical schemas and rules no longer load in the active deployment surface.
+- Add the unified cross-platform PowerShell CLI for planning, validation, memory,
+  tasks, runtime, deployment, diagnostics and packaging.
+- Add portable Codex plugin manifests, onboarding, deterministic ZIP packaging and
+  SHA-256 output. Lifecycle hooks remain a separate trusted opt-in template.
+- Refresh official OpenAI source hashes and boundaries for GPT-6.1 Sol, AGENTS.md,
+  skills, memories, hooks and plugins.
+- Keep local-only execution and zero telemetry while adding platform support and
+  staged validation so full suites run at delivery boundaries.
+- Add one-way v4 migration with dry-run digest, managed-file backup and rollback.
+
 ## 4.0.0 - Verified Knowledge and Runtime Lifecycle
 
 - Review GPT-6.1 Sol and current native rules, skills, memories and hooks sources;

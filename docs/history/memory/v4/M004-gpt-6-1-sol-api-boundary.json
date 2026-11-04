@@ -1,0 +1,46 @@
+{
+  "schema_version": "agents-knowledge/v4",
+  "id": "M004-gpt-6-1-sol-api-boundary",
+  "key": "gpt-6-1-sol-api-tool-reasoning-boundary",
+  "type": "fact",
+  "conclusion": "As reviewed on 2026-10-08, GPT-6.1 Sol API tool calls require Responses, and API reasoning supports low, medium (default), high, xhigh and max. API capabilities do not prescribe Codex host settings; current claims require live official review.",
+  "scope": "Official API capability snapshot; no claim about measured Sol task performance or configured host model",
+  "modules": [
+    "openai-model"
+  ],
+  "tags": [
+    "gpt-6.1-sol",
+    "API",
+    "tools"
+  ],
+  "files": [
+    "docs/reviews/agents-4.0-review.md"
+  ],
+  "sources": [
+    {
+      "content_sha256": "1d9758e64a86c1f5445a2bbee51e20132400fe80b71a41c4ec2e3a8a42caeb74",
+      "url": "https://developers.openai.com/api/docs/models/gpt-6.1-sol.md",
+      "checked_utc": "2026-10-08T22:25:14.7890291+08:00",
+      "locator": "GPT-6.1 Sol reference and limits",
+      "kind": "official_document",
+      "sha256": "b04956f11fbf807695c4f161973645f60a6cb49169645063a4bed750d3ac7ff8",
+      "snapshot_path": "docs/reviews/agents-4.0-review.md",
+      "review_after_utc": "2026-11-07T22:25:14.7890291+08:00"
+    }
+  ],
+  "verified_utc": "2026-10-08T15:23:25.8994946+00:00",
+  "verification": {
+    "reviewed_by": "Codex",
+    "method": "Read official model document and compare live content hash during automatic promotion",
+    "result": "passed",
+    "summary": "Checked exact Sol API reasoning levels and Responses tool requirement. Durable English review preserves the conclusion; runtime fetch files are supporting diagnostics only."
+  },
+  "freshness": {
+    "review_after_utc": "2026-11-07T22:25:14.7890291+08:00"
+  },
+  "status": "active",
+  "supersedes": [],
+  "retracts": [],
+  "sensitive": false,
+  "reusable": true
+}

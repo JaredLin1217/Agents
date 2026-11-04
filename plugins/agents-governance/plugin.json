@@ -1,0 +1,34 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "agents-governance",
+  "version": "5.0.0",
+  "description": "Portable project governance workflows for verified knowledge, task recovery, runtime lifecycle and owned deployment.",
+  "author": {
+    "name": "Yu-Jie, Lin"
+  },
+  "homepage": "https://github.com/JaredLin1217/Agents",
+  "repository": "https://github.com/JaredLin1217/Agents",
+  "license": "Apache-2.0",
+  "keywords": ["project-governance", "memory", "checkpoint", "deployment", "Codex"],
+  "skills": "./skills/",
+  "extensions": {
+    "com.openai": {
+      "requires_local_executor": true,
+      "onboardingSkill": "./skills/onboarding/SKILL.md",
+      "interface": {
+        "displayName": "Agents Governance",
+        "shortDescription": "Plan, verify and recover project work safely.",
+        "longDescription": "Local-first project rules, immutable knowledge, revisioned tasks, runtime cleanup and owned deployment workflows for Codex.",
+        "developerName": "Yu-Jie, Lin",
+        "category": "Productivity",
+        "capabilities": ["Read", "Write"],
+        "websiteURL": "https://github.com/JaredLin1217/Agents",
+        "brandColor": "#2563EB",
+        "defaultPrompt": [
+          "Plan this project change and show the affected checks.",
+          "Resume the active Agents task after inspecting current Git and files."
+        ]
+      }
+    }
+  }
+}

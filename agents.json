@@ -1,8 +1,12 @@
 {
-  "schema_version": "agents-project/v4",
-  "version": "4.0.0",
+  "schema_version": "agents-project/v5",
+  "version": "5.0.0",
   "knowledge_directory": "docs/memory/entries",
   "runtime_directory": ".agents/runtime",
   "consumer_checks": [],
-  "release_evidence": "docs/evidence/releases/v4.0.0-runtime-evidence.json"
+  "release_evidence": "docs/evidence/releases/v5.0.0-runtime-evidence.json",
+  "cli": "scripts/agents.ps1",
+  "plugin": "plugins/agents-governance/plugin.json",
+  "supported_layouts": ["root-layout", "dot-agents-layout"],
+  "telemetry": "disabled"
 }

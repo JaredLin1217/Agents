@@ -4,7 +4,7 @@ function Assert-OwnedPath([string]$Path) {
     if ($Path -match '(^|/)memory(/|\.)|^\.codex/|^\.git/|^\.agents/runtime/|(^|/)README\.md$|(^|/)agents\.json$') {
         throw "Protected target data: $Path"
     }
-    if ($Path -notmatch '^(AGENTS\.md|\.agents/\.gitignore|\.agents/managed\.json|(?:\.agents/)?(?:scripts|schemas|docs/agents|docs/runbooks|docs/templates)/.+|\.agents/skills/.+)$') {
+    if ($Path -notmatch '^(AGENTS\.md|\.agents/\.gitignore|\.agents/managed\.json|(?:\.agents/)?(?:bin|scripts|schemas|docs/agents|docs/runbooks|docs/templates|docs/reviews)/.+|\.agents/skills/.+)$') {
         throw "Path is outside the managed boundary: $Path"
     }
 }
@@ -60,7 +60,7 @@ function Get-DeploymentPlan([string]$Provider,[string]$Target,[string]$Layout) {
         }
     }
     $version=(Read-AgentJson (Join-Path $Provider 'agents.json')).version
-    $manifest=[ordered]@{schema_version='agents-managed/v3';version=$version;layout=$Layout;files=$entries}
+    $manifest=[ordered]@{schema_version='agents-managed/v5';version=$version;layout=$Layout;files=$entries}
     $manifestText=($manifest|ConvertTo-Json -Depth 20).Replace("`r`n","`n")+"`n"
     $manifestHash=Get-TextHash $manifestText
     $ops.Add([ordered]@{path='.agents/managed.json';source='';before=(Get-AgentHash $manifestPath);after=$manifestHash;

@@ -1,5 +1,5 @@
-#requires -Version 7.0
-param([string]$OutputPath='docs/evidence/releases/v4.0.0-runtime-evidence.json')
+#requires -Version 7.4
+param([string]$OutputPath='docs/evidence/releases/v5.0.0-runtime-evidence.json')
 . "$PSScriptRoot/agent-checks.ps1"
 $root=Get-AgentRoot
 $expected=(Read-AgentJson (Join-Path $root 'agents.json')).release_evidence
@@ -17,7 +17,7 @@ if($digest -ne (Get-SourceDigest $root @(Get-AgentFiles $root|Where-Object { $_ 
     @(Invoke-AgentGit $root @('status','--porcelain')).Count -or $source -ne [string](Invoke-AgentGit $root @('rev-parse','HEAD'))) {
     throw 'Source changed during evidence capture.'
 }
-$evidence=[ordered]@{schema_version='agents-runtime-evidence/v6';workflow_version='4.0.0';source_commit=$source;
+$evidence=[ordered]@{schema_version='agents-runtime-evidence/v5';workflow_version='5.0.0';source_commit=$source;
     validated_content_digest=$digest;excluded_paths=@($expected);run_started_utc=$report.started_utc;run_finished_utc=$report.finished_utc;
     working_tree_status_at_capture='clean';duration_ms=$timer.ElapsedMilliseconds;host=$report.host;commands=$report.checks;
     result=$(if($report.passed -and $report.result -eq 'passed'){'passed'}else{'failed'});scope='Provider and disposable local targets only';

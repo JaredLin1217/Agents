@@ -1,5 +1,5 @@
 {
-  "schema_version": "agents-deployment/v3",
+  "schema_version": "agents-deployment/v5",
   "files": [
     {
       "source": "AGENTS.md",
@@ -145,6 +145,51 @@
       "dot-agents-layout": ".agents/docs/templates/knowledge-entry.json",
       "root-layout": "docs/templates/knowledge-entry.json",
       "source": "docs/templates/knowledge-entry.json"
+    },
+    {
+      "source": "scripts/agents.ps1",
+      "root-layout": "scripts/agents.ps1",
+      "dot-agents-layout": ".agents/scripts/agents.ps1"
+    },
+    {
+      "source": "scripts/migrate-v4-to-v5.ps1",
+      "root-layout": "scripts/migrate-v4-to-v5.ps1",
+      "dot-agents-layout": ".agents/scripts/migrate-v4-to-v5.ps1"
+    },
+    {
+      "source": "scripts/package-plugin.ps1",
+      "root-layout": "scripts/package-plugin.ps1",
+      "dot-agents-layout": ".agents/scripts/package-plugin.ps1"
+    },
+    {
+      "source": "schemas/plugin.schema.json",
+      "root-layout": "schemas/plugin.schema.json",
+      "dot-agents-layout": ".agents/schemas/plugin.schema.json"
+    },
+    {
+      "source": "bin/agents",
+      "root-layout": "bin/agents",
+      "dot-agents-layout": ".agents/bin/agents"
+    },
+    {
+      "source": "bin/agents.cmd",
+      "root-layout": "bin/agents.cmd",
+      "dot-agents-layout": ".agents/bin/agents.cmd"
+    },
+    {
+      "source": "docs/agents/decisions/2026-11-05-agents-5.0.json",
+      "root-layout": "docs/agents/decisions/2026-11-05-agents-5.0.json",
+      "dot-agents-layout": ".agents/docs/agents/decisions/2026-11-05-agents-5.0.json"
+    },
+    {
+      "source": "docs/reviews/agents-5.0-review-2026-11-05.md",
+      "root-layout": "docs/reviews/agents-5.0-review-2026-11-05.md",
+      "dot-agents-layout": ".agents/docs/reviews/agents-5.0-review-2026-11-05.md"
+    },
+    {
+      "source": "scripts/migrate-runtime-v4-to-v5.ps1",
+      "root-layout": "scripts/migrate-runtime-v4-to-v5.ps1",
+      "dot-agents-layout": ".agents/scripts/migrate-runtime-v4-to-v5.ps1"
     }
   ]
 }

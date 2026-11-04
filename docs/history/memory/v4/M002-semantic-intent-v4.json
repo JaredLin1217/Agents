@@ -1,0 +1,45 @@
+{
+  "schema_version": "agents-knowledge/v4",
+  "id": "M002-semantic-intent-v4",
+  "key": "semantic-intent-and-durable-language",
+  "type": "fact",
+  "conclusion": "Keep durable guidance in English and interpret user intent semantically; do not implement language-specific keyword triggers for delegation.",
+  "scope": "Durable guidance and explicit delegation requests; not permission to infer authorization.",
+  "modules": [
+    "rules"
+  ],
+  "tags": [
+    "intent",
+    "delegation",
+    "English"
+  ],
+  "files": [
+    "AGENTS.md"
+  ],
+  "sources": [
+    {
+      "kind": "file_snapshot",
+      "path": "AGENTS.md",
+      "sha256": "da1a1ccf24a1e722bb644d8d6e5b5baa07e4f8e8a739f94bcc275d2be00d9f02",
+      "commit": "a20e23a54f2afd4f4efdefef6317f8e8ff8c3d2f",
+      "locator": "Latest authorized goal; explicit delegation; durable English conventions"
+    }
+  ],
+  "verified_utc": "2026-10-08T22:29:09.6201946+08:00",
+  "verification": {
+    "summary": "The v4 rules retain semantic interpretation, explicit delegation authorization, and English durable guidance. Commit is a checkout anchor; hash identifies reviewed working bytes.",
+    "result": "passed",
+    "reviewed_by": "Codex",
+    "method": "Read old record and current AGENTS.md, verify source hash, review conclusion"
+  },
+  "freshness": {
+    "review_after_utc": null
+  },
+  "status": "active",
+  "supersedes": [
+    "M001-semantic-intent"
+  ],
+  "retracts": [],
+  "sensitive": false,
+  "reusable": true
+}

@@ -1,0 +1,50 @@
+{
+  "schema_version": "agents-knowledge/v5",
+  "id": "M007-gpt-6-1-sol-api-boundary-v5",
+  "key": "gpt-6-1-sol-api-tool-reasoning-boundary",
+  "type": "fact",
+  "conclusion": "As reviewed on 2026-11-05, GPT-6.1 Sol supports low, medium, high, xhigh and max reasoning; tool calling requires the Responses API. API capabilities do not prescribe Codex host settings, and family prompting guidance must be evaluated for the chosen workload.",
+  "scope": "Current official API capability snapshot; no measured Sol performance or configured host model claim",
+  "modules": [
+    "openai-model",
+    "openai-docs"
+  ],
+  "tags": [
+    "gpt-6.1-sol",
+    "API",
+    "Responses",
+    "official"
+  ],
+  "files": [
+    "docs/reviews/agents-5.0-review-2026-11-05.md"
+  ],
+  "sources": [
+    {
+      "kind": "official_document",
+      "url": "https://developers.openai.com/api/docs/models/gpt-6.1-sol.md",
+      "snapshot_path": "docs/reviews/agents-5.0-review-2026-11-05.md",
+      "sha256": "34b5a049a8874fda20f8edf6cd72d3282fa4fb23651af114d0cb258f3561f90a",
+      "content_sha256": "ebcc1b0ae6c729a64411dacf303c0ae8b91b11a9be176dc8997b2652bec4b9b0",
+      "checked_utc": "2026-11-05T00:00:00+08:00",
+      "review_after_utc": "2026-12-05T00:00:00+08:00",
+      "locator": "Official boundary section"
+    }
+  ],
+  "verified_utc": "2026-11-05T00:00:00+08:00",
+  "verification": {
+    "summary": "Read the current official Sol model and GPT-6 guide, then checked the durable review hash",
+    "method": "Official source review and snapshot hash verification",
+    "reviewed_by": "Codex",
+    "result": "passed"
+  },
+  "freshness": {
+    "review_after_utc": "2026-12-05T00:00:00+08:00"
+  },
+  "status": "active",
+  "supersedes": [
+    "M004-gpt-6-1-sol-api-boundary"
+  ],
+  "retracts": [],
+  "sensitive": false,
+  "reusable": true
+}

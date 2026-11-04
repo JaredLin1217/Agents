@@ -1,0 +1,10 @@
+{
+  "name": "agents-local-marketplace",
+  "plugins": [
+    {
+      "name": "agents-governance",
+      "source": {"path": "./agents-governance"},
+      "interface": {"displayName": "Agents Governance"}
+    }
+  ]
+}

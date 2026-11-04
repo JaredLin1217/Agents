@@ -3,7 +3,7 @@
   "type": "object", "additionalProperties": false,
   "required": ["schema_version", "files"],
   "properties": {
-    "schema_version": {"const": "agents-deployment/v3"},
+    "schema_version": {"const": "agents-deployment/v5"},
     "files": {"type": "array", "minItems": 1, "items": {
       "type": "object", "additionalProperties": false,
       "required": ["source", "root-layout", "dot-agents-layout"],

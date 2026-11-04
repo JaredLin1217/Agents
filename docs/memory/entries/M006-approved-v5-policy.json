@@ -1,0 +1,58 @@
+{
+  "schema_version": "agents-knowledge/v5",
+  "id": "M006-approved-v5-policy",
+  "key": "agents-5-approved-policy",
+  "type": "decision",
+  "conclusion": "Agents 5.0 is a local-first deployable governance package with a cross-platform PowerShell CLI, plugin-first distribution, explicit v4 migration, zero telemetry and planned validation; defaults retain 7/30/90-day runtime retention and protected unresolved work.",
+  "scope": "Agents v5 project defaults approved on 2026-11-05",
+  "modules": [
+    "runtime",
+    "memory",
+    "deployment",
+    "validation",
+    "distribution"
+  ],
+  "tags": [
+    "v5",
+    "retention",
+    "approved-decision",
+    "privacy"
+  ],
+  "files": [
+    "docs/agents/decisions/2026-11-05-agents-5.0.json",
+    "docs/agents/runtime-policy.json"
+  ],
+  "sources": [
+    {
+      "kind": "user_decision",
+      "path": "docs/agents/decisions/2026-11-05-agents-5.0.json",
+      "sha256": "3dc7277c0a2cf838f03c1bfce0eff13e2525c16cd6dce7d45f47a22adedadbad",
+      "locator": "Explicit owner-approved Agents 5.0 implementation plan",
+      "explicit": true
+    },
+    {
+      "kind": "file_snapshot",
+      "path": "docs/agents/runtime-policy.json",
+      "sha256": "05dd519a5edf5c4a7100eb2e4b3ba8f1929f9b240f761367f2dae44c8abfd5c0",
+      "commit": "46d132fb0263896a5f7f07a258341e865f8df248",
+      "locator": "v5 runtime retention and protected classes"
+    }
+  ],
+  "verified_utc": "2026-11-05T00:00:00+08:00",
+  "verification": {
+    "summary": "Compared the approved plan, decision record and runtime policy",
+    "method": "Read approved scope and verify source hashes",
+    "reviewed_by": "Codex",
+    "result": "passed"
+  },
+  "freshness": {
+    "review_after_utc": null
+  },
+  "status": "active",
+  "supersedes": [
+    "M003-approved-runtime-policy"
+  ],
+  "retracts": [],
+  "sensitive": false,
+  "reusable": true
+}

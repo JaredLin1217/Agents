@@ -1,7 +1,8 @@
 ## Summary
 - Describe the user-facing change and any deployment impact.
 ## Validation
-- [ ] `.\scripts\validate.ps1 -Scope Provider -Profile Checkpoint`
+- [ ] `pwsh -NoProfile -File scripts/agents.ps1 plan -Json`
+- [ ] `pwsh -NoProfile -File scripts/agents.ps1 validate checkpoint -Json` (delivery boundary)
 - [ ] `git diff --check`
 - [ ] Report actual checks and unresolved acceptance gaps; do not substitute a score
 ## Deployment Impact
