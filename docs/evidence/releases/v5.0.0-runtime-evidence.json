@@ -1,0 +1,151 @@
+{
+  "schema_version": "agents-runtime-evidence/v5",
+  "workflow_version": "5.0.0",
+  "source_commit": "8428d0099220424af6f29525c627032b27569a72",
+  "validated_content_digest": "651edf35aa7a8632016dc5592b89119ed7ccea1d50356a744be658e7113650f0",
+  "excluded_paths": [
+    "docs/evidence/releases/v5.0.0-runtime-evidence.json"
+  ],
+  "run_started_utc": "2026-11-04T21:42:04.7043850+00:00",
+  "run_finished_utc": "2026-11-04T21:43:21.8876009+00:00",
+  "working_tree_status_at_capture": "clean",
+  "duration_ms": 79388,
+  "host": {
+    "git": "git version 2.55.0.windows.5",
+    "powershell": "7.6.5"
+  },
+  "commands": [
+    {
+      "id": "syntax",
+      "command": "Test-AgentSyntax",
+      "result": "passed",
+      "exit_code": 0,
+      "duration_ms": 131,
+      "retry_count": 0,
+      "details": []
+    },
+    {
+      "id": "json-schema",
+      "command": "Test-AgentSchemas",
+      "result": "passed",
+      "exit_code": 0,
+      "duration_ms": 168,
+      "retry_count": 0,
+      "details": []
+    },
+    {
+      "id": "ownership",
+      "command": "Test-AgentOwnership",
+      "result": "passed",
+      "exit_code": 0,
+      "duration_ms": 152,
+      "retry_count": 0,
+      "details": []
+    },
+    {
+      "id": "knowledge",
+      "command": "Test-AgentKnowledge",
+      "result": "passed",
+      "exit_code": 0,
+      "duration_ms": 140,
+      "retry_count": 0,
+      "details": []
+    },
+    {
+      "id": "sources",
+      "command": "Test-AgentSources",
+      "result": "passed",
+      "exit_code": 0,
+      "duration_ms": 16,
+      "retry_count": 0,
+      "details": []
+    },
+    {
+      "id": "size",
+      "command": "Test-AgentSizes (measurement only)",
+      "result": "passed",
+      "exit_code": 0,
+      "duration_ms": 356,
+      "retry_count": 0,
+      "details": [
+        "production_bytes=125180; deployable_bytes=166503"
+      ]
+    },
+    {
+      "id": "regression",
+      "command": "pwsh -NoProfile -File tests/test-workflow.ps1",
+      "result": "passed",
+      "exit_code": 0,
+      "duration_ms": 34353,
+      "retry_count": 0,
+      "details": [
+        "PASS: 15 v5 core assertions"
+      ]
+    },
+    {
+      "id": "regression-v5",
+      "command": "pwsh -NoProfile -File tests/test-v5.ps1",
+      "result": "passed",
+      "exit_code": 0,
+      "duration_ms": 28205,
+      "retry_count": 0,
+      "details": [
+        "PASS: 9 v5 packaging assertions"
+      ]
+    },
+    {
+      "id": "evidence",
+      "command": "Test-AgentEvidence",
+      "result": "not_applicable",
+      "exit_code": 0,
+      "duration_ms": 2,
+      "retry_count": 0,
+      "details": [
+        "Capture validates committed source; new evidence is checked after generation."
+      ]
+    },
+    {
+      "id": "package",
+      "command": "export-release-package.ps1",
+      "result": "passed",
+      "exit_code": 0,
+      "duration_ms": 4776,
+      "retry_count": 0,
+      "details": [
+        "{\"layout\":\"root-layout\",\"path\":\".agents/runtime/runs/run-72a1536626864f988e05c7919dff2fcf/package\",\"run_id\":\"run-72a1536626864f988e05c7919dff2fcf\",\"artifact_id\":\"artifact-3e0978b596b84c358b3b9871b81494ba\",\"files\":38}"
+      ]
+    },
+    {
+      "id": "plugin-package",
+      "command": "package-plugin.ps1",
+      "result": "passed",
+      "exit_code": 0,
+      "duration_ms": 4377,
+      "retry_count": 0,
+      "details": [
+        "{\"sha256\":\"ed0fb909b09709a781d3a372df167262eda15a5d55428b44228501a86249b718\",\"version\":\"5.0.0\",\"files\":36,\"hooks\":\"excluded\",\"path\":\".agents/runtime/runs/run-721b074b5ebd48b9b6845503285602a5/plugin/agents-governance-5.0.0.zip\",\"schema_version\":\"agents-plugin-package/v5\",\"telemetry\":\"disabled\",\"name\":\"agents-governance\"}"
+      ]
+    },
+    {
+      "id": "diff",
+      "command": "git diff --check (working tree and index)",
+      "result": "passed",
+      "exit_code": 0,
+      "duration_ms": 57,
+      "retry_count": 0,
+      "details": []
+    }
+  ],
+  "result": "passed",
+  "scope": "Provider and disposable local targets only",
+  "review_after_utc": "2026-12-04T21:43:24.5301917+00:00",
+  "receipt_sha256": "739197302a8eb1ab4389332797f952bc983be9916e1f02f638b47b5b85391044",
+  "claims": [
+    "Offline regression evidence; not model task accuracy or an external project pilot.",
+    "No hard isolation claim. Behavioral boundaries and file ownership checks only."
+  ],
+  "token_usage": {
+    "reason": "Current-version offline checks do not invoke a model or measure token savings.",
+    "status": "unavailable"
+  }
+}
