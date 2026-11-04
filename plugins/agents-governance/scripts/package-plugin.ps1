@@ -1,11 +1,13 @@
 #requires -Version 7.4
-param([string]$OutputPath)
+param([string]$OutputPath,[string]$Root)
 . "$PSScriptRoot/agent-runtime.ps1"
 
-$root=Get-AgentRoot
-$plugin=Resolve-SafePath $root 'plugins/agents-governance'
-$manifest=Read-AgentJson (Join-Path $plugin 'plugin.json') (Resolve-SafePath $root 'schemas/plugin.schema.json')
-if($manifest.name -ne 'agents-governance' -or $manifest.version -ne (Read-AgentJson (Join-Path $root 'agents.json')).version) { throw 'Plugin version does not match the project.' }
+$root=if($Root){[IO.Path]::GetFullPath($Root)}else{try{Get-AgentRoot}catch{[IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))}}
+$plugin=if(Test-Path -LiteralPath (Join-Path $root 'plugins/agents-governance/plugin.json')){Resolve-SafePath $root 'plugins/agents-governance'}else{$root}
+$pluginSchema=if(Test-Path -LiteralPath (Join-Path $root 'schemas/plugin.schema.json')){Resolve-SafePath $root 'schemas/plugin.schema.json'}else{Resolve-SafePath $plugin 'schemas/plugin.schema.json'}
+$manifest=Read-AgentJson (Join-Path $plugin 'plugin.json') $pluginSchema
+$projectVersion=if(Test-Path -LiteralPath (Join-Path $root 'agents.json')){(Read-AgentJson (Join-Path $root 'agents.json')).version}else{$manifest.version}
+if($manifest.name -ne 'agents-governance' -or $manifest.version -ne $projectVersion) { throw 'Plugin version does not match the project.' }
 $files=@(Get-ChildItem -LiteralPath $plugin -Recurse -File|Where-Object { $_.FullName -notmatch '[\\/](\.git|runtime|__pycache__)[\\/]' }|Sort-Object { [IO.Path]::GetRelativePath($plugin,$_.FullName).Replace('\','/') })
 foreach($file in $files) {
     $relative=[IO.Path]::GetRelativePath($plugin,$file.FullName).Replace('\','/')

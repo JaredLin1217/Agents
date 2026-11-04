@@ -37,6 +37,10 @@ function Write-AgentCliResult($Value,[int]$ExitCode=0) {
 }
 function Get-CliRoot {
     if($Root) { return [IO.Path]::GetFullPath($Root) }
+    $scriptRoot=Split-Path -Parent $PSScriptRoot
+    if((Test-Path -LiteralPath (Join-Path $scriptRoot 'agents.json')) -or
+       (Test-Path -LiteralPath (Join-Path $scriptRoot '.agents/managed.json')) -or
+       (Test-Path -LiteralPath (Join-Path $scriptRoot 'plugin.json'))) { return [IO.Path]::GetFullPath($scriptRoot) }
     return Get-AgentRoot
 }
 function Get-CliRemainingQuery {
@@ -78,7 +82,7 @@ try {
         plan { Write-AgentCliResult (Get-AgentPlan $projectRoot) }
         validate {
             $p=if($Subcommand -eq 'checkpoint'){'Checkpoint'}else{'Changed'}
-            $args=@('-Scope',$Scope,'-Profile',$p);if($Path.Count){$args+=@('-Path',($Path -join ','))};if($Json){$args+=@('-Json')};if($RequireReleaseReady){$args+=@('-RequireReleaseReady')}
+            $args=@('-Scope',$Scope,'-Profile',$p,'-Root',$projectRoot);if($Path.Count){$args+=@('-Path',($Path -join ','))};if($Json){$args+=@('-Json')};if($RequireReleaseReady){$args+=@('-RequireReleaseReady')}
             Invoke-CliScript 'scripts/validate.ps1' $args
         }
         memory {
@@ -95,16 +99,16 @@ try {
         }
         deploy {
             if(-not $TargetPath){throw 'TargetPath is required for deploy.'}
-            $args=@('-TargetPath',$TargetPath,'-LayoutProfile',$Layout);if($DryRun -or $Subcommand -eq 'dry-run'){$args+=@('-DryRun')};if($ExpectedDigest){$args+=@('-ExpectedPlanDigest',$ExpectedDigest)};Invoke-CliScript 'scripts/deploy-agents-workflow.ps1' $args
+            $args=@('-TargetPath',$TargetPath,'-LayoutProfile',$Layout,'-Provider',$projectRoot);if($DryRun -or $Subcommand -eq 'dry-run'){$args+=@('-DryRun')};if($ExpectedDigest){$args+=@('-ExpectedPlanDigest',$ExpectedDigest)};Invoke-CliScript 'scripts/deploy-agents-workflow.ps1' $args
         }
         init {
-            if(-not $TargetPath){$TargetPath=$projectRoot};$args=@('-TargetPath',$TargetPath,'-LayoutProfile',$Layout);if(-not $Apply){$args+=@('-DryRun')}elseif(-not $ExpectedDigest){throw 'init -Apply requires ExpectedDigest from the dry-run plan'}else{$args+=@('-ExpectedPlanDigest',$ExpectedDigest)};Invoke-CliScript 'scripts/deploy-agents-workflow.ps1' $args
+            if(-not $TargetPath){$TargetPath=$projectRoot};$args=@('-TargetPath',$TargetPath,'-LayoutProfile',$Layout,'-Provider',$projectRoot);if(-not $Apply){$args+=@('-DryRun')}elseif(-not $ExpectedDigest){throw 'init -Apply requires ExpectedDigest from the dry-run plan'}else{$args+=@('-ExpectedPlanDigest',$ExpectedDigest)};Invoke-CliScript 'scripts/deploy-agents-workflow.ps1' $args
         }
         doctor {
             $settings=Get-ProjectSettings $projectRoot
             Write-AgentCliResult ([ordered]@{schema_version='agents-doctor/v5';root=$projectRoot;version=(Read-AgentJson (Join-Path $projectRoot 'agents.json')).version;powershell=$PSVersionTable.PSVersion.ToString();git=[string](& git --version);git_root=([string](Invoke-AgentGit $projectRoot @('rev-parse','--show-toplevel')));telemetry='disabled';runtime=(Test-Path (Join-Path $projectRoot '.agents/runtime'));managed=(Test-Path (Join-Path $projectRoot '.agents/managed.json'));status='ready'})
         }
-        package { Invoke-CliScript 'scripts/package-plugin.ps1' @('-OutputPath',$OutputPath) }
+        package { $args=@('-Root',$projectRoot);if($OutputPath){$args+=@('-OutputPath',$OutputPath)};Invoke-CliScript 'scripts/package-plugin.ps1' $args }
     }
 } catch {
     $error=[ordered]@{ok=$false;schema_version='agents-error/v5';error_code='AGENTS_CLI_ERROR';message=$_.Exception.Message;command=$Command;subcommand=$Subcommand}

@@ -1,9 +1,10 @@
 # Agents 5.0 review
 
-Reviewed on 2026-11-05 from the clean `main` checkout at 46d132f. The project
-purpose remains a portable governance workflow for authorized engineering:
-versioned rules, checked knowledge, recoverable work and owned deployment
-changes. The review covers the 1.x through 4.x history and the current v4 tree.
+Reviewed on 2026-11-05 as a v5 release review. The v4 checkout at `46d132f`
+was the baseline used for the historical comparison; the resulting release is
+the `agents-project/v5` contract. The project purpose remains a portable
+governance workflow for authorized engineering: versioned rules, checked
+knowledge, recoverable work and owned deployment changes.
 
 ## Decisions
 
@@ -26,10 +27,11 @@ Codex skills. Agents 4.x added immutable knowledge, task revisions, runtime
 retention and release evidence. v5 keeps the purpose while removing the remaining
 legacy readers and packaging the workflow for repeatable cross-project use.
 
-The current checkout was still v4.0.0 with a PowerShell-only command surface,
-Windows-focused regression fixtures, a v3 deployment manifest schema, no unified
-CLI, and no portable plugin manifest. The current source registry was due for a
-fresh review; official content hashes were refreshed on 2026-11-05.
+The baseline lacked a unified CLI, portable plugin manifest and v5 migration
+boundary. The v5 release adds those contracts, keeps historical schemas under
+`docs/history` and `migrations`, and refreshes the official content hashes as
+of 2026-11-04 UTC. Final source and release readiness are bound to the checked-in
+v5 release evidence rather than this baseline description.
 
 ## Official boundary
 

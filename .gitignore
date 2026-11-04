@@ -1,9 +1,3 @@
-# Historical local agent handoff fallback state
-docs/agent-status.md
-docs/agent-events/
-.agents/docs/agent-status.md
-.agents/docs/agent-events/
-
 # Local Codex App runtime state
 .codex/config.toml
 .codex/environments/environment.toml
@@ -12,18 +6,6 @@ docs/agent-events/
 # Project-local runtime state, including all historical subdirectories
 .agents/runtime/
 .workflow/
-
-# Temporary controller/employee approval reports
-docs/tmp-approval-*/
-.agents/docs/tmp-approval-*/
-
-# Local hard-isolation evidence records
-docs/hard-isolation-evidence/
-.agents/docs/hard-isolation-evidence/
-
-# Local runtime multi-agent validation records
-docs/runtime-multi-agent-validation/
-.agents/docs/runtime-multi-agent-validation/
 
 # Common local OS/editor noise
 .DS_Store

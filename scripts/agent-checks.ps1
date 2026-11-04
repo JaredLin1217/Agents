@@ -80,7 +80,7 @@ function Test-AgentEvidence([string]$Root,[switch]$Capture) {
     if(@($changes|Where-Object { $_ -ne $path }).Count) { throw 'Evidence commit range contains undeclared source changes.' }
     if($entry.result -ne 'passed' -or @($entry.commands|Where-Object { $_.result -ne 'passed' -and -not($_.id -eq 'evidence' -and $_.result -eq 'not_applicable') }).Count) { throw 'Release evidence contains incomplete or failed checks.' }
     if(@($entry.commands|Group-Object id|Where-Object Count -GT 1).Count) { throw 'Duplicate evidence commands.' }
-    foreach($id in @('syntax','json-schema','ownership','knowledge','sources','size','regression','regression-v5','evidence','package','plugin-package','diff')) {
+    foreach($id in @('syntax','json-schema','ownership','knowledge','sources','size','regression','regression-v5','regression-deployment','evidence','package','plugin-package','diff')) {
         if($id -notin $entry.commands.id) { throw "Required evidence check missing: $id" }
     }
     return @{status='passed';details=@('Evidence matches committed source content and current contract.')}
@@ -119,7 +119,7 @@ function Invoke-AgentChecks {
         $deepPaths=@($impact|Where-Object { $_ -match '^(tests/|schemas/|scripts/(agent-|runtime-artifacts|validate|agents|migrate-|package-plugin))' })
         if($Scope -eq 'Provider' -and ($Profile -eq 'Checkpoint' -or $deepPaths.Count)) {
             $checks.Add(@{id='size';command='Test-AgentSizes (measurement only)';action={Test-AgentSizes $Root}})
-            foreach($test in @(@{id='regression';path='tests/test-workflow.ps1'},@{id='regression-v5';path='tests/test-v5.ps1'})) {
+            foreach($test in @(@{id='regression';path='tests/test-workflow.ps1'},@{id='regression-v5';path='tests/test-v5.ps1'},@{id='regression-deployment';path='tests/test-v5-deployment.ps1'})) {
                 $scriptCopy=Resolve-SafePath $Root $test.path
                 $action={ Invoke-AgentChild $Root $run.id {
                     $out=@(& pwsh -NoProfile -File $scriptCopy 2>&1)

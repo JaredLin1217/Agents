@@ -24,9 +24,11 @@ path or missing v4 manifest stops the migration.
 `plugins/agents-governance/plugin.json` is the portable manifest and
 `.codex-plugin/plugin.json` is its Codex compatibility fallback. The package
 contains skills and local scripts but no MCP server, lifecycle hook, telemetry,
-secret or transcript. Run `scripts/package-plugin.ps1` to create a deterministic
-ZIP and SHA-256 record under registered runtime storage. Hooks remain a separate
-trusted template.
+secret or transcript. The v4 migration schema is included so an extracted
+plugin can perform its guarded migration without a repository-relative
+dependency. Run `scripts/package-plugin.ps1` to create a deterministic ZIP and
+SHA-256 record under registered runtime storage. Hooks remain a separate trusted
+template.
 
 ## Validation and publication
 
