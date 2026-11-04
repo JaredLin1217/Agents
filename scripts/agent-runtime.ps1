@@ -126,7 +126,8 @@ function Complete-AgentRun {
         })
         foreach($entry in $prepared) { Write-AgentJson (Get-RuntimePath $Root "ledger/artifacts/$($entry.id).json") $entry -Root $Root }
         $run.status=$Status;$run.completed_utc=$clock.ToString('o');Write-AgentJson $runPath $run -Root $Root
-        Add-RuntimeEvent $Root $RunId $Status @{artifacts=@($prepared.id)}
+        $artifactIds=@($prepared|ForEach-Object id)
+        Add-RuntimeEvent $Root $RunId $Status @{artifacts=$artifactIds}
         return $run
     } finally { Exit-RuntimeLock $lock }
 }

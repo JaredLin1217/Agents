@@ -14,6 +14,9 @@ function Deploy([string]$Target,[string]$Layout,[string]$ProviderRoot=$provider)
     return @{plan=$plan;result=$result}
 }
 try {
+    $emptyRun=New-AgentRun $provider 'Empty runtime completion fixture' 'test-v5-deployment-empty'
+    $emptyClosed=Complete-AgentRun $provider $emptyRun.id 'completed'
+    Assert ($emptyClosed.status -eq 'completed') 'Empty run completion left an invalid runtime event'
     $mirror=Join-Path $scratch 'provider-mirror';[IO.Directory]::CreateDirectory($mirror)|Out-Null
     foreach($sourcePath in @('agents.json','docs/agents/deployment.json','schemas/deployment.schema.json','schemas/managed.schema.json')) {
         $mirrorPath=Join-Path $mirror $sourcePath;[IO.Directory]::CreateDirectory((Split-Path -Parent $mirrorPath))|Out-Null
