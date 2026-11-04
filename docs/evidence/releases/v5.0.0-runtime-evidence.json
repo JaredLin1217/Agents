@@ -1,18 +1,18 @@
 {
   "schema_version": "agents-runtime-evidence/v5",
   "workflow_version": "5.0.0",
-  "source_commit": "8428d0099220424af6f29525c627032b27569a72",
-  "validated_content_digest": "651edf35aa7a8632016dc5592b89119ed7ccea1d50356a744be658e7113650f0",
+  "source_commit": "23116c27d7acf94f335327ee75b3e2b18a3b1c1e",
+  "validated_content_digest": "3befe4ca493b5a23214d8969a29f56465ef3bb7568eb2caa9511af8643d850eb",
   "excluded_paths": [
     "docs/evidence/releases/v5.0.0-runtime-evidence.json"
   ],
-  "run_started_utc": "2026-11-04T21:42:04.7043850+00:00",
-  "run_finished_utc": "2026-11-04T21:43:21.8876009+00:00",
+  "run_started_utc": "2026-11-04T22:13:55.2948764+00:00",
+  "run_finished_utc": "2026-11-04T22:15:44.9468161+00:00",
   "working_tree_status_at_capture": "clean",
-  "duration_ms": 79388,
+  "duration_ms": 112158,
   "host": {
-    "git": "git version 2.55.0.windows.5",
-    "powershell": "7.6.5"
+    "powershell": "7.6.5",
+    "git": "git version 2.55.0.windows.5"
   },
   "commands": [
     {
@@ -20,7 +20,7 @@
       "command": "Test-AgentSyntax",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 131,
+      "duration_ms": 122,
       "retry_count": 0,
       "details": []
     },
@@ -29,7 +29,7 @@
       "command": "Test-AgentSchemas",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 168,
+      "duration_ms": 185,
       "retry_count": 0,
       "details": []
     },
@@ -38,7 +38,7 @@
       "command": "Test-AgentOwnership",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 152,
+      "duration_ms": 139,
       "retry_count": 0,
       "details": []
     },
@@ -47,7 +47,7 @@
       "command": "Test-AgentKnowledge",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 140,
+      "duration_ms": 135,
       "retry_count": 0,
       "details": []
     },
@@ -56,7 +56,7 @@
       "command": "Test-AgentSources",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 16,
+      "duration_ms": 17,
       "retry_count": 0,
       "details": []
     },
@@ -65,10 +65,10 @@
       "command": "Test-AgentSizes (measurement only)",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 356,
+      "duration_ms": 329,
       "retry_count": 0,
       "details": [
-        "production_bytes=125180; deployable_bytes=166503"
+        "production_bytes=126359; deployable_bytes=167863"
       ]
     },
     {
@@ -76,7 +76,7 @@
       "command": "pwsh -NoProfile -File tests/test-workflow.ps1",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 34353,
+      "duration_ms": 36796,
       "retry_count": 0,
       "details": [
         "PASS: 15 v5 core assertions"
@@ -87,10 +87,21 @@
       "command": "pwsh -NoProfile -File tests/test-v5.ps1",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 28205,
+      "duration_ms": 31502,
       "retry_count": 0,
       "details": [
-        "PASS: 9 v5 packaging assertions"
+        "PASS: 13 v5 packaging assertions"
+      ]
+    },
+    {
+      "id": "regression-deployment",
+      "command": "pwsh -NoProfile -File tests/test-v5-deployment.ps1",
+      "result": "passed",
+      "exit_code": 0,
+      "duration_ms": 25371,
+      "retry_count": 0,
+      "details": [
+        "PASS: 114 v5 deployment assertions"
       ]
     },
     {
@@ -98,7 +109,7 @@
       "command": "Test-AgentEvidence",
       "result": "not_applicable",
       "exit_code": 0,
-      "duration_ms": 2,
+      "duration_ms": 4,
       "retry_count": 0,
       "details": [
         "Capture validates committed source; new evidence is checked after generation."
@@ -109,10 +120,10 @@
       "command": "export-release-package.ps1",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 4776,
+      "duration_ms": 5205,
       "retry_count": 0,
       "details": [
-        "{\"layout\":\"root-layout\",\"path\":\".agents/runtime/runs/run-72a1536626864f988e05c7919dff2fcf/package\",\"run_id\":\"run-72a1536626864f988e05c7919dff2fcf\",\"artifact_id\":\"artifact-3e0978b596b84c358b3b9871b81494ba\",\"files\":38}"
+        "{\"artifact_id\":\"artifact-a4e0142dac1a4001a1207dd2eb503630\",\"files\":38,\"layout\":\"root-layout\",\"run_id\":\"run-d29d51651908401cb7d7b90bc31b49de\",\"path\":\".agents/runtime/runs/run-d29d51651908401cb7d7b90bc31b49de/package\"}"
       ]
     },
     {
@@ -120,10 +131,10 @@
       "command": "package-plugin.ps1",
       "result": "passed",
       "exit_code": 0,
-      "duration_ms": 4377,
+      "duration_ms": 4853,
       "retry_count": 0,
       "details": [
-        "{\"sha256\":\"ed0fb909b09709a781d3a372df167262eda15a5d55428b44228501a86249b718\",\"version\":\"5.0.0\",\"files\":36,\"hooks\":\"excluded\",\"path\":\".agents/runtime/runs/run-721b074b5ebd48b9b6845503285602a5/plugin/agents-governance-5.0.0.zip\",\"schema_version\":\"agents-plugin-package/v5\",\"telemetry\":\"disabled\",\"name\":\"agents-governance\"}"
+        "{\"hooks\":\"excluded\",\"schema_version\":\"agents-plugin-package/v5\",\"files\":38,\"telemetry\":\"disabled\",\"sha256\":\"5a897fc019c30b769156ade4e5ca893a66e43d840224a16bd76fa26355dda9e8\",\"path\":\".agents/runtime/runs/run-52f431b345f94e769ed8db421529ff51/plugin/agents-governance-5.0.0.zip\",\"version\":\"5.0.0\",\"name\":\"agents-governance\"}"
       ]
     },
     {
@@ -138,8 +149,8 @@
   ],
   "result": "passed",
   "scope": "Provider and disposable local targets only",
-  "review_after_utc": "2026-12-04T21:43:24.5301917+00:00",
-  "receipt_sha256": "739197302a8eb1ab4389332797f952bc983be9916e1f02f638b47b5b85391044",
+  "review_after_utc": "2026-12-04T22:15:47.9073989+00:00",
+  "receipt_sha256": "22020d3ce946a74867f2640214f9b2605ab9f268338a26451f993b214705af64",
   "claims": [
     "Offline regression evidence; not model task accuracy or an external project pilot.",
     "No hard isolation claim. Behavioral boundaries and file ownership checks only."
