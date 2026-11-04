@@ -11,7 +11,7 @@ knowledge, recoverable work and owned deployment changes.
 | Area | Keep | Remove or replace |
 |---|---|---|
 | Project purpose | Rules, knowledge, task recovery and deployment ownership | Hosted multi-tenant service, billing and background memory service are outside this release |
-| Instructions | Short root guidance, scoped skills and native precedence | Historical roster, controller, dispatch, fixed model, worker, compaction and score rules |
+| Instructions | Short root guidance, scoped skills and native precedence | Retired orchestration, host pinning, worker-count, compaction and scoring rules |
 | Memory | Immutable source-checked records and explicit retirement | Native memory as an authority or permission source |
 | Tasks | Revisioned goals, acceptance, receipts, Git/file snapshots and action history | Silent v3/v4 fallback in the active v5 reader |
 | Runtime | Registered runs, state, ledger, retention, cleanup preview and tombstones | Wholesale runtime clearing and unregistered payloads |
@@ -21,8 +21,8 @@ knowledge, recoverable work and owned deployment changes.
 ## History and drift
 
 Agents 1.x established isolation and reusable rules. Agents 2.x added ledgers,
-dispatch and deployment readiness. Agents 3.x removed mandatory routing,
-model-host probes, comparison runners and synthetic scores in favor of native
+workflow coordination and deployment readiness. Agents 3.x removed mandatory
+routing, host probes, comparison runners and synthetic scoring in favor of native
 Codex skills. Agents 4.x added immutable knowledge, task revisions, runtime
 retention and release evidence. v5 keeps the purpose while removing the remaining
 legacy readers and packaging the workflow for repeatable cross-project use.
@@ -42,7 +42,7 @@ Astra observations; it is not measured Sol behavior.
 
 Codex instruction files merge by directory and support overrides. Skills use
 progressive disclosure and concise descriptions. Native memory is a local,
-generated recall layer with v1/v2 storage controls. Hooks use trusted JSON event
+generated recall layer with host storage controls. Hooks use trusted JSON event
 handlers and must not depend on transcript internals. Plugins use a portable root
 manifest with a Codex compatibility overlay; lifecycle-hook bundles remain local
 opt-in artifacts rather than public plugin content.
