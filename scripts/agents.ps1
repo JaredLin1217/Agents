@@ -37,14 +37,29 @@ function Write-AgentCliResult($Value,[int]$ExitCode=0) {
 }
 function Get-CliRoot {
     if($Root) { return [IO.Path]::GetFullPath($Root) }
-    $scriptRoot=Split-Path -Parent $PSScriptRoot
-    if((Test-Path -LiteralPath (Join-Path $scriptRoot 'agents.json')) -or
-       (Test-Path -LiteralPath (Join-Path $scriptRoot '.agents/managed.json')) -or
-       (Test-Path -LiteralPath (Join-Path $scriptRoot 'plugin.json'))) { return [IO.Path]::GetFullPath($scriptRoot) }
-    return Get-AgentRoot
+    $scriptContainer=[IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
+    $candidates=@($scriptContainer,[IO.Path]::GetFullPath((Split-Path -Parent $scriptContainer)))|Select-Object -Unique
+    foreach($candidate in $candidates) {
+        if((Test-Path -LiteralPath (Join-Path $candidate 'agents.json')) -or
+           (Test-Path -LiteralPath (Join-Path $candidate '.agents/managed.json')) -or
+           (Test-Path -LiteralPath (Join-Path $candidate 'plugin.json'))) {
+            return $candidate
+        }
+    }
+    try { return Get-AgentRoot $PSScriptRoot } catch { return Get-AgentRoot }
 }
 function Get-CliRemainingQuery {
     return @($Remaining|Where-Object { $_ -and $_ -notmatch '^--?(json|readonly|expand|verify-official|dry-run|apply)$' })
+}
+function Resolve-CliScriptPath([string]$Script) {
+    $root=Get-CliRoot
+    $candidates=@($Script)
+    if($Script -match '^scripts/') { $candidates+=@(".agents/$Script") }
+    foreach($candidate in $candidates) {
+        $full=Resolve-SafePath $root $candidate
+        if(Test-Path -LiteralPath $full -PathType Leaf) { return $full }
+    }
+    throw "CLI script is not deployed for this layout: $Script"
 }
 function Get-AgentPlan([string]$ProjectRoot) {
     $files=@(Get-AgentFiles $ProjectRoot)
@@ -63,7 +78,7 @@ function Get-AgentPlan([string]$ProjectRoot) {
     return $plan
 }
 function Invoke-CliScript([string]$Script,[string[]]$Arguments) {
-    $full=Resolve-SafePath (Get-CliRoot) $Script
+    $full=Resolve-CliScriptPath $Script
     $out=@(& pwsh -NoProfile -File $full @Arguments 2>&1)
     $code=$LASTEXITCODE
     if($Json) {
@@ -106,12 +121,14 @@ try {
         }
         doctor {
             $settings=Get-ProjectSettings $projectRoot
-            Write-AgentCliResult ([ordered]@{schema_version='agents-doctor/v5';root=$projectRoot;version=(Read-AgentJson (Join-Path $projectRoot 'agents.json')).version;powershell=$PSVersionTable.PSVersion.ToString();git=[string](& git --version);git_root=([string](Invoke-AgentGit $projectRoot @('rev-parse','--show-toplevel')));telemetry='disabled';runtime=(Test-Path (Join-Path $projectRoot '.agents/runtime'));managed=(Test-Path (Join-Path $projectRoot '.agents/managed.json'));status='ready'})
+            $versionPath=Join-Path $projectRoot 'agents.json'
+            if(-not (Test-Path -LiteralPath $versionPath -PathType Leaf)) { $versionPath=Join-Path $projectRoot '.agents/managed.json' }
+            Write-AgentCliResult ([ordered]@{schema_version='agents-doctor/v5';root=$projectRoot;version=(Read-AgentJson $versionPath).version;powershell=$PSVersionTable.PSVersion.ToString();git=[string](& git --version);git_root=([string](Invoke-AgentGit $projectRoot @('rev-parse','--show-toplevel')));telemetry='disabled';runtime=(Test-Path (Join-Path $projectRoot '.agents/runtime'));managed=(Test-Path (Join-Path $projectRoot '.agents/managed.json'));status='ready'})
         }
         package { $args=@('-Root',$projectRoot);if($OutputPath){$args+=@('-OutputPath',$OutputPath)};Invoke-CliScript 'scripts/package-plugin.ps1' $args }
     }
 } catch {
-    $error=[ordered]@{ok=$false;schema_version='agents-error/v5';error_code='AGENTS_CLI_ERROR';message=$_.Exception.Message;command=$Command;subcommand=$Subcommand}
-    $error|ConvertTo-Json -Depth 20 -Compress
+    $cliError=[ordered]@{ok=$false;schema_version='agents-error/v5';error_code='AGENTS_CLI_ERROR';message=$_.Exception.Message;command=$Command;subcommand=$Subcommand}
+    $cliError|ConvertTo-Json -Depth 20 -Compress
     exit 2
 }

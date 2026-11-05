@@ -67,6 +67,11 @@
       "dot-agents-layout": ".agents/schemas/sources.schema.json"
     },
     {
+      "source": "schemas/project-decision.schema.json",
+      "root-layout": "schemas/project-decision.schema.json",
+      "dot-agents-layout": ".agents/schemas/project-decision.schema.json"
+    },
+    {
       "source": "docs/agents/sources.json",
       "root-layout": "docs/agents/sources.json",
       "dot-agents-layout": ".agents/docs/agents/sources.json"

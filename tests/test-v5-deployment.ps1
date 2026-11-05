@@ -48,6 +48,15 @@ try {
         Assert ($LASTEXITCODE -eq 0) "$layout Consumer validation failed: $($consumer -join ' ')"
         $consumerReport=$consumer -join "`n"|ConvertFrom-Json
         Assert ($consumerReport.passed -and $consumerReport.scope -eq 'Consumer') "$layout Consumer receipt invalid"
+        $targetCli=if($layout -eq 'root-layout'){Join-Path $target 'scripts/agents.ps1'}else{Join-Path $target '.agents/scripts/agents.ps1'}
+        $doctor=@(& pwsh -NoProfile -File $targetCli -Root $target doctor -Json 2>&1)
+        Assert ($LASTEXITCODE -eq 0) "$layout Consumer CLI doctor failed: $($doctor -join ' ')"
+        $doctorReport=$doctor -join "`n"|ConvertFrom-Json
+        Assert ($doctorReport.status -eq 'ready' -and $doctorReport.version -eq '5.0.0') "$layout Consumer CLI doctor receipt invalid"
+        $cliValidate=@(& pwsh -NoProfile -File $targetCli -Root $target validate changed -Scope Consumer -Json 2>&1)
+        Assert ($LASTEXITCODE -eq 0) "$layout Consumer CLI validation failed: $($cliValidate -join ' ')"
+        $cliValidateReport=$cliValidate -join "`n"|ConvertFrom-Json
+        Assert ($cliValidateReport.passed -and $cliValidateReport.scope -eq 'Consumer') "$layout Consumer CLI validation receipt invalid"
         $cli=@(& pwsh -NoProfile -File (Join-Path $provider 'scripts/agents.ps1') -Root $provider deploy dry-run -TargetPath $target -Layout $layout -Json 2>&1)
         Assert ($LASTEXITCODE -eq 0) "$layout CLI deploy dry-run failed: $($cli -join ' ')"
         $cliPlan=$cli -join "`n"|ConvertFrom-Json
